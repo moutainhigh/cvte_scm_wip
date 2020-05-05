@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.controller;
+package com.cvte.scm.wip.controller.common.health;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
