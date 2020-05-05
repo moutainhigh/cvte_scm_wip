@@ -7,9 +7,17 @@
     <groupId>scm</groupId>
     <artifactId>scm-wip</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>wip-controller</module>
+        <module>wip-app</module>
+        <module>wip-domain</module>
+        <module>wip-infrastructure</module>
+        <module>wip-common</module>
+        <module>wip-spi</module>
+    </modules>
 
     <name>scm-wip-backstage</name>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
