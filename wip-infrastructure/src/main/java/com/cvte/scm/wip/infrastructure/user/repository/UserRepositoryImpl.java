@@ -14,6 +14,7 @@ import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysPost;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.UserBaseDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
+@Repository
 public class UserRepositoryImpl implements UserRepository {
 
     @Autowired
