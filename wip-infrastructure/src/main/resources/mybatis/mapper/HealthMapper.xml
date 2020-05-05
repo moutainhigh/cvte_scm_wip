@@ -3,6 +3,6 @@
 <mapper namespace="com.cvte.scm.wip.infrastructure.health.dal.HealthMapper">
 
     <select id="getMessage" resultType="java.lang.String">
-        select 'service is healthy' from dual
+        select 'service is healthy'
     </select>
 </mapper>

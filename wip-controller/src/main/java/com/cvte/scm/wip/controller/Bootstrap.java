@@ -11,9 +11,14 @@ import com.cvte.csb.log.annotation.EnableCSBLog;
 import com.cvte.csb.msg.annotation.EnableCSBMsg;
 import com.cvte.csb.store.annotation.EnableCSBStore;
 import com.cvte.csb.web.annotation.EnableCSBWeb;
+import com.cvte.scm.wip.infrastructure.boot.config.AppConfiguration;
+import com.cvte.scm.wip.infrastructure.boot.config.DefaultUserTokenConfig;
+import com.cvte.scm.wip.infrastructure.boot.config.WipDataSourceConfig;
+import com.cvte.scm.wip.infrastructure.boot.config.WipMapperConfigurer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
@@ -23,17 +28,17 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableCSB
 @EnableCSBMybatis
 @EnableCSBWeb
-@EnableCSBConfig
+@EnableCSBConfig(value = "wip-common")
 @EnableCSBRedisCache
 @EnableCSBJob
 
 @EnableCSBMsg
 @EnableCSBLog
-@ComponentScan({"com.cvte.scm.demo", "com.cvte.csb.wfp.api.sdk"})
+@ComponentScan({"com.cvte.scm.wip", "com.cvte.csb.wfp.api.sdk"})
 @EnableCSBJwt
 @EnableAsync
 @EnableCSBCloud
-@EnableFeignClients(basePackages = {"com.cvte.scm.demo.client"})
+@EnableFeignClients(basePackages = {"com.cvte.scm.wip.infrastructure.client"})
 @EnableCSBStore
 public class Bootstrap {
 

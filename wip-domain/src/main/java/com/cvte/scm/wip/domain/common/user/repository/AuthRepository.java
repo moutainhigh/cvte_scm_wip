@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.common.user.repository;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import org.springframework.stereotype.Repository;
 
 /**
   * 
@@ -9,6 +10,7 @@ import com.cvte.csb.core.interfaces.vo.RestResponse;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
+@Repository
 public interface AuthRepository {
 
     RestResponse login(String account, String password);

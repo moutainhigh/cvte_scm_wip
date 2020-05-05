@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.common.user.repository;
 
 import com.cvte.scm.wip.domain.common.user.entity.RoleEntity;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
+@Repository
 public interface RoleRepository {
 
     List<RoleEntity> listRoleByUserId(String userId);

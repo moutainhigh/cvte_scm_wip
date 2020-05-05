@@ -13,7 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableCSB
 @EnableCSBMybatis
 @EnableCSBConfig
-@ComponentScan({"com.cvte.scm.demo"})
+@ComponentScan({"com.cvte.scm.wip"})
 public class TestStarter {
 
     public static void main(String[] args) {

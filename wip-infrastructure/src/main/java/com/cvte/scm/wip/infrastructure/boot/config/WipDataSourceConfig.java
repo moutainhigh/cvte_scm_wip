@@ -26,7 +26,7 @@ import java.util.Properties;
  * @Date: 2019/12/25 11:01
  */
 @Configuration
-public class DemoDataSourceConfig {
+public class WipDataSourceConfig {
 
     @Value("${spring.busi.datasource.driver-class-name}")
     private String driveClassName ;
@@ -69,13 +69,13 @@ public class DemoDataSourceConfig {
     @Value("${spring.busi.datasource.maxOpenPreparedStatements}")
     private String maxOpenPreparedStatements;
 
-    /*@Value("${demo.mybatis.basePackage}")
-    private String demoMybatisBasePackage;
+    /*@Value("${wip.mybatis.basePackage}")
+    private String wipMybatisBasePackage;
 
-    @Value("${demo.mybatis.xmlLocation}")
-    private String demoMybatisXmlLocation;*/
+    @Value("${wip.mybatis.xmlLocation}")
+    private String wipMybatisXmlLocation;*/
 
-    @Bean(name = "demoDataSource")
+    @Bean(name = "wipDataSource")
     public DataSource druidDataSource() {
 
         DruidDataSource druidDataSource = new DruidDataSource();
@@ -106,8 +106,8 @@ public class DemoDataSourceConfig {
     }
 
 
-    @Bean(name = "demoSqlSessionFactory")
-    public SqlSessionFactory testSqlSessionFactory(@Qualifier("demoDataSource") DataSource dataSource) throws Exception {
+    @Bean(name = "wipSqlSessionFactory")
+    public SqlSessionFactory testSqlSessionFactory(@Qualifier("wipDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
 
@@ -123,7 +123,7 @@ public class DemoDataSourceConfig {
 
         bean.setPlugins(new Interceptor[]{pageHelper});
 
-        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mapper/oracle/**/*.xml"));
+        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mybatis/**/*.xml"));
 
         /***
          * 必须在setMapperLocations 方法后设置配置
@@ -134,13 +134,13 @@ public class DemoDataSourceConfig {
         return sqlSessionFactory;
     }
 
-    @Bean(name = "demoTransactionManager")
-    public DataSourceTransactionManager testTransactionManager(@Qualifier("demoDataSource") DataSource dataSource) {
+    @Bean(name = "wipTransactionManager")
+    public DataSourceTransactionManager testTransactionManager(@Qualifier("wipDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Bean(name = "demoSqlSessionTemplate")
-    public SqlSessionTemplate testSqlSessionTemplate(@Qualifier("demoSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
+    @Bean(name = "wipSqlSessionTemplate")
+    public SqlSessionTemplate testSqlSessionTemplate(@Qualifier("wipSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }
