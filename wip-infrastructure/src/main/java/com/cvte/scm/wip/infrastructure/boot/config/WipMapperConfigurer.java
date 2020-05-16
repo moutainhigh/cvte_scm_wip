@@ -19,11 +19,11 @@ import java.util.Properties;
 @AutoConfigureAfter(WipDataSourceConfig.class)
 public class WipMapperConfigurer implements EnvironmentAware {
 
-    @Bean(name = "wipMapperScannerConfigurer")
+    @Bean(name = "pgMapperScannerConfigurer")
     public MapperScannerConfigurer mapperScannerConfigurer() {
         MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
-        mapperScannerConfigurer.setSqlSessionFactoryBeanName("wipSqlSessionFactory");
-        mapperScannerConfigurer.setBasePackage("com.cvte.scm.wip.infrastructure.**.dal");
+        mapperScannerConfigurer.setSqlSessionFactoryBeanName("pgSqlSessionFactory");
+        mapperScannerConfigurer.setBasePackage("com.cvte.scm.wip.infrastructure.**.mapper");
         Properties properties = new Properties();
         properties.setProperty("ORDER", "BEFORE");
         properties.setProperty("mappers", "tk.mybatis.mapper.common.Mapper,com.cvte.csb.jdbc.mybatis.mapper.IdsMapper,com.cvte.csb.jdbc.mybatis.mapper.BatchMapper");

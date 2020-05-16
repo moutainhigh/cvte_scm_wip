@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.infrastructure.health.dal;
+package com.cvte.scm.wip.infrastructure.health.mapper;
 
 /**
  * @Author: wufeng

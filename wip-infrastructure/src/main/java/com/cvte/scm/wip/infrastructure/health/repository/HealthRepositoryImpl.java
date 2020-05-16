@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.infrastructure.health.repository;
 
 import com.cvte.scm.wip.domain.common.health.repository.HealthRepository;
-import com.cvte.scm.wip.infrastructure.health.dal.HealthMapper;
+import com.cvte.scm.wip.infrastructure.health.mapper.HealthMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 

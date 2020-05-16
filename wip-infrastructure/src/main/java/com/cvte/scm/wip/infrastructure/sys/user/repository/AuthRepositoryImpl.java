@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.infrastructure.user.repository;
+package com.cvte.scm.wip.infrastructure.sys.user.repository;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.domain.common.user.repository.AuthRepository;

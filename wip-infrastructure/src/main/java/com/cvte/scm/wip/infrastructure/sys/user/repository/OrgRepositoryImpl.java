@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.infrastructure.user.repository;
+package com.cvte.scm.wip.infrastructure.sys.user.repository;
 
 import com.alibaba.fastjson.JSON;
 import com.cvte.csb.core.exception.ServerException;

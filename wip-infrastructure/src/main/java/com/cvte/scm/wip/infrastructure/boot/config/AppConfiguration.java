@@ -50,7 +50,7 @@ public class AppConfiguration extends WebMvcConfigurerAdapter {
                 .excludePathPatterns("/**/*export*"
                         , "/admin/sys/behavior/login"
                         , "/admin/sys/behavior/me_info"
-                        , "/admin/demo/value");
+                        , "/admin/sys/user/account/*");
 
         //服务接口 /api/开头
         registry.addInterceptor(apiVerifyInterceptor()).addPathPatterns("/api/**")

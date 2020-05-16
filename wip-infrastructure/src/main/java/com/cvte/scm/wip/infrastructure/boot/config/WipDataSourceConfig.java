@@ -2,6 +2,7 @@ package com.cvte.scm.wip.infrastructure.boot.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
 import com.github.pagehelper.PageHelper;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.sql.DataSource;
@@ -22,14 +24,14 @@ import java.util.Properties;
 /**
  * 业务数据源配置
  *
- * @Author: wufeng
- * @Date: 2019/12/25 11:01
+ * @author : wufeng
+ * Date: 2019/12/25 11:01
  */
 @Configuration
 public class WipDataSourceConfig {
 
     @Value("${spring.busi.datasource.driver-class-name}")
-    private String driveClassName ;
+    private String driveClassName;
     @Value("${spring.busi.datasource.url}")
     private String url;
     @Value("${spring.busi.datasource.username}")
@@ -69,45 +71,29 @@ public class WipDataSourceConfig {
     @Value("${spring.busi.datasource.maxOpenPreparedStatements}")
     private String maxOpenPreparedStatements;
 
-    /*@Value("${wip.mybatis.basePackage}")
-    private String wipMybatisBasePackage;
+    @Value("${spring.datasource.aps.driver-class-name}")
+    private String apsDriveClassName;
+    @Value("${spring.datasource.aps.url}")
+    private String apsUrl;
+    @Value("${spring.datasource.aps.username}")
+    private String apsUserName;
+    @Value("${spring.datasource.aps.password}")
+    private String apsPassword;
 
-    @Value("${wip.mybatis.xmlLocation}")
-    private String wipMybatisXmlLocation;*/
+    /*@Value("${demo.mybatis.basePackage}")
+    private String demoMybatisBasePackage;
 
-    @Bean(name = "wipDataSource")
+    @Value("${demo.mybatis.xmlLocation}")
+    private String demoMybatisXmlLocation;*/
+
+    @Bean(name = "pgDataSource")
+    @Qualifier("pgDataSource")
     public DataSource druidDataSource() {
-
-        DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setUrl(url);
-        druidDataSource.setUsername(userName);
-        druidDataSource.setPassword(password);
-        druidDataSource.setDriverClassName(StringUtils.isNotBlank(driveClassName) ? driveClassName : "com.mysql.jdbc.Driver");
-        druidDataSource.setMaxActive(StringUtils.isNotBlank(maxActive) ? Integer.parseInt(maxActive) : 10);
-        druidDataSource.setInitialSize(StringUtils.isNotBlank(initialSize) ? Integer.parseInt(initialSize) : 1);
-        druidDataSource.setMaxWait(StringUtils.isNotBlank(maxWait) ? Integer.parseInt(maxWait) : 60000);
-        druidDataSource.setMinIdle(StringUtils.isNotBlank(minIdle) ? Integer.parseInt(minIdle) : 3);
-        druidDataSource.setTimeBetweenEvictionRunsMillis(StringUtils.isNotBlank(timeBetweenEvictionRunsMillis) ?
-                Integer.parseInt(timeBetweenEvictionRunsMillis) : 60000);
-        druidDataSource.setMinEvictableIdleTimeMillis(StringUtils.isNotBlank(minEvictableIdleTimeMillis) ?
-                Integer.parseInt(minEvictableIdleTimeMillis) : 300000);
-        druidDataSource.setValidationQuery(StringUtils.isNotBlank(validationQuery) ? validationQuery : "select 'x'");
-        druidDataSource.setTestWhileIdle(StringUtils.isNotBlank(testWhileIdle) ? Boolean.parseBoolean(testWhileIdle) : true);
-        druidDataSource.setTestOnBorrow(StringUtils.isNotBlank(testOnBorrow) ? Boolean.parseBoolean(testOnBorrow) : false);
-        druidDataSource.setTestOnReturn(StringUtils.isNotBlank(testOnReturn) ? Boolean.parseBoolean(testOnReturn) : false);
-        druidDataSource.setPoolPreparedStatements(StringUtils.isNotBlank(poolPreparedStatements) ? Boolean.parseBoolean(poolPreparedStatements) : true);
-        try {
-            druidDataSource.setMaxOpenPreparedStatements(StringUtils.isNotBlank(maxOpenPreparedStatements) ? Integer.parseInt(maxOpenPreparedStatements) : 20);
-            druidDataSource.setFilters(StringUtils.isNotBlank(filters) ? filters : "stat, wall");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return druidDataSource;
+        return createDataSource(url, driveClassName, userName, password);
     }
 
-
-    @Bean(name = "wipSqlSessionFactory")
-    public SqlSessionFactory testSqlSessionFactory(@Qualifier("wipDataSource") DataSource dataSource) throws Exception {
+    @Bean(name = "pgSqlSessionFactory")
+    public SqlSessionFactory testSqlSessionFactory(@Qualifier("pgDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
 
@@ -125,22 +111,69 @@ public class WipDataSourceConfig {
 
         bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mybatis/**/*.xml"));
 
-        /***
-         * 必须在setMapperLocations 方法后设置配置
-         */
+        // 必须在setMapperLocations 方法后设置配置
         SqlSessionFactory sqlSessionFactory = bean.getObject();
         sqlSessionFactory.getConfiguration().setJdbcTypeForNull(JdbcType.NULL);
         sqlSessionFactory.getConfiguration().setMapUnderscoreToCamelCase(true);
         return sqlSessionFactory;
     }
 
-    @Bean(name = "wipTransactionManager")
-    public DataSourceTransactionManager testTransactionManager(@Qualifier("wipDataSource") DataSource dataSource) {
+    @Bean(name = "pgTransactionManager")
+    public DataSourceTransactionManager testTransactionManager(@Qualifier("pgDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
-    @Bean(name = "wipSqlSessionTemplate")
-    public SqlSessionTemplate testSqlSessionTemplate(@Qualifier("wipSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
+    @Bean(name = "pgBatchMapper")
+    public BaseBatchMapper namedParameterJdbcTemplate(@Qualifier("pgDataSource") DataSource pgScmDataSource) {
+        return new BaseBatchMapper(new NamedParameterJdbcTemplate(pgScmDataSource));
+    }
+
+    @Bean(name = "pgSqlSessionTemplate")
+    public SqlSessionTemplate testSqlSessionTemplate(@Qualifier("pgSqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory);
+    }
+
+    private DataSource createDataSource(String url, String driverClassName, String userName, String password) {
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setUrl(url);
+        druidDataSource.setUsername(userName);
+        druidDataSource.setPassword(password);
+        druidDataSource.setDriverClassName(StringUtils.isNotBlank(driverClassName) ? driverClassName : "com.mysql.jdbc.Driver");
+        druidDataSource.setMaxActive(StringUtils.isNotBlank(maxActive) ? Integer.parseInt(maxActive) : 10);
+        druidDataSource.setInitialSize(StringUtils.isNotBlank(initialSize) ? Integer.parseInt(initialSize) : 1);
+        druidDataSource.setMaxWait(StringUtils.isNotBlank(maxWait) ? Integer.parseInt(maxWait) : 60000);
+        druidDataSource.setMinIdle(StringUtils.isNotBlank(minIdle) ? Integer.parseInt(minIdle) : 3);
+        druidDataSource.setTimeBetweenEvictionRunsMillis(StringUtils.isNotBlank(timeBetweenEvictionRunsMillis) ?
+                Integer.parseInt(timeBetweenEvictionRunsMillis) : 60000);
+        druidDataSource.setMinEvictableIdleTimeMillis(StringUtils.isNotBlank(minEvictableIdleTimeMillis) ?
+                Integer.parseInt(minEvictableIdleTimeMillis) : 300000);
+        druidDataSource.setValidationQuery(StringUtils.isNotBlank(validationQuery) ? validationQuery : "select 'x'");
+        druidDataSource.setTestWhileIdle(!StringUtils.isNotBlank(testWhileIdle) || Boolean.parseBoolean(testWhileIdle));
+        druidDataSource.setTestOnBorrow(StringUtils.isNotBlank(testOnBorrow) && Boolean.parseBoolean(testOnBorrow));
+        druidDataSource.setTestOnReturn(StringUtils.isNotBlank(testOnReturn) && Boolean.parseBoolean(testOnReturn));
+        druidDataSource.setPoolPreparedStatements(!StringUtils.isNotBlank(poolPreparedStatements) || Boolean.parseBoolean(poolPreparedStatements));
+        try {
+            druidDataSource.setMaxOpenPreparedStatements(StringUtils.isNotBlank(maxOpenPreparedStatements) ? Integer.parseInt(maxOpenPreparedStatements) : 20);
+            druidDataSource.setFilters(StringUtils.isNotBlank(filters) ? filters : "stat, wall");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return druidDataSource;
+    }
+
+    @Bean(name = "ORACLE_ERP_TEST")
+    @Qualifier("ORACLE_ERP_TEST")
+    public DataSource erpTestDataSource() {
+        return createDataSource(apsUrl, apsDriveClassName, apsUserName, apsPassword);
+    }
+
+    @Bean(name = "ORACLE_ERP_TEST_TRANSACTION_MANAGER")
+    public DataSourceTransactionManager erpTestTransactionManager(@Qualifier("ORACLE_ERP_TEST") DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean(name = "ORACLE_ERP_TEST_BATCH_MAPPER")
+    public BaseBatchMapper erpTestNamedParameterJdbcTemplate(@Qualifier("ORACLE_ERP_TEST") DataSource dataSource) {
+        return new BaseBatchMapper(new NamedParameterJdbcTemplate(dataSource));
     }
 }
