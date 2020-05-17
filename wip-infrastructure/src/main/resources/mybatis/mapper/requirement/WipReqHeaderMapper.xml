@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqHeaderMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqHeaderDO">
+        <result column="header_id" property="headerId"/>
+        <result column="organization_id" property="organizationId"/>
+        <result column="bill_no" property="billNo"/>
+        <result column="bill_status" property="billStatus"/>
+        <result column="bill_type" property="billType"/>
+        <result column="bill_qty" property="billQty"/>
+        <result column="source_type" property="sourceType"/>
+        <result column="source_no" property="sourceNo"/>
+        <result column="product_id" property="productId"/>
+        <result column="product_no" property="productNo"/>
+        <result column="product_model" property="productModel"/>
+        <result column="factory_id" property="factoryId"/>
+        <result column="client_name" property="clientName"/>
+        <result column="software_code" property="softwareCode"/>
+        <result column="bill_person" property="billPerson"/>
+        <result column="plan_start_date" property="planStartDate"/>
+        <result column="mtr_ready_date" property="mtrReadyDate"/>
+        <result column="completion_date" property="completionDate"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="rmk06" property="rmk06"/>
+        <result column="rmk07" property="rmk07"/>
+        <result column="rmk08" property="rmk08"/>
+        <result column="rmk09" property="rmk09"/>
+        <result column="rmk10" property="rmk10"/>
+        <result column="rmk11" property="rmk11"/>
+        <result column="rmk12" property="rmk12"/>
+        <result column="rmk13" property="rmk13"/>
+        <result column="rmk14" property="rmk14"/>
+        <result column="rmk15" property="rmk15"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_date" property="crtDate"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_date" property="updDate"/>
+    </resultMap>
+
+    <select id="getSourceId" parameterType="java.lang.String" resultType="java.lang.String">
+        select source_id
+        from wip.wip_req_header
+        where header_id = #{headerId}
+    </select>
+
+    <select id="selectAddedData"
+            resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqHeaderDO">
+        select header_id
+             , organization_id
+             , bill_no
+             , bill_status
+             , bill_type
+             , bill_qty
+             , source_type
+             , source_no
+             , product_id
+             , product_no
+             , product_model
+             , factory_id
+             , consumer_name as client_name
+             , customer_id
+             , software_code
+             , bill_person
+             , plan_start_date
+             , mtr_ready_time
+             , completion_date
+             , bill_person   as crt_user
+             , now()         as crt_date
+             , bill_person   as upd_user
+             , now()         as upd_date
+             , source_id
+             , bom_version
+             , source_lot_no
+        from wip.xxwip_mo_v x
+        where x.date_released > now()::timestamp + '-1 hour'
+          and x.organization_id in
+          <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
+              #{organizationId}
+          </foreach>
+          and not exists(
+                select 1 from wip.wip_req_header wrh where wrh.bill_no = x.bill_no
+            )
+    </select>
+</mapper>

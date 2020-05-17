@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipEbsReqLogMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipEbsReqLogDO">
+        <result column="log_id" property="logId" />
+        <result column="op_table" property="opTable" />
+        <result column="op_type" property="opType" />
+        <result column="op_pos" property="opPos" />
+        <result column="op_ts" property="opTs" />
+        <result column="request_ts" property="requestTs" />
+        <result column="organization_id" property="organizationId" />
+        <result column="wip_entity_id" property="wipEntityId" />
+        <result column="operation_seq_num" property="operationSeqNum" />
+        <result column="before_item_id" property="beforeItemId" />
+        <result column="after_item_id" property="afterItemId" />
+        <result column="before" property="before" />
+        <result column="after" property="after" />
+        <result column="process_status" property="processStatus" />
+        <result column="group_id" property="groupId" />
+        <result column="exception_reason" property="exceptionReason" />
+        <result column="crt_user" property="crtUser" />
+        <result column="crt_date" property="crtDate" />
+        <result column="upd_user" property="updUser" />
+        <result column="upd_date" property="updDate" />
+    </resultMap>
+    <select id="selectBetweenTimeInStatus" resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipEbsReqLogDO" >
+        select *
+        from wip_ebs_req_log
+        where process_status in
+        <foreach collection="processStatus" item="status" separator="," open="(" close=")" >
+            #{status}
+        </foreach>
+        and crt_date <![CDATA[ > ]]> #{timeFrom}
+        and crt_date <![CDATA[ <= ]]>  #{timeTo}
+    </select>
+</mapper>

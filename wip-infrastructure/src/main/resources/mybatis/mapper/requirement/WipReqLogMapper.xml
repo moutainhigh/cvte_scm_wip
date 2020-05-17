@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLogMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLogDO">
+            <result column="log_id" property="logId" />
+            <result column="line_id" property="lineId" />
+            <result column="before_item_no" property="beforeItemNo" />
+            <result column="after_item_no" property="afterItemNo" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_date" property="updDate" />
+        </resultMap>
+</mapper>

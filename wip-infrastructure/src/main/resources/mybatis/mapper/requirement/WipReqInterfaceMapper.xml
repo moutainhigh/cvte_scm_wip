@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInterfaceMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO">
+        <result column="interface_in_id" property="interfaceInId"/>
+        <result column="group_id" property="groupId"/>
+        <result column="organization_id" property="organizationId"/>
+        <result column="header_id" property="headerId"/>
+        <result column="line_id" property="lineId"/>
+        <result column="mo_number" property="moNumber"/>
+        <result column="lot_number" property="lotNumber"/>
+        <result column="pos_no" property="posNo"/>
+        <result column="item_no" property="itemNo"/>
+        <result column="wkp_no" property="wkpNo"/>
+        <result column="item_no_new" property="itemNoNew"/>
+        <result column="item_qty" property="itemQty"/>
+        <result column="proceed" property="proceed"/>
+        <result column="change_type" property="changeType"/>
+        <result column="source_bill_no" property="sourceBillNo"/>
+        <result column="source_code" property="sourceCode"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="rmk06" property="rmk06"/>
+        <result column="rmk07" property="rmk07"/>
+        <result column="rmk08" property="rmk08"/>
+        <result column="rmk09" property="rmk09"/>
+        <result column="rmk10" property="rmk10"/>
+        <result column="rmk11" property="rmk11"/>
+        <result column="rmk12" property="rmk12"/>
+        <result column="rmk13" property="rmk13"/>
+        <result column="rmk14" property="rmk14"/>
+        <result column="rmk15" property="rmk15"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_date" property="crtDate"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_date" property="updDate"/>
+    </resultMap>
+
+    <select id="selectByGroupIds"
+            resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO">
+        select * from wip.wip_req_interface
+        <where>
+            group_id in
+            <foreach collection="groupIds" index="index" item="groupId" open="(" separator="," close=")">
+                '${groupId}'
+            </foreach>
+            and
+            proceed = '${proceed}'
+        </where>
+    </select>
+
+    <select id="selectByInterfaceInIds"
+            resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO">
+        select * from wip.wip_req_interface
+        <where>
+            interface_in_id in
+            <foreach collection="interfaceInIds" index="index" item="interfaceInId" open="(" separator="," close=")">
+                '${interfaceInId}'
+            </foreach>
+            and
+            proceed = #{proceed}
+        </where>
+    </select>
+
+    <select id="selectByNeedConfirm"
+            resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO">
+        select * from wip.wip_req_interface
+        <where>
+            interface_in_id in
+            <foreach collection="interfaceInIds" index="index" item="interfaceInId" open="(" separator="," close=")">
+                '${interfaceInId}'
+            </foreach>
+            and
+            need_confirm = #{needConfirm}
+        </where>
+    </select>
+
+    <select id="selectOmissionData" resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO">
+        select *
+        from wip.wip_req_interface
+        where proceed = #{proceed}
+    </select>
+
+    <select id="getNotSolvedNumber" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1)
+        from wip.wip_req_interface
+        where header_id = #{headerId}
+          and need_confirm = #{needConfirm}
+    </select>
+
+    <select id="selectBetweenTimeInStatus" resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO">
+        select *
+        from wip_req_interface
+        where proceed in
+        <foreach collection="proceed" item="status" separator="," open="(" close=")">
+            #{status}
+        </foreach>
+        and crt_date <![CDATA[ > ]]> #{timeFrom}
+        and crt_date <![CDATA[ <= ]]>  #{timeTo}
+    </select>
+</mapper>

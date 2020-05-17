@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqMtrsMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqMtrsDO">
+        <result column="header_id" property="headerId"/>
+        <result column="organization_id" property="organizationId"/>
+        <result column="item_group" property="itemGroup"/>
+        <result column="item_no" property="itemNo"/>
+        <result column="wkp_no" property="wkpNo"/>
+        <result column="item_id" property="itemId"/>
+    </resultMap>
+</mapper>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLinesMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO">
+        <result column="line_id" property="lineId"/>
+        <result column="header_id" property="headerId"/>
+        <result column="organization_id" property="organizationId"/>
+        <result column="wkp_no" property="wkpNo"/>
+        <result column="lot_number" property="lotNumber"/>
+        <result column="pos_no" property="posNo"/>
+        <result column="item_no" property="itemNo"/>
+        <result column="unit_qty" property="unitQty"/>
+        <result column="req_qty" property="reqQty"/>
+        <result column="issued_qty" property="issuedQty"/>
+        <result column="exceed_reason" property="exceedReason"/>
+        <result column="original_line_id" property="originalLineId"/>
+        <result column="before_line_id" property="beforeLineId"/>
+        <result column="line_status" property="lineStatus"/>
+        <result column="change_reason" property="changeReason"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="rmk06" property="rmk06"/>
+        <result column="rmk07" property="rmk07"/>
+        <result column="rmk08" property="rmk08"/>
+        <result column="rmk09" property="rmk09"/>
+        <result column="rmk10" property="rmk10"/>
+        <result column="rmk11" property="rmk11"/>
+        <result column="rmk12" property="rmk12"/>
+        <result column="rmk13" property="rmk13"/>
+        <result column="rmk14" property="rmk14"/>
+        <result column="rmk15" property="rmk15"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_date" property="crtDate"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_date" property="updDate"/>
+    </resultMap>
+
+    <insert id="writeIncrementalData">
+        insert into wip.wip_req_lines
+        ( line_id
+        , header_id
+        , organization_id
+        , lot_number
+        , pos_no
+        , item_no
+        , wkp_no
+        , unit_qty
+        , req_qty
+        , issued_qty
+        , exceed_reason
+        , original_line_id
+        , before_line_id
+        , line_status
+        , change_reason
+        , crt_user
+        , crt_date
+        , upd_user
+        , upd_date
+        , item_id)
+        select uuid_generate_v4()
+        , xoi.wip_entity_id
+        , xoi.organization_id
+        , wlv.lot_number
+        , xoi.pos_str
+        , siv.item_no
+        , xoi.wkp_no
+        , xoi.item_unit_qty
+        , round(wlv.lot_quantity* xoi.item_unit_qty)
+        , null
+        , null
+        , null
+        , null
+        , 20
+        , null
+        , 'admin'
+        , now()
+        , 'admin'
+        , now()
+        , xoi.item_id
+        from scm_fdw.xxaps_mo_item xoi
+        inner join wip.xxwip_mo_v xmv on xoi.wip_entity_id = xmv.source_id
+        and xmv.organization_id = xoi.organization_id
+        inner join wip.wip_lot_v wlv
+        on xoi.wip_entity_id = wlv.wip_id
+        inner join scm.scm_item_v siv
+        on siv.item_id = cast(xoi.item_id as varchar) and siv.organization_id = cast(xoi.organization_id as varchar)
+        where xoi.organization_id in
+        <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
+            #{organizationId}
+        </foreach>
+        and
+        <choose>
+            <when test="wipEntityIdList != null and wipEntityIdList.size() > 0">
+                xoi.wip_entity_id in
+                <foreach collection="wipEntityIdList" index="index" item="wipEntityId" open="(" separator="," close=")">
+                    '${wipEntityId}'
+                </foreach>
+            </when>
+            <otherwise>
+                1 = -1
+            </otherwise>
+        </choose>
+    </insert>
+</mapper>
