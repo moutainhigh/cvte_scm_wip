@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.common.utils;
+package com.cvte.scm.wip.common.enums;
 
 /**
  * 用于支持具有{@param code}字段的枚举

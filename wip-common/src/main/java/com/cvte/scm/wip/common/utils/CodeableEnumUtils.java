@@ -1,6 +1,8 @@
 package com.cvte.scm.wip.common.utils;
 
 
+import com.cvte.scm.wip.common.enums.Codeable;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiPredicate;

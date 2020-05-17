@@ -109,7 +109,7 @@ public class WipDataSourceConfig {
 
         bean.setPlugins(new Interceptor[]{pageHelper});
 
-        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mybatis/**/*.xml"));
+        bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mybatis/mapper/**/*.xml"));
 
         // 必须在setMapperLocations 方法后设置配置
         SqlSessionFactory sqlSessionFactory = bean.getObject();
