@@ -1,18 +1,19 @@
-package com.cvte.scm.wip.infrastructure.sys.user.repository;
+package com.cvte.scm.wip.spi.sys.user;
 
 import com.alibaba.fastjson.JSON;
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
 import com.cvte.csb.core.interfaces.enums.DefaultStatusEnum;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.common.user.entity.PostEntity;
 import com.cvte.scm.wip.domain.common.user.entity.UserEntity;
-import com.cvte.scm.wip.domain.common.user.repository.PostRepository;
+import com.cvte.scm.wip.domain.common.user.service.PostService;
 import com.cvte.scm.wip.infrastructure.client.common.dto.FeignResult;
 import com.cvte.scm.wip.infrastructure.client.sys.base.SysPostApiClient;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysPost;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysUser;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,18 +21,24 @@ import java.util.List;
 /**
   * 
   * @author  : xueyuting
-  * @since    : 2020/5/5 11:37
+  * @since    : 2020/5/17 09:47
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Repository
-public class PostRepositoryImpl implements PostRepository {
+@Service
+public class PostServiceImpl implements PostService {
 
-    @Autowired
     private SysPostApiClient sysPostApiClient;
+
+    public PostServiceImpl(SysPostApiClient sysPostApiClient) {
+        this.sysPostApiClient = sysPostApiClient;
+    }
 
     @Override
     public List<UserEntity> getUserListByPostId(String postId) {
+        if(StringUtils.isEmpty(postId)) {
+            throw new ParamsRequiredException("postId为空，无法获取岗位下用户列表");
+        }
         FeignResult<List<SysUser>> feignResult = sysPostApiClient.getUserListByPostId(postId);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
             List<UserEntity> userEntityList = new ArrayList<>();
@@ -48,6 +55,9 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public PostEntity getPost(String id) {
+        if(StringUtils.isEmpty(id)) {
+            throw new ParamsRequiredException("postId为空，无法获取岗位信息");
+        }
         FeignResult<SysPost> feignResult = sysPostApiClient.getPost(id);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
             PostEntity postEntity = new PostEntity();
@@ -59,7 +69,10 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public UserEntity getUserByObjectTypeAndId(String postId, String userId) {
+    public UserEntity getUserByPostIdAndUserId(String postId, String userId) {
+        if(StringUtils.isEmpty(postId) || StringUtils.isEmpty(userId)) {
+            throw new ParamsRequiredException("postId/userId为空，无法获取指定岗位下的指定用户");
+        }
         FeignResult<SysUser> feignResult = sysPostApiClient.getUserByObjectTypeAndId(postId, userId);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
             UserEntity userEntity = new UserEntity();
@@ -69,4 +82,5 @@ public class PostRepositoryImpl implements PostRepository {
             throw new ServerException(DefaultStatusEnum.SERVER_ERROR.getCode(), "远程获取指定岗位下的指定用户失败, feignResult = " + JSON.toJSONString(feignResult));
         }
     }
+
 }

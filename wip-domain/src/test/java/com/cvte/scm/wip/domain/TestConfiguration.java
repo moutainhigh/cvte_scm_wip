@@ -1,6 +1,6 @@
 package com.cvte.scm.wip.domain;
 
-import com.cvte.scm.wip.domain.common.user.repository.*;
+import com.cvte.scm.wip.domain.common.user.service.*;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,33 +13,33 @@ import org.springframework.context.annotation.Configuration;
 public class TestConfiguration {
 
     @Bean
-    public MultiOrgSwitchRepository multiOrgSwitchApiClient() {
-        return Mockito.mock(MultiOrgSwitchRepository.class);
+    public MultiOrgSwitchService multiOrgSwitchApiClient() {
+        return Mockito.mock(MultiOrgSwitchService.class);
     }
 
     @Bean
-    public OrgRepository sysOrgApiClient() {
-        return Mockito.mock(OrgRepository.class);
+    public OrgService sysOrgApiClient() {
+        return Mockito.mock(OrgService.class);
     }
 
     @Bean
-    public UserRepository sysUserApiClient() {
-        return Mockito.mock(UserRepository.class);
+    public UserService sysUserApiClient() {
+        return Mockito.mock(UserService.class);
     }
 
     @Bean
-    public RoleRepository sysRoleApiClient() {
-        return Mockito.mock(RoleRepository.class);
+    public RoleService sysRoleApiClient() {
+        return Mockito.mock(RoleService.class);
     }
 
     @Bean
-    public PostRepository sysPostApiClient() {
-        return Mockito.mock(PostRepository.class);
+    public PostService sysPostApiClient() {
+        return Mockito.mock(PostService.class);
     }
 
     @Bean
-    public AuthRepository authApiClient() {
-        return Mockito.mock(AuthRepository.class);
+    public AuthService authApiClient() {
+        return Mockito.mock(AuthService.class);
     }
 
 }

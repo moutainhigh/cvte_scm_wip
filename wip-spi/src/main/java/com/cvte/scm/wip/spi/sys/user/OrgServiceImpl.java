@@ -1,34 +1,41 @@
-package com.cvte.scm.wip.infrastructure.sys.user.repository;
+package com.cvte.scm.wip.spi.sys.user;
 
 import com.alibaba.fastjson.JSON;
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
 import com.cvte.csb.core.interfaces.enums.DefaultStatusEnum;
 import com.cvte.scm.wip.domain.common.user.entity.OrgExtEntity;
 import com.cvte.scm.wip.domain.common.user.entity.OrgRelationBaseEntity;
-import com.cvte.scm.wip.domain.common.user.repository.OrgRepository;
+import com.cvte.scm.wip.domain.common.user.service.OrgService;
 import com.cvte.scm.wip.infrastructure.client.common.dto.FeignResult;
 import com.cvte.scm.wip.infrastructure.client.sys.base.SysOrgApiClient;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.OrgRelationBaseDTO;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysOrgExt;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
   * 
   * @author  : xueyuting
-  * @since    : 2020/5/5 11:32
+  * @since    : 2020/5/17 09:38
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Repository
-public class OrgRepositoryImpl implements OrgRepository {
+@Service
+public class OrgServiceImpl implements OrgService {
 
-    @Autowired
     private SysOrgApiClient sysOrgApiClient;
 
+    public OrgServiceImpl(SysOrgApiClient sysOrgApiClient) {
+        this.sysOrgApiClient = sysOrgApiClient;
+    }
+
     @Override
-    public OrgRelationBaseEntity getOrgRelationById(String orgRelationId) {
+    public OrgRelationBaseEntity selectOrgRelationById(String orgRelationId) {
+        if(StringUtils.isEmpty(orgRelationId)) {
+            throw new ParamsRequiredException("组织关系id为空");
+        }
         FeignResult<OrgRelationBaseDTO> feignResult = sysOrgApiClient.getOrgRelationById(orgRelationId);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
             OrgRelationBaseEntity orgRelationBaseEntity = new OrgRelationBaseEntity();
@@ -41,6 +48,9 @@ public class OrgRepositoryImpl implements OrgRepository {
 
     @Override
     public OrgExtEntity getOrgExtById(String id) {
+        if(StringUtils.isEmpty(id)) {
+            throw new ParamsRequiredException("组织id为空");
+        }
         FeignResult<SysOrgExt> feignResult = sysOrgApiClient.getOrgExtById(id);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
             OrgExtEntity orgExtEntity = new OrgExtEntity();
@@ -50,4 +60,5 @@ public class OrgRepositoryImpl implements OrgRepository {
             throw new ServerException(DefaultStatusEnum.SERVER_ERROR.getCode(), "远程查询组织拓展信息失败, feignResult = " + JSON.toJSONString(feignResult));
         }
     }
+
 }

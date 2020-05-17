@@ -1,23 +1,25 @@
-package com.cvte.scm.wip.infrastructure.sys.user.repository;
+package com.cvte.scm.wip.spi.sys.user;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
-import com.cvte.scm.wip.domain.common.user.repository.AuthRepository;
+import com.cvte.scm.wip.domain.common.user.service.AuthService;
 import com.cvte.scm.wip.infrastructure.client.sys.auth.AuthApiClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
   * 
   * @author  : xueyuting
-  * @since    : 2020/5/5 11:49
+  * @since    : 2020/5/17 09:59
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Repository
-public class AuthRepositoryImpl implements AuthRepository {
+@Service
+public class AuthServiceImpl implements AuthService {
 
-    @Autowired
     private AuthApiClient authApiClient;
+
+    public AuthServiceImpl(AuthApiClient authApiClient) {
+        this.authApiClient = authApiClient;
+    }
 
     @Override
     public RestResponse login(String account, String password) {

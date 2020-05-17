@@ -3,7 +3,6 @@ package com.cvte.scm.wip.domain.user.service;
 import com.alibaba.fastjson.JSON;
 import com.cvte.scm.wip.domain.BaseJunitTest;
 import com.cvte.scm.wip.domain.common.user.entity.UserBaseEntity;
-import com.cvte.scm.wip.domain.common.user.repository.UserRepository;
 import com.cvte.scm.wip.domain.common.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;

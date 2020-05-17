@@ -1,9 +1,8 @@
-package com.cvte.scm.wip.domain.common.view.repository;
+package com.cvte.scm.wip.domain.common.view.service;
 
 import com.cvte.scm.wip.domain.common.view.entity.PageResultEntity;
 import com.cvte.scm.wip.domain.common.view.vo.DatabaseQueryVO;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
@@ -11,12 +10,11 @@ import java.util.Map;
 /**
   * 
   * @author  : xueyuting
-  * @since    : 2020/5/10 16:46
+  * @since    : 2020/5/17 10:01
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Repository
-public interface ViewRepository {
+public interface ViewService {
 
     PageResultEntity getViewPageDataByViewPageParam(SysViewPageParamVO sysViewPageParam);
 

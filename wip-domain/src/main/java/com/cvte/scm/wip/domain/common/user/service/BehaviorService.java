@@ -11,7 +11,6 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.constants.MultiOrgSwitchConstants;
 import com.cvte.scm.wip.domain.common.context.GlobalContext;
 import com.cvte.scm.wip.domain.common.user.entity.*;
-import com.cvte.scm.wip.domain.common.user.repository.AuthRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,7 @@ public class BehaviorService {
     private RoleService roleService;
 
     @Autowired
-    private AuthRepository authRepository;
+    private AuthService authService;
 
 
     @Autowired
@@ -155,12 +154,12 @@ public class BehaviorService {
     }
 
     public RestResponse doLogin(String account, String password) {
-        RestResponse restResponse = authRepository.login(account, password);
+        RestResponse restResponse = authService.login(account, password);
         return restResponse;
     }
 
     public RestResponse getCurrentUserInfo(String id) {
-        RestResponse restResponse = authRepository.getCurrentUserInfo(id);
+        RestResponse restResponse = authService.getCurrentUserInfo(id);
         return restResponse;
     }
 
