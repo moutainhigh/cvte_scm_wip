@@ -24,6 +24,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import oracle.jdbc.OracleTypes;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
@@ -84,7 +85,7 @@ public class WipReqLineService {
     private WipReqHeaderRepository wipReqHeaderRepository;
     private WipReqPrintLogService wipReqPrintLogService;
 
-    public WipReqLineService(BaseBatchMapper batchMapper, ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService) {
+    public WipReqLineService(@Qualifier("ORACLE_ERP_TEST_BATCH_MAPPER") BaseBatchMapper batchMapper, ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService) {
         this.batchMapper = batchMapper;
         this.scmItemService = scmItemService;
         this.wipReqLineRepository = wipReqLineRepository;

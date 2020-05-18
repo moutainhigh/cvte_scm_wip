@@ -46,6 +46,12 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
     }
 
     @Override
+    public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList) {
+        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectAddedData(organizationIdList);
+        return WipReqHeaderDO.batchBuildEntity(headerDOList);
+    }
+
+    @Override
     public void updateStatusById(String billStatus, String headerId) {
         WipReqHeaderDO header = new WipReqHeaderDO().setBillStatus(BillStatusEnum.PREPARED.getCode());
         EntityUtils.writeStdUpdInfoToEntity(header, EntityUtils.getWipUserId());

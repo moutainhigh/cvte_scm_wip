@@ -5,6 +5,7 @@ import com.cvte.scm.wip.domain.common.view.service.ViewService;
 import com.cvte.scm.wip.domain.common.view.vo.DatabaseQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.Map;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
+@Service
 public class WipReqHeaderPageService {
 
     private WipReqHeaderRepository wipReqHeaderRepository;
