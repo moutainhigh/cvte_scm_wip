@@ -41,6 +41,6 @@ public interface WipReqInterfaceRepository {
      */
     List<WipReqInterfaceEntity> selectBetweenTimeInStatus(Date timeFrom, Date timeTo, String... proceed);
 
-    void updateByExampleSelective(WipReqInterfaceEntity interfaceEntity, Example example);
+    void updateByIdSelective(WipReqInterfaceEntity interfaceEntity, List<String> idList);
     
 }

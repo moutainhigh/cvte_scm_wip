@@ -302,4 +302,14 @@ public class WipReqHeaderDO {
         return headerEntityList;
     }
 
+    public static List<WipReqHeaderDO> batchBuildDO(List<WipReqHeaderEntity> headerEntityList) {
+        List<WipReqHeaderDO> headerDOList = new ArrayList<>();
+        for (WipReqHeaderEntity headerEntity : headerEntityList) {
+            WipReqHeaderDO headerDO = new WipReqHeaderDO();
+            BeanUtils.copyProperties(headerEntity, headerDO);
+            headerDOList.add(headerDO);
+        }
+        return headerDOList;
+    }
+
 }

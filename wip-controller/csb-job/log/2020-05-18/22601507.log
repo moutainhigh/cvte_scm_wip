@@ -1,0 +1,5 @@
+2020-05-18 21:24:02 [com.xxl.job.core.thread.JobThread]-[run]-[131]-[Thread-14] <br>##################### START ####################<br> 任务参数:[{'systemId':'wip'}]
+2020-05-18 21:24:02 [com.cvte.scm.wip.controller.requirement.job.WipInterfaceJobHandle]-[execute]-[32]-[Thread-14] 开始执行接口遗漏数据执行的定时任务
+2020-05-18 21:24:02 [com.cvte.scm.wip.controller.requirement.job.WipInterfaceJobHandle]-[execute]-[34]-[Thread-14] 接口遗漏数据执行的定时任务执行结束
+2020-05-18 21:24:02 [com.xxl.job.core.thread.JobThread]-[run]-[137]-[Thread-14] <br>##################### END ######################<br> 执行结果:ReturnT [code=200, msg=null, content=null]
+2020-05-18 21:24:03 [com.xxl.job.core.thread.JobThread]-[run]-[158]-[Thread-14]  call back result:ReturnT [code=200, msg= , content=null]

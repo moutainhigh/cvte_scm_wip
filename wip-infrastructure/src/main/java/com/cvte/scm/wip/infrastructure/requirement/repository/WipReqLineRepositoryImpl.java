@@ -2,15 +2,26 @@ package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.utils.ClassUtils;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLinesMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
+import javax.persistence.Column;
+import javax.persistence.Transient;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
+
+import static com.cvte.csb.toolkit.StringUtils.isNotEmpty;
 
 /**
   * 
@@ -21,6 +32,11 @@ import java.util.List;
   */
 @Repository
 public class WipReqLineRepositoryImpl implements WipReqLineRepository {
+
+    /**
+     * 一个位标识，用于获取枚举 {@link BillStatusEnum} 中 "草稿、已确定、已备料和已领料" 的 code 值列表。
+     */
+    private static final int DRAFT_CONFIRMED_PREPARED_ISSUED = 15;
 
     private WipReqLinesMapper wipReqLinesMapper;
 
@@ -77,6 +93,75 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public void writeIncrementalData(List<String> wipEntityIdList, List<Integer> organizationIdList) {
         wipReqLinesMapper.writeIncrementalData(wipEntityIdList, organizationIdList);
+    }
+
+    @Override
+    public Example createCustomExample(WipReqLineEntity wipReqLine) {
+        Example example = new Example(WipReqLineDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        BiConsumer<String, String> equalOrNull = (p, v) -> criteria.andEqualTo(p, isNotEmpty(v) ? v : null);
+        equalOrNull.accept("headerId", wipReqLine.getHeaderId());
+        equalOrNull.accept("organizationId", wipReqLine.getOrganizationId());
+        equalOrNull.accept("lotNumber", wipReqLine.getLotNumber());
+        equalOrNull.accept("wkpNo", wipReqLine.getWkpNo());
+        equalOrNull.accept("itemId", wipReqLine.getItemId());
+        equalOrNull.accept("itemNo", wipReqLine.getItemNo());
+        if (!criteria.isValid()) {
+            return null;
+        } else if (isNotEmpty(wipReqLine.getPosNo())) {
+            criteria.andEqualTo("posNo", wipReqLine.getPosNo());
+        } else {
+            criteria.andCondition("(pos_no is null or pos_no = '')");
+        }
+        criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED_PREPARED_ISSUED, BillStatusEnum.class));
+        // 默认example拼接条件时，如果属性值为空，则忽略这条件。如果所有条件都失效，则直接查询"where 1 = 1" 😓。
+        return example;
+    }
+
+    @Override
+    public Example createExample() {
+        return new Example(WipReqLineDO.class);
+    }
+
+    @Override
+    @SneakyThrows
+    public List<WipReqLineEntity> selectByColumnAndStatus(WipReqLineEntity lineEntity, int status) {
+        WipReqLineDO lineDO = WipReqLineDO.buildDO(lineEntity);
+        Example example = new Example(WipReqLineDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        for (Field field : WipReqLineEntityFieldSingleton.INSTANCE) {
+            Object value = field.get(lineDO);
+            if (value instanceof String) {
+                String[] elements = ((String) value).split(",");
+                if (elements.length > 1) {
+                    criteria.andIn(field.getName(), Arrays.asList(elements));
+                    continue;
+                }
+            }
+            criteria.andEqualTo(field.getName(), value);
+        }
+        if (!criteria.isValid()) {
+            return null;
+        }
+        criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(status, BillStatusEnum.class));
+        List<WipReqLineDO> lineDOList = wipReqLinesMapper.selectByExample(example);
+        return WipReqLineDO.batchBuildEntity(lineDOList);
+    }
+
+    /**
+     * 投料单行字段单例类，提升字段解析效率。
+     */
+    private static class WipReqLineEntityFieldSingleton {
+        private static final List<Field> INSTANCE = new ArrayList<>(WipReqLineDO.class.getDeclaredFields().length);
+
+        static {
+            for (Field field : WipReqLineDO.class.getDeclaredFields()) {
+                if (!ClassUtils.isAnnotated(field, Transient.class) && ClassUtils.isAnnotated(field, Column.class)) {
+                    field.setAccessible(true);
+                    INSTANCE.add(field);
+                }
+            }
+        }
     }
 
 }

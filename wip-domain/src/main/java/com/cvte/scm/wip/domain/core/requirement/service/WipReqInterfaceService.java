@@ -255,8 +255,6 @@ public class WipReqInterfaceService {
             return;
         }
         EntityUtils.writeStdUpdInfoToEntity(in, userId);
-        Example example = new Example(WipReqInterfaceEntity.class);
-        example.createCriteria().andIn("interfaceInId", ids);
-        wipReqInterfaceRepository.updateByExampleSelective(in, example);
+        wipReqInterfaceRepository.updateByIdSelective(in, ids);
     }
 }

@@ -1,0 +1,5 @@
+2020-05-18 21:30:56 [com.xxl.job.core.thread.JobThread]-[run]-[131]-[Thread-14] <br>##################### START ####################<br> 任务参数:[{'systemId':'wip', 'organizationId':'275, 86'}]
+2020-05-18 21:30:58 [com.cvte.scm.wip.controller.requirement.job.WipIncrementalWritingJobHandler]-[execute]-[53]-[Thread-14] 投料单头增量写入成功！
+2020-05-18 21:31:03 [com.cvte.scm.wip.controller.requirement.job.WipIncrementalWritingJobHandler]-[execute]-[56]-[Thread-14] 投料单行增量写入成功！
+2020-05-18 21:31:03 [com.xxl.job.core.thread.JobThread]-[run]-[137]-[Thread-14] <br>##################### END ######################<br> 执行结果:ReturnT [code=200, msg=null, content=null]
+2020-05-18 21:31:03 [com.xxl.job.core.thread.JobThread]-[run]-[158]-[Thread-14]  call back result:ReturnT [code=200, msg= , content=null]

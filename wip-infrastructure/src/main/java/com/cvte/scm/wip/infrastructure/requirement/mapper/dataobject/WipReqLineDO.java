@@ -13,7 +13,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author jf
@@ -251,6 +254,9 @@ public class WipReqLineDO {
     private String groupId;
 
     public static WipReqLineEntity buildEntity(WipReqLineDO lineDO) {
+        if (Objects.isNull(lineDO)) {
+            return null;
+        }
         WipReqLineEntity lineEntity = new WipReqLineEntity();
         BeanUtils.copyProperties(lineDO, lineEntity);
         return lineEntity;
@@ -260,6 +266,16 @@ public class WipReqLineDO {
         WipReqLineDO lineDO = new WipReqLineDO();
         BeanUtils.copyProperties(lineEntity, lineDO);
         return lineDO;
+    }
+
+    public static List<WipReqLineEntity> batchBuildEntity(List<WipReqLineDO> lineDOList) {
+        List<WipReqLineEntity> lineEntityList = new ArrayList<>();
+        for (WipReqLineDO lineDO : lineDOList) {
+            WipReqLineEntity lineEntity = new WipReqLineEntity();
+            BeanUtils.copyProperties(lineDO, lineEntity);
+            lineEntityList.add(lineEntity);
+        }
+        return lineEntityList;
     }
 
 }

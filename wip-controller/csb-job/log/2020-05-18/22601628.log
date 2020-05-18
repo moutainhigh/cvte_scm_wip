@@ -1,0 +1,10 @@
+2020-05-18 21:27:27 [com.xxl.job.core.thread.JobThread]-[run]-[131]-[Thread-19] <br>##################### START ####################<br> 任务参数:[{'systemId':'wip', 'organizationId':'275, 86'}]
+2020-05-18 21:27:28 [com.xxl.job.core.thread.JobThread]-[run]-[148]-[Thread-19] <br> JobThread Exception:com.cvte.csb.core.exception.client.params.ParamsIncorrectException: 实体类无映射表：com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity
+	at com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper.getTableName(BaseBatchMapper.java:126)
+	at com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper.createInsertionSql(BaseBatchMapper.java:195)
+	at com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper.insert(BaseBatchMapper.java:159)
+	at com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper.insert(BaseBatchMapper.java:89)
+	at com.cvte.scm.wip.controller.requirement.job.WipIncrementalWritingJobHandler.execute(WipIncrementalWritingJobHandler.java:58)
+	at com.xxl.job.core.thread.JobThread.run(JobThread.java:132)
+<br> xxl-job job execute end(error) 
+2020-05-18 21:27:28 [com.xxl.job.core.thread.JobThread]-[run]-[158]-[Thread-19]  call back result:ReturnT [code=500, msg=null, content=null]

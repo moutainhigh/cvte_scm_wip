@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqInterfaceEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqInterfaceRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInterfaceMapper;
@@ -64,7 +65,9 @@ public class WipReqInterfaceRepositoryImpl implements WipReqInterfaceRepository 
     }
 
     @Override
-    public void updateByExampleSelective(WipReqInterfaceEntity interfaceEntity, Example example) {
+    public void updateByIdSelective(WipReqInterfaceEntity interfaceEntity, List<String> idList) {
+        Example example = new Example(WipReqInterfaceDO.class);
+        example.createCriteria().andIn("interfaceInId", idList);
         WipReqInterfaceDO interfaceDO = WipReqInterfaceDO.buildDO(interfaceEntity);
         wipReqInterfaceMapper.updateByExampleSelective(interfaceDO, example);
     }

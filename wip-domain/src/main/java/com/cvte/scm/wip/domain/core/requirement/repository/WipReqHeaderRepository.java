@@ -24,6 +24,12 @@ public interface WipReqHeaderRepository {
     /* 获取工单信息，主要用投料单头的增量写入。 */
     List<WipReqHeaderEntity> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList);
 
+    String validateAndGetUpdateDataHelper(WipReqHeaderEntity header, List<WipReqHeaderEntity> updateWipReqHeaders);
+
+    void batchInsert(List<WipReqHeaderEntity> headerEntityList);
+
+    void batchUpdate(List<WipReqHeaderEntity> headerEntityList);
+
     void updateStatusById(String billStatus, String headerId);
 
 }

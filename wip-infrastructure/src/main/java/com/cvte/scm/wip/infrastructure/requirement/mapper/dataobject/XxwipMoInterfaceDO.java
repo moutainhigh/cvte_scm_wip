@@ -1,18 +1,21 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject;
 
 
+import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.beans.BeanUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Objects;
+import java.util.List;
 
 /**
  * WIP工单接口表
@@ -89,5 +92,35 @@ public class XxwipMoInterfaceDO {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updTime;
+
+    public static XxwipMoInterfaceEntity buildEntity(XxwipMoInterfaceDO headerDO) {
+        XxwipMoInterfaceEntity headerEntity = new XxwipMoInterfaceEntity();
+        BeanUtils.copyProperties(headerDO, headerEntity);
+        return headerEntity;
+    }
+
+    public static XxwipMoInterfaceDO buildDO(XxwipMoInterfaceEntity headerEntity) {
+        XxwipMoInterfaceDO headerDO = new XxwipMoInterfaceDO();
+        BeanUtils.copyProperties(headerEntity, headerDO);
+        return headerDO;
+    }
+
+    public static List<XxwipMoInterfaceEntity> batchBuildEntity(List<XxwipMoInterfaceDO> headerDOList) {
+        List<XxwipMoInterfaceEntity> headerEntityList = new ArrayList<>();
+        for (XxwipMoInterfaceDO headerDO : headerDOList) {
+            XxwipMoInterfaceEntity headerEntity = buildEntity(headerDO);
+            headerEntityList.add(headerEntity);
+        }
+        return headerEntityList;
+    }
+
+    public static List<XxwipMoInterfaceDO> batchBuildDO(List<XxwipMoInterfaceEntity> headerEntityList) {
+        List<XxwipMoInterfaceDO> headerDOList = new ArrayList<>();
+        for (XxwipMoInterfaceEntity headerEntity : headerEntityList) {
+            XxwipMoInterfaceDO headerDO = buildDO(headerEntity);
+            headerDOList.add(headerDO);
+        }
+        return headerDOList;
+    }
 
 }

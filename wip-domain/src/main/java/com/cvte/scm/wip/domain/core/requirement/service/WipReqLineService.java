@@ -7,14 +7,15 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.*;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.repository.XxwipMoInterfaceRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
@@ -23,17 +24,13 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import oracle.jdbc.OracleTypes;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.persistence.Column;
 import javax.persistence.Transient;
 import java.lang.reflect.Field;
-import java.sql.CallableStatement;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -78,20 +75,20 @@ public class WipReqLineService {
      */
     private static final int DRAFT_CONFIRMED_PREPARED_ISSUED = 15;
 
-    private BaseBatchMapper batchMapper;
     private ScmItemService scmItemService;
     private WipReqLineRepository wipReqLineRepository;
     private WipReqLogService wipReqLogService;
     private WipReqHeaderRepository wipReqHeaderRepository;
     private WipReqPrintLogService wipReqPrintLogService;
+    private XxwipMoInterfaceRepository xxwipMoInterfaceRepository;
 
-    public WipReqLineService(@Qualifier("ORACLE_ERP_TEST_BATCH_MAPPER") BaseBatchMapper batchMapper, ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService) {
-        this.batchMapper = batchMapper;
+    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository) {
         this.scmItemService = scmItemService;
         this.wipReqLineRepository = wipReqLineRepository;
         this.wipReqLogService = wipReqLogService;
         this.wipReqHeaderRepository = wipReqHeaderRepository;
         this.wipReqPrintLogService = wipReqPrintLogService;
+        this.xxwipMoInterfaceRepository = xxwipMoInterfaceRepository;
     }
 
 
@@ -125,7 +122,7 @@ public class WipReqLineService {
             return format("您添加的数据有点小问题，{}", errorMsg);
         } else if (CodeableEnumUtils.inValid(wipReqLine.getWkpNo(), OperationSeqNumEnum.class)) {
             return "添加失败，您填写的工序号错误，请您修改无误后再添加；";
-        } else if (CollectionUtils.isNotEmpty(wipReqLineRepository.selectByExample(createCustomExample(wipReqLine)))) {
+        } else if (CollectionUtils.isNotEmpty(wipReqLineRepository.selectByExample(wipReqLineRepository.createCustomExample(wipReqLine)))) {
             return "抱歉，您添加的投料单行已存在；";
         } else if (StringUtils.isEmpty(itemId = scmItemService.getItemId(wipReqLine.getOrganizationId(), wipReqLine.getItemNo()))) {
             return "添加失败，您填写的组织或物料编码错误，请您修改无误后再添加；";
@@ -162,7 +159,7 @@ public class WipReqLineService {
      * 校验期间更新待取消投料单行数据中的来源编号。
      */
     private String validateAndGetCancelledData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> cancelledData) {
-        Example example = createCustomExample(wipReqLine);
+        Example example = wipReqLineRepository.createCustomExample(wipReqLine);
         List<WipReqLineEntity> wipReqLines;
         if (isNull(example) || isEmpty(wipReqLines = wipReqLineRepository.selectByExample(example))) {
             log.error(logFormat.apply(format("根据删除条件无法查询待删除投料单行，条件 = [{}]；", EntityUtils.getEntityPrintInfo(wipReqLine)), ChangedTypeEnum.DELETE));
@@ -204,7 +201,7 @@ public class WipReqLineService {
         if (ArrayUtil.isEmpty(lineIds)) {
             return "删除的数据为空；";
         }
-        Example example = new Example(WipReqLineEntity.class);
+        Example example = wipReqLineRepository.createExample();
         example.createCriteria().andIn("lineId", Arrays.asList(lineIds))
                 .andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED_PREPARED_ISSUED, BillStatusEnum.class));
         cancelledData.addAll(wipReqLineRepository.selectByExample(example));
@@ -257,41 +254,12 @@ public class WipReqLineService {
             return "备料失败，投料单行查询条件中头ID错误；";
         }
         line.setSourceCode(null);
-        Example example = new Example(WipReqLineEntity.class);
-        Example.Criteria criteria = example.createCriteria();
-        for (Field field : WipReqLineEntityFieldSingleton.INSTANCE) {
-            Object value = field.get(line);
-            if (value instanceof String) {
-                String[] elements = ((String) value).split(",");
-                if (elements.length > 1) {
-                    criteria.andIn(field.getName(), Arrays.asList(elements));
-                    continue;
-                }
-            }
-            criteria.andEqualTo(field.getName(), value);
+        List<WipReqLineEntity> reqLineEntityList = wipReqLineRepository.selectByColumnAndStatus(line, DRAFT_CONFIRMED);
+        if (ListUtil.empty(reqLineEntityList)) {
+            return "备料失败，投料单行查询结果为空";
         }
-        if (!criteria.isValid()) {
-            return "备料失败，投料单行查询条件为空；";
-        }
-        criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED, BillStatusEnum.class));
-        preparedData.addAll(wipReqLineRepository.selectByExample(example));
+        preparedData.addAll(reqLineEntityList);
         return "";
-    }
-
-    /**
-     * 投料单行字段单例类，提升字段解析效率。
-     */
-    private static class WipReqLineEntityFieldSingleton {
-        private static final List<Field> INSTANCE = new ArrayList<>(WipReqLineEntity.class.getDeclaredFields().length);
-
-        static {
-            for (Field field : WipReqLineEntity.class.getDeclaredFields()) {
-                if (!ClassUtils.isAnnotated(field, Transient.class) && ClassUtils.isAnnotated(field, Column.class)) {
-                    field.setAccessible(true);
-                    INSTANCE.add(field);
-                }
-            }
-        }
     }
 
     /**
@@ -334,7 +302,7 @@ public class WipReqLineService {
         if (moInterfaceList.stream().anyMatch(s -> !wipEntityId.equals(s.getWipEntityId()))) {
             throw new ParamsIncorrectException("变更数据中不能存在不同的投料单头 ID 。");
         }
-        batchMapper.insert(moInterfaceList);
+        xxwipMoInterfaceRepository.batchInsert(moInterfaceList);
         if (groupId.equals(moInterfaceList.get(0).getGroupId())) {
             String errorMessage = executeProcedure(groupId, wipEntityId);
             if (errorMessage.length() > 0) {
@@ -354,7 +322,7 @@ public class WipReqLineService {
      * 调用回写工单信息的存储过程
      */
     private String executeProcedure(String groupId, String wipEntityId) {
-        String[] poInfo = EntityUtils.retry(() -> callProcedure(wipEntityId, groupId), ATTEMPT_NUMBER, "调用 XXAPS.XXWIP_INTERFACE_PKG.P_UPDATE_MO_ITEM 存储过程");
+        String[] poInfo = EntityUtils.retry(() -> xxwipMoInterfaceRepository.callProcedure(wipEntityId, groupId), ATTEMPT_NUMBER, "调用 XXAPS.XXWIP_INTERFACE_PKG.P_UPDATE_MO_ITEM 存储过程");
         if (poInfo == null || poInfo.length != 2) {
             return "糟糕，储存过程出现了未知错误，速联系相关人员。";
         } else if ("error".equalsIgnoreCase(poInfo[0])) {
@@ -379,24 +347,6 @@ public class WipReqLineService {
                 .setOperationType(opType).setExecuteCode("1");
         EntityUtils.writeStdCrtInfoToEntity(moInterface, wipReqLine.getUpdUser());
         return moInterface;
-    }
-
-    /**
-     * 调用存储过程，处理变更信息。
-     */
-    private String[] callProcedure(String pWipId, String pGroupId) {
-        return batchMapper.execute(conn -> {
-            @SuppressWarnings("SqlResolve") String procedure = "CALL XXAPS.XXWIP_INTERFACE_PKG.P_UPDATE_MO_ITEM(?,?,?,?)";
-            CallableStatement cs = conn.prepareCall(procedure);
-            cs.setString(1, pWipId);
-            cs.setString(2, pGroupId);
-            cs.registerOutParameter(3, OracleTypes.VARCHAR);// po_code
-            cs.registerOutParameter(4, OracleTypes.VARCHAR);// po_message
-            return cs;
-        }, action -> {
-            action.execute();
-            return new String[]{action.getString(3), action.getString(4)};
-        });
     }
 
     /**
@@ -431,7 +381,7 @@ public class WipReqLineService {
         } else if (isNotEmpty(errorMsg = validateIndex(wipReqLine))) {
             return format("抱歉，您替换后的数据有点小问题，{}", errorMsg);
         }
-        Example example = createCustomExample(wipReqLine.setItemNo(beforeItemNo).setItemId(null));
+        Example example = wipReqLineRepository.createCustomExample(wipReqLine.setItemNo(beforeItemNo).setItemId(null));
         if (nonNull(example) && StringUtils.isNotEmpty(wipReqLine.getLineId())) {
             example.getOredCriteria().get(0).andEqualTo("lineId", wipReqLine.getLineId());
         }
@@ -505,7 +455,7 @@ public class WipReqLineService {
     private String validateAndGetUpdateData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> updateData) {
         Example example;
         List<WipReqLineEntity> wipReqLineList;
-        if (isNull(example = createCustomExample(wipReqLine)) || isEmpty(wipReqLineList = wipReqLineRepository.selectByExample(example))) {
+        if (isNull(example = wipReqLineRepository.createCustomExample(wipReqLine)) || isEmpty(wipReqLineList = wipReqLineRepository.selectByExample(example))) {
             log.error(logFormat.apply(format("更新条件无法查询待更新的投料单行数据，更新条件 = [{}]；", EntityUtils.getEntityPrintInfo(wipReqLine)), ChangedTypeEnum.UPDATE));
             return "更新失败，请您检查更新条件是否正确；";
         }
@@ -525,33 +475,6 @@ public class WipReqLineService {
         wipReqLineList.forEach(line -> copyProperties(wipReqLine, line, EntityUtils.IGNORE_NULL_VALUE_OPTION));
         updateData.addAll(wipReqLineList);
         return "";
-    }
-
-    /**
-     * 创建一个定制化的 {@link Example} 对象。包含了大批次号、组织、小批次号、工序号、位号、物料ID、物料编号以及行版本字段的查询条件。
-     * <p>
-     * 这些字段组成了投料单表{@code wip_req_lines}的索引
-     */
-    private Example createCustomExample(WipReqLineEntity wipReqLine) {
-        Example example = new Example(WipReqLineEntity.class);
-        Example.Criteria criteria = example.createCriteria();
-        BiConsumer<String, String> equalOrNull = (p, v) -> criteria.andEqualTo(p, isNotEmpty(v) ? v : null);
-        equalOrNull.accept("headerId", wipReqLine.getHeaderId());
-        equalOrNull.accept("organizationId", wipReqLine.getOrganizationId());
-        equalOrNull.accept("lotNumber", wipReqLine.getLotNumber());
-        equalOrNull.accept("wkpNo", wipReqLine.getWkpNo());
-        equalOrNull.accept("itemId", wipReqLine.getItemId());
-        equalOrNull.accept("itemNo", wipReqLine.getItemNo());
-        if (!criteria.isValid()) {
-            return null;
-        } else if (isNotEmpty(wipReqLine.getPosNo())) {
-            criteria.andEqualTo("posNo", wipReqLine.getPosNo());
-        } else {
-            criteria.andCondition("(pos_no is null or pos_no = '')");
-        }
-        criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED_PREPARED_ISSUED, BillStatusEnum.class));
-        // 默认example拼接条件时，如果属性值为空，则忽略这条件。如果所有条件都失效，则直接查询"where 1 = 1" 😓。
-        return example;
     }
 
     /**
