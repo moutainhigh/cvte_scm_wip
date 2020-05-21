@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
@@ -50,6 +51,16 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
     @Override
     public String getSourceId(String headerId) {
         return wipReqHeaderMapper.getSourceId(headerId);
+    }
+
+    @Override
+    public WipReqHeaderEntity getBySourceId(String sourceId) {
+        if (StringUtils.isBlank(sourceId)) {
+            throw new ParamsIncorrectException("来源工单ID不可为空");
+        }
+        WipReqHeaderDO queryDO = new WipReqHeaderDO().setSourceId(sourceId);
+        WipReqHeaderDO resultHeader = wipReqHeaderMapper.selectOne(queryDO);
+        return WipReqHeaderDO.buildEntity(resultHeader);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.changeorder.valueobject;
 
 import com.cvte.scm.wip.common.base.domain.VO;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.Date;
 import java.util.List;
@@ -14,9 +15,12 @@ import java.util.List;
   * email   : xueyuting@cvte.com
   */
 @Data
+@Accessors(chain = true)
 public class ChangeOrderBuildVO implements VO {
 
     private String billId;
+
+    private String existsBillId;
 
     private String billNo;
 

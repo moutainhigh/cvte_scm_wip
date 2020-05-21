@@ -1,6 +1,8 @@
 package com.cvte.scm.wip.domain.core.requirement.valueobject;
 
+import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.base.domain.VO;
+import com.cvte.scm.wip.domain.core.changeorder.entity.ChangeOrderDetailEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -32,6 +34,8 @@ public class ReqInstructionDetailBuildVO implements VO {
 
     private String wkpNo;
 
+    private String posNo;
+
     private BigDecimal itemQty;
 
     private String operationType;
@@ -42,12 +46,19 @@ public class ReqInstructionDetailBuildVO implements VO {
 
     private Date disableDate;
 
-    private Date confirmDate;
-
-    private String confirmedBy;
-
-    private String invalidBy;
-
-    private String invalidReason;
+    public static ReqInstructionDetailBuildVO buildVO(ChangeOrderDetailEntity orderDetailEntity) {
+        ReqInstructionDetailBuildVO detailBuildVO = new ReqInstructionDetailBuildVO();
+        detailBuildVO.setOrganizationId(orderDetailEntity.getOrganizationId())
+                .setSourceChangeDetailId(orderDetailEntity.getDetailId())
+                .setMoLotNo(orderDetailEntity.getMoLotNo())
+                .setPosNo(orderDetailEntity.getPosNo())
+                .setItemIdOld(orderDetailEntity.getItemIdOld())
+                .setItemIdNew(orderDetailEntity.getItemIdNew())
+                .setWkpNo(orderDetailEntity.getWkpNo())
+                .setItemQty(orderDetailEntity.getItemQty())
+                .setEnableDate(orderDetailEntity.getEnableDate())
+                .setDisableDate(orderDetailEntity.getDisableDate());
+        return detailBuildVO;
+    }
 
 }

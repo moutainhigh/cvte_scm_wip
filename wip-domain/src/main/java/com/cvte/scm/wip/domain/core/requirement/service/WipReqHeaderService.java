@@ -29,6 +29,10 @@ public class WipReqHeaderService {
         this.wipReqHeaderRepository = wipReqHeaderRepository;
     }
 
+    public WipReqHeaderEntity getBySourceId(String sourceId) {
+        return wipReqHeaderRepository.getBySourceId(sourceId);
+    }
+
     public String updateWipReqHeaders(List<WipReqHeaderEntity> wipReqHeaderList, ExecutionModeEnum mode) {
         List<WipReqHeaderEntity> updateWipReqHeaders = new ArrayList<>();
         String errorMessage = EntityUtils.accumulate(wipReqHeaderList, header -> wipReqHeaderRepository.validateAndGetUpdateDataHelper(header, updateWipReqHeaders));

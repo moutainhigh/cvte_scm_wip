@@ -2,6 +2,8 @@ package com.cvte.scm.wip.domain.core.changeorder.repository;
 
 import com.cvte.scm.wip.domain.core.changeorder.entity.ChangeOrderDetailEntity;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -10,6 +12,8 @@ import com.cvte.scm.wip.domain.core.changeorder.entity.ChangeOrderDetailEntity;
   * email   : xueyuting@cvte.com
   */
 public interface ChangeOrderDetailRepository {
+
+    List<ChangeOrderDetailEntity> selectByBillId(String billId);
 
     void insert(ChangeOrderDetailEntity entity);
 

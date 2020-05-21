@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
   * 
@@ -59,6 +61,8 @@ public class ChangeOrderDetailEntity implements Entity<String>{
 
     private String itemIdNew;
 
+    private BigDecimal itemQty;
+
     private String operationType;
 
     private String posNo;
@@ -66,6 +70,10 @@ public class ChangeOrderDetailEntity implements Entity<String>{
     private Date enableDate;
 
     private Date disableDate;
+
+    public List<ChangeOrderDetailEntity> getByBillId(String billId) {
+        return changeOrderDetailRepository.selectByBillId(billId);
+    }
 
     public ChangeOrderDetailEntity createChangeOrderDetail(ChangeOrderDetailBuildVO vo) {
         ChangeOrderDetailEntity entity = changeOrderDetailEntityFactory.perfect(vo);
