@@ -79,6 +79,14 @@ public class ReqInstructionDetailEntity implements Entity<String> {
 
     private Date disableDate;
 
+    private Date confirmDate;
+
+    private String confirmedBy;
+
+    private String invalidBy;
+
+    private String invalidReason;
+
     public List<ReqInstructionDetailEntity> getByInstructionId(String insHeaderId) {
         return detailRepository.getByInsId(insHeaderId);
     }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsHMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsHeaderDO">
+            <result column="ins_h_id" property="insHId" />
+            <result column="source_cn_bill_id" property="sourceCnBillId" />
+            <result column="ins_h_status" property="insHStatus" />
+            <result column="aim_header_id" property="aimHeaderId" />
+            <result column="aim_req_lot_no" property="aimReqLotNo" />
+            <result column="enable_date" property="enableDate" />
+            <result column="disable_date" property="disableDate" />
+            <result column="rmk01" property="rmk01" />
+            <result column="rmk02" property="rmk02" />
+            <result column="rmk03" property="rmk03" />
+            <result column="rmk04" property="rmk04" />
+            <result column="rmk05" property="rmk05" />
+            <result column="crt_time" property="crtTime" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_host" property="crtHost" />
+            <result column="upd_time" property="updTime" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_host" property="updHost" />
+        </resultMap>
+</mapper>

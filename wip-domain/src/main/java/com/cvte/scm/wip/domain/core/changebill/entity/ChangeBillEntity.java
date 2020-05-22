@@ -121,8 +121,9 @@ public class ChangeBillEntity implements Entity<String> {
 
     public ReqInstructionBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
         // 生成投料单指令头
+        String instructionHeaderId = UUIDUtils.get32UUID();
         ReqInstructionBuildVO instructionBuildVO = ReqInstructionBuildVO.buildVO(this);
-        instructionBuildVO.setInstructionHeaderId(UUIDUtils.get32UUID())
+        instructionBuildVO.setInstructionHeaderId(instructionHeaderId)
                 .setInstructionHeaderStatus("未确认")
                 .setAimHeaderId(reqHeaderVO.getHeaderId())
                 .setAimReqLotNo(reqHeaderVO.getSourceLotNo());
@@ -131,6 +132,7 @@ public class ChangeBillEntity implements Entity<String> {
         List<ReqInstructionDetailBuildVO> instructionDetailBuildVOList = new ArrayList<>();
         for (ChangeBillDetailEntity billDetailEntity : this.getBillDetailList()) {
             ReqInstructionDetailBuildVO detailBuildVO = parseChangeBillDetail(billDetailEntity);
+            detailBuildVO.setInstructionHeaderId(instructionHeaderId);
             instructionDetailBuildVOList.add(detailBuildVO);
         }
 

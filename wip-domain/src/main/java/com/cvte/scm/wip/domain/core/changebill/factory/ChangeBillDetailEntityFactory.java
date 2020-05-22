@@ -23,6 +23,7 @@ public class ChangeBillDetailEntityFactory implements DomainFactory<ChangeBillDe
         entity.setDetailId(vo.getDetailId())
                 .setBillId(vo.getBillId())
                 .setMoLotNo(vo.getMoLotNo())
+                .setStatus(vo.getStatus())
                 .setOrganizationId(vo.getOrganizationId())
                 .setWkpNo(vo.getWkpNo())
                 .setItemIdOld(vo.getItemIdOld())

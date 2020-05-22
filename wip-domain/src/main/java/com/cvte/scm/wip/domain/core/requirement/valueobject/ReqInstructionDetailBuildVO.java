@@ -23,6 +23,8 @@ public class ReqInstructionDetailBuildVO implements VO {
 
     private String instructionDetailId;
 
+    private String instructionHeaderId;
+
     private String organizationId;
 
     private String sourceChangeDetailId;

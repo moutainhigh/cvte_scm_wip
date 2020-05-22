@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.changebill.valueobject;
 
 import com.cvte.scm.wip.common.base.domain.VO;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -24,7 +25,7 @@ public class ChangeBillDetailBuildVO implements VO {
 
     private String moLotNo;
 
-    private String detailStatus;
+    private String status;
 
     private String organizationId;
 
@@ -42,6 +43,7 @@ public class ChangeBillDetailBuildVO implements VO {
 
     private BigDecimal itemUnitQty;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date enableDate;
 
     private Date disableDate;

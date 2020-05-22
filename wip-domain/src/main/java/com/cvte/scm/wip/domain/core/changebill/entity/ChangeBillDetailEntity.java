@@ -54,7 +54,7 @@ public class ChangeBillDetailEntity implements Entity<String>{
 
     private String moLotNo;
 
-    private String detailStatus;
+    private String status;
 
     private String organizationId;
 

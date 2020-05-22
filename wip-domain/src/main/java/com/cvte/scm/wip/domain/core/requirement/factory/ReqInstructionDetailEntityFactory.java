@@ -19,6 +19,7 @@ public class ReqInstructionDetailEntityFactory implements DomainFactory<ReqInstr
     public ReqInstructionDetailEntity perfect(ReqInstructionDetailBuildVO vo) {
         ReqInstructionDetailEntity detailEntity = ReqInstructionDetailEntity.get();
         detailEntity.setInstructionDetailId(vo.getInstructionDetailId())
+                .setInstructionHeaderId(vo.getInstructionHeaderId())
                 .setOrganizationId(vo.getOrganizationId())
                 .setSourceChangeDetailId(vo.getSourceChangeDetailId())
                 .setMoLotNo(vo.getMoLotNo())

@@ -13,10 +13,10 @@ import java.util.List;
   */
 public interface ReqInstructionDetailRepository {
 
-    void insert(ReqInstructionDetailEntity detailEntity);
+    void insert(ReqInstructionDetailEntity entity);
 
-    void update(ReqInstructionDetailEntity detailEntity);
+    void update(ReqInstructionDetailEntity entity);
 
-    List<ReqInstructionDetailEntity> getByInsId(String id);
+    List<ReqInstructionDetailEntity> getByInsId(String insId);
 
 }

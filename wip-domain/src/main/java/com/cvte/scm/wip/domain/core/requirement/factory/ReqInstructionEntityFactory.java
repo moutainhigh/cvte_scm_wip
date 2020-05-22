@@ -20,7 +20,7 @@ public class ReqInstructionEntityFactory implements DomainFactory<ReqInstruction
         ReqInstructionEntity headerEntity = ReqInstructionEntity.get();
         headerEntity.setInstructionHeaderId(vo.getInstructionHeaderId())
                 .setSourceChangeBillId(vo.getSourceChangeBillId())
-                .setInstructionHeaderStatus(vo.getInstructionHeaderStatus())
+                .setStatus(vo.getInstructionHeaderStatus())
                 .setAimHeaderId(vo.getAimHeaderId())
                 .setAimReqLotNo(vo.getAimReqLotNo())
                 .setEnableDate(vo.getEnableDate())

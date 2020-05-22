@@ -71,7 +71,7 @@ public class SourceChangeBillDTO {
                 .setOrganizationId(changeBillDTO.getOrganizationId())
                 .setDetailId(changeBillDTO.getDetailId())
                 .setMoLotNo(changeBillDTO.getMoLotNo())
-                .setDetailStatus(changeBillDTO.getDetailStatus())
+                .setStatus(changeBillDTO.getDetailStatus())
                 .setWkpNo(changeBillDTO.getWkpNo())
                 .setItemIdOld(changeBillDTO.getItemIdOld())
                 .setItemIdNew(changeBillDTO.getItemIdNew())

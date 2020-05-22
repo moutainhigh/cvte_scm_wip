@@ -5,6 +5,9 @@ import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 
 /**
   * 
@@ -13,6 +16,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildV
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
+@Component
 public class UpdateChangeBillEntity extends ChangeBillEntity {
 
     public UpdateChangeBillEntity(ChangeBillRepository changeBillRepository) {
@@ -25,7 +29,8 @@ public class UpdateChangeBillEntity extends ChangeBillEntity {
         instructionBuildVO.setInstructionHeaderId(UUIDUtils.get32UUID())
                 .setInstructionHeaderStatus(reqHeaderVO.getBillStatus())
                 .setAimHeaderId(reqHeaderVO.getHeaderId())
-                .setAimReqLotNo(reqHeaderVO.getSourceLotNo());
+                .setAimReqLotNo(reqHeaderVO.getSourceLotNo())
+                .setDetailList(Collections.emptyList());
         return instructionBuildVO;
     }
 

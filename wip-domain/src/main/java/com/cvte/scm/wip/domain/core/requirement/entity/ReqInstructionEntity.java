@@ -51,7 +51,7 @@ public class ReqInstructionEntity implements Entity<String> {
 
     private String sourceChangeBillId;
 
-    private String instructionHeaderStatus;
+    private String status;
 
     private String aimHeaderId;
 

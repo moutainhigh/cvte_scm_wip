@@ -13,10 +13,10 @@ import java.util.List;
   */
 public interface ChangeBillDetailRepository {
 
-    List<ChangeBillDetailEntity> selectByBillId(String billId);
-
     void insert(ChangeBillDetailEntity entity);
 
     void update(ChangeBillDetailEntity entity);
+
+    List<ChangeBillDetailEntity> selectByBillId(String billId);
 
 }

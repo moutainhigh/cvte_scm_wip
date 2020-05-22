@@ -1,8 +1,13 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInstructionRepository;
+import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsHMapper;
+import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsHeaderDO;
 import org.springframework.stereotype.Repository;
+
+import java.util.Objects;
 
 /**
   * 
@@ -14,19 +19,34 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ReqInstructionRepositoryImpl implements ReqInstructionRepository {
 
-    @Override
-    public void insert(ReqInstructionEntity InstructionEntity) {
+    private WipReqInsHMapper insHMapper;
 
+    public ReqInstructionRepositoryImpl(WipReqInsHMapper insHMapper) {
+        this.insHMapper = insHMapper;
     }
 
     @Override
-    public void update(ReqInstructionEntity InstructionEntity) {
+    public void insert(ReqInstructionEntity entity) {
+        WipReqInsHeaderDO insDO = WipReqInsHeaderDO.buildDO(entity);
+        EntityUtils.writeStdCrtInfoToEntity(insDO, EntityUtils.getWipUserId());
+        insHMapper.insertSelective(insDO);
+    }
+
+    @Override
+    public void update(ReqInstructionEntity entity) {
+        WipReqInsHeaderDO insDO = WipReqInsHeaderDO.buildDO(entity);
+        EntityUtils.writeStdUpdInfoToEntity(insDO, EntityUtils.getWipUserId());
+        insHMapper.insertSelective(insDO);
 
     }
 
     @Override
     public ReqInstructionEntity getById(String insId) {
-        return null;
+        WipReqInsHeaderDO insDO = insHMapper.selectByPrimaryKey(insId);
+        if (Objects.isNull(insDO)) {
+            return null;
+        }
+        return WipReqInsHeaderDO.buildEntity(insDO);
     }
 
 }
