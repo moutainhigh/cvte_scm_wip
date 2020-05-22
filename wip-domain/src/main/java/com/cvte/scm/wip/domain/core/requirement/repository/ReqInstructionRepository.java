@@ -11,6 +11,10 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
   */
 public interface ReqInstructionRepository {
 
-    void insert(ReqInstructionEntity headerEntity);
+    void insert(ReqInstructionEntity InstructionEntity);
+
+    void update(ReqInstructionEntity InstructionEntity);
+
+    ReqInstructionEntity getById(String insId);
 
 }

@@ -2,6 +2,8 @@ package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionDetailEntity;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -12,5 +14,9 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionDetailEntit
 public interface ReqInstructionDetailRepository {
 
     void insert(ReqInstructionDetailEntity detailEntity);
+
+    void update(ReqInstructionDetailEntity detailEntity);
+
+    List<ReqInstructionDetailEntity> getByInsId(String id);
 
 }

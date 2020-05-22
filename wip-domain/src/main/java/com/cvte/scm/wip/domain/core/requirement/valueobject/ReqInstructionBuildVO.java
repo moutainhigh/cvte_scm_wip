@@ -1,9 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.valueobject;
 
 import com.cvte.scm.wip.common.base.domain.VO;
-import com.cvte.scm.wip.domain.core.changeorder.entity.ChangeOrderEntity;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -35,16 +33,13 @@ public class ReqInstructionBuildVO implements VO {
 
     private Date disableDate;
 
-    @ApiModelProperty("执行类型, 新增/更新/撤销(删除)")
-    private ChangedTypeEnum executeType;
-
     private List<ReqInstructionDetailBuildVO> detailList;
 
-    public static ReqInstructionBuildVO buildVO(ChangeOrderEntity orderEntity) {
+    public static ReqInstructionBuildVO buildVO(ChangeBillEntity billEntity) {
         ReqInstructionBuildVO instructionBuildVO = new ReqInstructionBuildVO();
-        instructionBuildVO.setSourceChangeBillId(orderEntity.getBillId())
-                .setEnableDate(orderEntity.getEnableDate())
-                .setDisableDate(orderEntity.getDisableDate());
+        instructionBuildVO.setSourceChangeBillId(billEntity.getBillId())
+                .setEnableDate(billEntity.getEnableDate())
+                .setDisableDate(billEntity.getDisableDate());
         return instructionBuildVO;
     }
 

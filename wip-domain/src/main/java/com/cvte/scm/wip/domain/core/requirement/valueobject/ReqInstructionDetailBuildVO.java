@@ -1,13 +1,14 @@
 package com.cvte.scm.wip.domain.core.requirement.valueobject;
 
-import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.base.domain.VO;
-import com.cvte.scm.wip.domain.core.changeorder.entity.ChangeOrderDetailEntity;
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
   * 
@@ -38,6 +39,8 @@ public class ReqInstructionDetailBuildVO implements VO {
 
     private BigDecimal itemQty;
 
+    private BigDecimal itemUnitQty;
+
     private String operationType;
 
     private String insStatus;
@@ -46,19 +49,27 @@ public class ReqInstructionDetailBuildVO implements VO {
 
     private Date disableDate;
 
-    public static ReqInstructionDetailBuildVO buildVO(ChangeOrderDetailEntity orderDetailEntity) {
+    public static ReqInstructionDetailBuildVO buildVO(ChangeBillDetailEntity billDetailEntity) {
         ReqInstructionDetailBuildVO detailBuildVO = new ReqInstructionDetailBuildVO();
-        detailBuildVO.setOrganizationId(orderDetailEntity.getOrganizationId())
-                .setSourceChangeDetailId(orderDetailEntity.getDetailId())
-                .setMoLotNo(orderDetailEntity.getMoLotNo())
-                .setPosNo(orderDetailEntity.getPosNo())
-                .setItemIdOld(orderDetailEntity.getItemIdOld())
-                .setItemIdNew(orderDetailEntity.getItemIdNew())
-                .setWkpNo(orderDetailEntity.getWkpNo())
-                .setItemQty(orderDetailEntity.getItemQty())
-                .setEnableDate(orderDetailEntity.getEnableDate())
-                .setDisableDate(orderDetailEntity.getDisableDate());
+        detailBuildVO.setOrganizationId(billDetailEntity.getOrganizationId())
+                .setSourceChangeDetailId(billDetailEntity.getDetailId())
+                .setMoLotNo(billDetailEntity.getMoLotNo())
+                .setPosNo(billDetailEntity.getPosNo())
+                .setItemIdOld(billDetailEntity.getItemIdOld())
+                .setItemIdNew(billDetailEntity.getItemIdNew())
+                .setWkpNo(billDetailEntity.getWkpNo())
+                .setItemQty(billDetailEntity.getItemQty())
+                .setEnableDate(billDetailEntity.getEnableDate())
+                .setDisableDate(billDetailEntity.getDisableDate());
         return detailBuildVO;
+    }
+
+    public static List<ReqInstructionDetailBuildVO> batchBuildVO(List<ChangeBillDetailEntity> detailEntityList) {
+        List<ReqInstructionDetailBuildVO> detailBuildVOList = new ArrayList<>();
+        for (ChangeBillDetailEntity detailEntity : detailEntityList) {
+            detailBuildVOList.add(ReqInstructionDetailBuildVO.buildVO(detailEntity));
+        }
+        return detailBuildVOList;
     }
 
 }

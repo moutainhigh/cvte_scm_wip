@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
   * 
@@ -68,21 +69,36 @@ public class ReqInstructionEntity implements Entity<String> {
 
     private List<ReqInstructionDetailEntity> detailList;
 
-    public ReqInstructionEntity createInstructionHeader(ReqInstructionBuildVO vo) {
-        ReqInstructionEntity headerEntity = headerEntityFactory.perfect(vo);
-        headerRepository.insert(headerEntity);
-        return headerEntity;
+    public ReqInstructionEntity getById(String insId) {
+        return headerRepository.getById(insId);
     }
 
-    public ReqInstructionEntity createCompleteInstruction(ReqInstructionBuildVO vo) {
-        ReqInstructionEntity instructionHeaderEntity = this.createInstructionHeader(vo);
+    public ReqInstructionEntity createInstruction(ReqInstructionBuildVO vo) {
+        ReqInstructionEntity instructionEntity = headerEntityFactory.perfect(vo);
+        headerRepository.insert(instructionEntity);
+        return instructionEntity;
+    }
 
-        ReqInstructionDetailEntity buildDetailEntity = ReqInstructionDetailEntity.get();
-        List<ReqInstructionDetailEntity> detailEntityList = new ArrayList<>();
-        for (ReqInstructionDetailBuildVO detailBuildVO : vo.getDetailList()) {
-            ReqInstructionDetailEntity detailEntity = buildDetailEntity.createInstructionDetail(detailBuildVO);
-            detailEntityList.add(detailEntity);
+    public ReqInstructionEntity updateInstruction(ReqInstructionBuildVO vo) {
+        ReqInstructionEntity instructionEntity = headerEntityFactory.perfect(vo);
+        headerRepository.update(instructionEntity);
+        return instructionEntity;
+    }
+
+    public ReqInstructionEntity saveInstruction(ReqInstructionBuildVO vo) {
+        ReqInstructionEntity instructionEntity = getById(vo.getInstructionHeaderId());
+        if (Objects.nonNull(instructionEntity)) {
+            instructionEntity = this.updateInstruction(vo);
+        } else {
+            instructionEntity = this.createInstruction(vo);
         }
+        return instructionEntity;
+    }
+
+    public ReqInstructionEntity completeInstruction(ReqInstructionBuildVO vo) {
+        ReqInstructionEntity instructionHeaderEntity = this.saveInstruction(vo);
+
+        List<ReqInstructionDetailEntity> detailEntityList = ReqInstructionDetailEntity.get().batchSaveInstructionDetail(vo);
 
         instructionHeaderEntity.setDetailList(detailEntityList);
         return instructionHeaderEntity;

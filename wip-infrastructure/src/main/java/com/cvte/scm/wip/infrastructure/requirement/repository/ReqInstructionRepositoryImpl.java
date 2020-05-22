@@ -15,8 +15,18 @@ import org.springframework.stereotype.Repository;
 public class ReqInstructionRepositoryImpl implements ReqInstructionRepository {
 
     @Override
-    public void insert(ReqInstructionEntity headerEntity) {
+    public void insert(ReqInstructionEntity InstructionEntity) {
 
+    }
+
+    @Override
+    public void update(ReqInstructionEntity InstructionEntity) {
+
+    }
+
+    @Override
+    public ReqInstructionEntity getById(String insId) {
+        return null;
     }
 
 }

@@ -27,6 +27,7 @@ public class ReqInstructionDetailEntityFactory implements DomainFactory<ReqInstr
                 .setWkpNo(vo.getWkpNo())
                 .setPosNo(vo.getPosNo())
                 .setItemQty(vo.getItemQty())
+                .setItemUnitQty(vo.getItemUnitQty())
                 .setOperationType(vo.getOperationType())
                 .setInsStatus(vo.getInsStatus())
                 .setEnableDate(vo.getEnableDate())

@@ -1,9 +1,11 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInstructionDetailEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInstructionDetailRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionDetailBuildVO;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -14,7 +16,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -46,6 +51,8 @@ public class ReqInstructionDetailEntity implements Entity<String> {
 
     private String instructionDetailId;
 
+    private String instructionHeaderId;
+
     private String organizationId;
 
     private String sourceChangeDetailId;
@@ -62,6 +69,8 @@ public class ReqInstructionDetailEntity implements Entity<String> {
 
     private BigDecimal itemQty;
 
+    private BigDecimal itemUnitQty;
+
     private String operationType;
 
     private String insStatus;
@@ -70,10 +79,38 @@ public class ReqInstructionDetailEntity implements Entity<String> {
 
     private Date disableDate;
 
-    public ReqInstructionDetailEntity createInstructionDetail(ReqInstructionDetailBuildVO detailBuildVO) {
-        ReqInstructionDetailEntity detailEntity = detailEntityFactory.perfect(detailBuildVO);
+    public List<ReqInstructionDetailEntity> getByInstructionId(String insHeaderId) {
+        return detailRepository.getByInsId(insHeaderId);
+    }
+
+    public ReqInstructionDetailEntity createInstructionDetail(ReqInstructionDetailBuildVO vo) {
+        ReqInstructionDetailEntity detailEntity = detailEntityFactory.perfect(vo);
         detailRepository.insert(detailEntity);
         return detailEntity;
+    }
+
+    public ReqInstructionDetailEntity updateInstructionDetail(ReqInstructionDetailBuildVO vo) {
+        ReqInstructionDetailEntity detailEntity = detailEntityFactory.perfect(vo);
+        detailRepository.update(detailEntity);
+        return detailEntity;
+    }
+
+    public List<ReqInstructionDetailEntity> batchSaveInstructionDetail(ReqInstructionBuildVO vo) {
+        List<ReqInstructionDetailEntity> detailEntityList = this.getByInstructionId(vo.getInstructionHeaderId());
+        List<String> detailIdList = new ArrayList<>();
+        if (ListUtil.notEmpty(detailEntityList)) {
+            detailIdList.addAll(detailEntityList.stream().map(ReqInstructionDetailEntity::getInstructionDetailId).collect(Collectors.toList()));
+        }
+
+        List<ReqInstructionDetailEntity> resultDetailList = new ArrayList<>();
+        for (ReqInstructionDetailBuildVO detailBuildVO : vo.getDetailList()) {
+            if (detailIdList.contains(detailBuildVO.getInstructionDetailId())) {
+                resultDetailList.add(this.updateInstructionDetail(detailBuildVO));
+            } else {
+                resultDetailList.add(this.createInstructionDetail(detailBuildVO));
+            }
+        }
+        return resultDetailList;
     }
 
     public static ReqInstructionDetailEntity get() {

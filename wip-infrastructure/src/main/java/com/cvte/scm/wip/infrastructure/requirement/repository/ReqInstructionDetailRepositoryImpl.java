@@ -4,6 +4,8 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionDetailEntit
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInstructionDetailRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -17,6 +19,16 @@ public class ReqInstructionDetailRepositoryImpl implements ReqInstructionDetailR
     @Override
     public void insert(ReqInstructionDetailEntity detailEntity) {
 
+    }
+
+    @Override
+    public void update(ReqInstructionDetailEntity detailEntity) {
+
+    }
+
+    @Override
+    public List<ReqInstructionDetailEntity> getByInsId(String id) {
+        return null;
     }
 
 }
