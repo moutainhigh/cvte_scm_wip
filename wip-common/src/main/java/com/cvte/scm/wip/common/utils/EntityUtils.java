@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.common.utils;
 
 import cn.hutool.core.bean.copier.CopyOptions;
+import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.client.forbiddens.NoOperationRightException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
@@ -50,6 +51,16 @@ public class EntityUtils {
     public static void writeStdUpdInfoToEntity(Object entity, String userId) {
         writeStdInfoToEntity(entity, userId, false);
     }
+
+    public static void writeCurUserStdUpdInfoToEntity(Object entity) {
+        writeStdUpdInfoToEntity(entity, CurrentContext.getCurrentOperatingUser().getId());
+    }
+
+
+    public static void writeCurUserStdCrtInfoToEntity(Object entity) {
+        writeStdCrtInfoToEntity(entity, CurrentContext.getCurrentOperatingUser().getId());
+    }
+
 
     /**
      * 写入标准用户信息到具体的实体对象字段

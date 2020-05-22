@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcReqMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcReqDO">
+            <result column="mc_req_id" property="mcReqId" />
+            <result column="mc_req_no" property="mcReqNo" />
+            <result column="status" property="status" />
+            <result column="organization_id" property="organizationId" />
+            <result column="source_no" property="sourceNo" />
+            <result column="bu_name" property="buName" />
+            <result column="factory_id" property="factoryId" />
+            <result column="sales" property="sales" />
+            <result column="receive_region" property="receiveRegion" />
+            <result column="client_name" property="clientName" />
+            <result column="crt_time" property="crtTime" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_host" property="crtHost" />
+            <result column="upd_time" property="updTime" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_host" property="updHost" />
+            <result column="order_type" property="orderType" />
+            <result column="assistant" property="assistant" />
+            <result column="source_id" property="sourceId" />
+            <result column="mtr_ready_time" property="mtrReadyTime" />
+            <result column="plan_delivery_time" property="planDeliveryTime" />
+            <result column="to_pur_time" property="toPurTime" />
+            <result column="dept_name" property="deptName" />
+            <result column="purchaseed" property="purchaseed" />
+            <result column="produced" property="produced" />
+            <result column="item_id" property="itemId" />
+            <result column="mc_qty" property="mcQty" />
+            <result column="source_line_id" property="sourceLineId" />
+            <result column="source_line_no" property="sourceLineNo" />
+            <result column="from_onhand" property="fromOnhand" />
+        </resultMap>
+</mapper>

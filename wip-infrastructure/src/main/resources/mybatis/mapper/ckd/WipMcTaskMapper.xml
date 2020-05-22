@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcTaskMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcTaskDO">
+        <result column="mc_task_id" property="mcTaskId"/>
+        <result column="mc_task_no" property="mcTaskNo"/>
+        <result column="factory_id" property="factoryId"/>
+        <result column="client" property="client"/>
+        <result column="mtr_ready_time" property="mtrReadyTime"/>
+        <result column="remark" property="remark"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_host" property="crtHost"/>
+        <result column="upd_time" property="updTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_host" property="updHost"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+    </resultMap>
+
+    <resultMap id="McTaskInfoView" type="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView">
+        <result column="mc_task_no" property="mcTaskNo"/>
+        <result column="mc_task_id" property="mcTaskId"/>
+        <result column="status" property="status"/>
+        <result column="client" property="client"/>
+        <result column="mtr_ready_time" property="mtrReadyTime"/>
+        <result column="factory_name" property="factoryName"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_time" property="updTime"/>
+        <result column="remark" property="remark"/>
+        <result column="pmAuditUser" property="pmAuditUser"/>
+        <result column="pmAuditDate" property="pmAuditDate"/>
+        <result column="factoryConfirmUser" property="factoryConfirmUser"/>
+        <result column="factoryConfirmDate" property="factoryConfirmDate"/>
+        <result column="backOffice" property="backOffice" />
+        <result column="versionId" property="versionId" />
+        <result column="versionNo" property="versionNo" />
+        <result column="versionDate" property="versionDate" />
+        <result column="org_id" property="orgId"/>
+        <result column="ebs_organization_code" property="ebsOrganizationCode"/>
+        <result column="mcFinishStatusName" property="mcFinishStatusName" />
+        <result column="delivery_in_status" property="deliveryInStatus" />
+        <result column="delivery_out_status" property="deliveryOutStatus" />
+        <result column="bu_name" property="buName" />
+        <result column="dept_name" property="deptName" />
+        <result column="inout_stock_id" property="inoutStockId" />
+    </resultMap>
+
+
+
+    <resultMap id="WipMcTaskView" type="com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskView">
+        <result column="mc_task_id" property="mcTaskId"/>
+        <result column="mc_task_no" property="mcTaskNo"/>
+        <result column="factory_id" property="factoryId"/>
+        <result column="client" property="client"/>
+        <result column="mtr_ready_time" property="mtrReadyTime"/>
+        <result column="remark" property="remark"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+
+    <resultMap id="listWipLineStatusView" type="com.cvte.scm.wip.domain.core.ckd.dto.view.WipLineStatusView">
+        <result column="line_id" property="lineId"/>
+        <result column="source_line_id" property="sourceLineId"/>
+        <result column="source_line_no" property="sourceLineNo"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="getMcTaskInfoView" resultMap="McTaskInfoView">
+       select Wmt.mc_task_no
+        , Wmt.mc_task_id
+        , Wmw.status
+        , case Wmw.status
+        when 'finish' then '已完成'
+        else '未完成' end mcFinishStatusName
+        , Wmt.client
+        , Wmt.mtr_ready_time
+        , sofv.factory_name
+        , coalesce(Crt_su.name, Wmt.crt_user) crt_user
+        , Wmt.crt_time
+        , coalesce(Upd_su.name, Wmt.upd_user) upd_user
+        , Wmt.upd_time
+        , wmt.remark
+        , factory_confirm.crt_user_name factoryConfirmUser
+        , factory_confirm.crt_time factoryConfirmDate
+        , pm_audit.crt_user_name pmAuditUser
+        , pm_audit.crt_time pmAuditDate
+        , Bo_Su.name backOffice
+        , Wmtv.version_id versionId
+        , Wmtv.version_no versionNo
+        , Wmtv.version_date versionDate
+        , Wmt.org_id
+        , Soov.ebs_organization_code
+        , In_Wmis.status delivery_in_status
+        , Out_Wmis.status delivery_out_status
+        , Wmt.bu_name
+        , Wmt.dept_name
+        , Wmt.in_stock_id
+        , Wmt.out_stock_id
+        from wip_mc_task Wmt
+        join wip_mc_wf Wmw on Wmw.mc_task_id = Wmt.mc_task_id and wmw.wf_id = wmt.mc_wf_id
+        left join scm.sys_org_factory_v Sofv on Wmt.factory_id = Sofv.ebs_factory_id
+        left join scm.sys_org_organization_v Soov on Wmt.org_id = Soov.org_id
+        left join scm.sys_user Bo_Su ON Bo_Su.id = Wmt.back_office
+        left join scm.sys_user Crt_su ON Crt_su.id = Wmt.crt_user
+        left join scm.sys_user Upd_su ON Upd_su.id = Wmt.upd_user
+        left join wip_mc_inout_stock in_Wmis on in_Wmis.inout_stock_id = Wmt.in_stock_id
+        left join wip_mc_inout_stock Out_Wmis on Out_Wmis.inout_stock_id =  Wmt.out_stock_id
+        -- 最新版本信息
+        join (
+            select Wmtv.*
+                , row_number() OVER( partition by mc_task_id order by Wmtv.crt_time desc) Rn
+            from wip_mc_task_version Wmtv
+            order by crt_time desc
+        ) Wmtv on Wmtv.mc_task_id = Wmt.mc_task_id and Wmtv.Rn = 1
+        -- 工厂确认信息
+        left join (
+            select Wmw.*
+            , coalesce(Su.name, Wmw.crt_user) crt_user_name
+            , row_number() OVER( partition by mc_task_id order by Wmw.crt_time desc) Rn
+            from wip_mc_wf Wmw
+            left join scm.sys_user Su on su.id = Wmw.crt_user
+            where status = 'confirm'
+        ) factory_confirm on factory_confirm.rn = 1 and factory_confirm.mc_task_id = Wmt.mc_task_id
+        -- 生管确认信息
+        left join (
+            select Wmw.*
+            , Su.name crt_user_name
+            , row_number() OVER( partition by mc_task_id order by Wmw.crt_time desc) Rn
+            from wip_mc_wf Wmw
+            left join scm.sys_user Su on su.id = Wmw.crt_user
+            where status = 'verify'
+        ) pm_audit on pm_audit.rn = 1 and pm_audit.mc_task_id = Wmt.mc_task_id
+        where Wmt.mc_task_id = #{mcTaskId}
+    </select>
+
+    <select id="listMcTaskDeliveringInStockView"
+            resultType="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView">
+       select Wmtl.line_id mcTaskLineId
+            , Wmtl.mc_task_id mcTaskId
+            , Wmisl.inout_stock_line_id inoutStockLineId
+            , Wmisl.line_id deliveryLineId
+            , wmisl.line_no deliveryLineNo
+            , Wmis.header_no deliveryNo
+            , Wmis.header_id deliveryId
+        from wip_mc_task Wmt
+        join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
+        join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
+        join wip_mc_inout_stock Wmis on Wmis.inout_stock_id = Wmt.in_stock_id
+        join wip_mc_inout_stock_line Wmisl on Wmisl.mc_task_line_id = Wmtl.line_id and Wmisl.inout_stock_id = Wmis.inout_stock_id
+        where Wmtl.line_status = '110'
+        and (
+            -- 行数据中含有未过账数据 或 头数据含 非终止状态数据
+            Wmis.status not in  ('POSTED', 'CANCELLED')
+            or Wmt.mc_task_id in (
+                select Wmt.mc_task_id
+                from wip_mc_task Wmt
+                join wip_mc_inout_stock Wmis on Wmis.inout_stock_id = Wmt.in_stock_id
+                join wip_mc_inout_stock_line Wmisl on Wmis.inout_stock_id = Wmisl.inout_stock_id
+                where Wmis.status = 'POSTED'
+                and wmisl.status = 'UN_POST'
+                group by Wmt.mc_task_id
+            )
+        )
+    </select>
+
+
+    <select id="listMcTaskDeliveringOutStockView"
+            resultType="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView">
+        select Wmtl.line_id mcTaskLineId
+            , Wmtl.mc_task_id mcTaskId
+            , Wmisl.inout_stock_line_id inoutStockLineId
+            , Wmisl.line_id deliveryLineId
+            , wmisl.line_no deliveryLineNo
+            , Wmis.header_no deliveryNo
+            , Wmis.header_id deliveryId
+            , Wmis.inout_stock_id inoutStockId
+        from wip_mc_task Wmt
+        join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
+        join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
+        join wip_mc_inout_stock Wmis on Wmis.inout_stock_id = Wmt.out_stock_id
+        join wip_mc_inout_stock_line Wmisl on Wmisl.mc_task_line_id = Wmtl.line_id and Wmisl.inout_stock_id = Wmis.inout_stock_id
+        where Wmtl.line_status = '110'
+        and (
+            -- 行数据中含有未过账数据 或 头数据含 非终止状态数据
+            Wmis.status not in  ('POSTED', 'CANCELLED')
+            or Wmt.mc_task_id in (
+                select Wmt.mc_task_id
+                from wip_mc_task Wmt
+                join wip_mc_inout_stock Wmis on Wmis.inout_stock_id = Wmt.out_stock_id
+                join wip_mc_inout_stock_line Wmisl on Wmis.inout_stock_id = Wmisl.inout_stock_id
+                where Wmis.status = 'POSTED'
+                and wmisl.status = 'UN_POST'
+                group by Wmt.mc_task_id
+            )
+        )
+    </select>
+
+    <select id="listWipLineStatusView" resultMap="listWipLineStatusView">
+        select Wmtl.line_id,
+            Wmtl.source_line_id,
+            Wmtl.source_line_no,
+            Wmw.status
+        from wip_mc_task_line Wmtl
+        join wip_mc_task Wmt on Wmt.mc_task_id = Wmtl.mc_task_id
+        join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
+        where 1=1
+        <if test="sourceLineId != null and sourceLineId != ''">
+            AND Wmtl.line_id = #{sourceLineId}
+        </if>
+        <if test="sourceLineIds != null and sourceLineIds.size() > 0">
+            AND Wmtl.line_id in
+            <foreach collection="sourceLineIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+
+    </select>
+
+
+    <select id="listWipMcTask" resultMap="WipMcTaskView">
+        select Wmt.mc_task_id
+            , Wmt.mc_task_no
+            , Wmt.factory_id
+            , Wmt.client
+            , Wmt.mtr_ready_time
+            , Wmt.remark
+            , Wmw.status
+        from wip_mc_task Wmt
+        join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
+        join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
+        where 1=1
+        <if test="sourceLineIds != null and sourceLineIds.size() > 0">
+            AND Wmtl.source_line_id in
+            <foreach collection="sourceLineIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="taskIds != null and taskIds.size() > 0">
+            AND Wmt.mc_task_id in
+            <foreach collection="taskIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="mcTaskNos != null and mcTaskNos.size() > 0">
+            AND Wmt.mc_task_no in
+            <foreach collection="mcTaskNos" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="listValidTaskIds" resultType="java.lang.String">
+        select Wmt.mc_task_id
+        from wip_mc_task Wmt
+        join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
+        where Wmtl.line_status = '110'
+        and Wmt.mc_task_id in
+        <foreach collection="mcTaskIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        group by Wmt.mc_task_id
+    </select>
+
+
+</mapper>
