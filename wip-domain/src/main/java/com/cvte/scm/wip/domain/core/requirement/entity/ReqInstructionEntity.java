@@ -85,6 +85,11 @@ public class ReqInstructionEntity implements Entity<String> {
         return instructionEntity;
     }
 
+    /**
+     * 增量保存
+     * @since 2020/5/23 10:41 上午
+     * @author xueyuting
+     */
     public ReqInstructionEntity saveInstruction(ReqInstructionBuildVO vo) {
         ReqInstructionEntity instructionEntity = getById(vo.getInstructionHeaderId());
         if (Objects.nonNull(instructionEntity)) {
@@ -95,9 +100,16 @@ public class ReqInstructionEntity implements Entity<String> {
         return instructionEntity;
     }
 
+    /**
+     * 生成投料单指令集及其所有指令
+     * @since 2020/5/23 10:40 上午
+     * @author xueyuting
+     */
     public ReqInstructionEntity completeInstruction(ReqInstructionBuildVO vo) {
+        // 生成指令集
         ReqInstructionEntity instructionHeaderEntity = this.saveInstruction(vo);
 
+        // 生成所有指令
         List<ReqInstructionDetailEntity> detailEntityList = ReqInstructionDetailEntity.get().batchSaveInstructionDetail(vo);
 
         instructionHeaderEntity.setDetailList(detailEntityList);

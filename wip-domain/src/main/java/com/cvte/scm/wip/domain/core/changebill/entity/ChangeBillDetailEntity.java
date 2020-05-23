@@ -92,7 +92,13 @@ public class ChangeBillDetailEntity implements Entity<String>{
         return entity;
     }
 
+    /**
+     * 批量保存更改单明细
+     * @since 2020/5/23 10:49 上午
+     * @author xueyuting
+     */
     public List<ChangeBillDetailEntity> batchSaveDetail(ChangeBillBuildVO vo) {
+        // 查询数据库现有明细
         List<ChangeBillDetailEntity> dbDetailEntityList = getByBillId(vo.getBillId());
         List<String> detailIdList = new ArrayList<>();
         if (ListUtil.notEmpty(dbDetailEntityList)) {
@@ -102,8 +108,10 @@ public class ChangeBillDetailEntity implements Entity<String>{
         List<ChangeBillDetailEntity> resultDetailEntityList = new ArrayList<>();
         for (ChangeBillDetailBuildVO detailBuildVO : vo.getDetailVOList()) {
             if (detailIdList.contains(detailBuildVO.getDetailId())) {
+                // 有则更新
                 resultDetailEntityList.add(this.updateDetail(detailBuildVO));
             } else {
+                // 无则新增
                 resultDetailEntityList.add(this.createDetail(detailBuildVO));
             }
         }

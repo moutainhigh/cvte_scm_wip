@@ -85,6 +85,11 @@ public class ChangeBillEntity implements Entity<String> {
         return this.billDetailList;
     }
 
+    /**
+     * 根据 更改单的类型/变更(撤销、更新) 生成对应的更改单实体
+     * @since 2020/5/23 10:47 上午
+     * @author xueyuting
+     */
     public ChangeBillEntity createChangeBill(ChangeBillBuildVO vo) {
         ChangeBillEntity entity;
         switch (vo.getBillType()) {
@@ -110,6 +115,11 @@ public class ChangeBillEntity implements Entity<String> {
         return createChangeBill(vo);
     }
 
+    /**
+     * 生成更改单及其所有明细
+     * @since 2020/5/23 10:45 上午
+     * @author xueyuting
+     */
     public ChangeBillEntity completeChangeBill(ChangeBillBuildVO vo) {
         ChangeBillEntity billEntity = this.saveChangeBill(vo);
 
@@ -119,6 +129,11 @@ public class ChangeBillEntity implements Entity<String> {
         return billEntity;
     }
 
+    /**
+     * 解析更改单
+     * @since 2020/5/23 10:43 上午
+     * @author xueyuting
+     */
     public ReqInstructionBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
         // 生成投料单指令头
         String instructionHeaderId = UUIDUtils.get32UUID();
@@ -131,7 +146,9 @@ public class ChangeBillEntity implements Entity<String> {
         // 生成所有投料单指令行
         List<ReqInstructionDetailBuildVO> instructionDetailBuildVOList = new ArrayList<>();
         for (ChangeBillDetailEntity billDetailEntity : this.getBillDetailList()) {
+            // 解析更改单明细
             ReqInstructionDetailBuildVO detailBuildVO = parseChangeBillDetail(billDetailEntity);
+
             detailBuildVO.setInstructionHeaderId(instructionHeaderId);
             instructionDetailBuildVOList.add(detailBuildVO);
         }
@@ -140,18 +157,38 @@ public class ChangeBillEntity implements Entity<String> {
         return instructionBuildVO;
     }
 
+    /**
+     * 新增类型的更改单明细解析
+     * @since 2020/5/23 10:45 上午
+     * @author xueyuting
+     */
     protected ReqInstructionDetailBuildVO addTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         return defaultTypeDetailParse(billDetailEntity);
     }
 
+    /**
+     * 删除类型的更改单明细解析
+     * @since 2020/5/23 10:45 上午
+     * @author xueyuting
+     */
     protected ReqInstructionDetailBuildVO deleteTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         return defaultTypeDetailParse(billDetailEntity);
     }
 
+    /**
+     * 替换类型的更改单明细解析
+     * @since 2020/5/23 10:45 上午
+     * @author xueyuting
+     */
     protected ReqInstructionDetailBuildVO replaceTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         return defaultTypeDetailParse(billDetailEntity);
     }
 
+    /**
+     * 默认的更改单明细解析
+     * @since 2020/5/23 10:45 上午
+     * @author xueyuting
+     */
     protected ReqInstructionDetailBuildVO defaultTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         ReqInstructionDetailBuildVO detailBuildVO = ReqInstructionDetailBuildVO.buildVO(billDetailEntity);
         detailBuildVO.setInstructionDetailId(UUIDUtils.get32UUID())
@@ -160,6 +197,11 @@ public class ChangeBillEntity implements Entity<String> {
         return detailBuildVO;
     }
 
+    /**
+     * 根据 更改单明细的变更类型 解析投料单指令
+     * @since 2020/5/23 10:46 上午
+     * @author xueyuting
+     */
     private ReqInstructionDetailBuildVO parseChangeBillDetail(ChangeBillDetailEntity billDetailEntity) {
         String operationType = billDetailEntity.getOperationType();
         ChangedTypeEnum changedTypeEnum = CodeableEnumUtils.getCodeableEnumByCode(operationType, ChangedTypeEnum.class);

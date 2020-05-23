@@ -103,7 +103,13 @@ public class ReqInstructionDetailEntity implements Entity<String> {
         return detailEntity;
     }
 
+    /**
+     * 批量保存指令
+     * @since 2020/5/23 10:41 上午
+     * @author xueyuting
+     */
     public List<ReqInstructionDetailEntity> batchSaveInstructionDetail(ReqInstructionBuildVO vo) {
+        // 查询数据库现有指令
         List<ReqInstructionDetailEntity> detailEntityList = this.getByInstructionId(vo.getInstructionHeaderId());
         List<String> detailIdList = new ArrayList<>();
         if (ListUtil.notEmpty(detailEntityList)) {
@@ -113,8 +119,10 @@ public class ReqInstructionDetailEntity implements Entity<String> {
         List<ReqInstructionDetailEntity> resultDetailList = new ArrayList<>();
         for (ReqInstructionDetailBuildVO detailBuildVO : vo.getDetailList()) {
             if (detailIdList.contains(detailBuildVO.getInstructionDetailId())) {
+                // 有则更新
                 resultDetailList.add(this.updateInstructionDetail(detailBuildVO));
             } else {
+                // 无则新增
                 resultDetailList.add(this.createInstructionDetail(detailBuildVO));
             }
         }
