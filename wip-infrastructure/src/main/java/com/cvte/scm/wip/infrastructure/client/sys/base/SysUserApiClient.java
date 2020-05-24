@@ -7,8 +7,10 @@ import com.cvte.scm.wip.infrastructure.client.sys.base.dto.UserBaseDTO;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: wufeng
@@ -55,4 +57,14 @@ public interface SysUserApiClient {
      */
     @GetMapping("/admin/v1/user/{userId}/group")
     FeignResult<List<SysGroup>> listUserGroups(@PathVariable("userId") String userId);
+
+
+    /**
+     * 获取满足参数条件的所有用户
+     *
+     * @param name 用户名
+     * @return
+     */
+    @GetMapping({"/admin/v1/user/role_user_unit"})
+    FeignResult<Map<String, Object>> listUserByName(@RequestParam(value = "name", required = false) String name);
 }

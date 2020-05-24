@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.rework.mapper.WipRwkBillLMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.rework.mapper.dataobject.WipRwkBillLDO">
+            <result column="bill_line_id" property="billLineId" />
+            <result column="bill_id" property="billId" />
+            <result column="mo_lot_no" property="moLotNo" />
+            <result column="mo_lot_status" property="moLotStatus" />
+            <result column="product_model" property="productModel" />
+            <result column="mo_rework_qty" property="moReworkQty" />
+            <result column="pri_item_id" property="priProductNo" />
+            <result column="sub_item_id" property="subProductNo" />
+            <result column="remark" property="remark" />
+            <result column="rmk01" property="rmk01" />
+            <result column="rmk02" property="rmk02" />
+            <result column="rmk03" property="rmk03" />
+            <result column="rmk04" property="rmk04" />
+            <result column="rmk05" property="rmk05" />
+            <result column="status" property="status" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_date" property="crtDate" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_date" property="updDate" />
+    </resultMap>
+    <select id="sumRwkQty" resultType="com.cvte.scm.wip.domain.core.rework.valueobject.WipRwkBillLVO">
+        select rbh.factory_id, rbl.mo_lot_no, sum(mo_rework_qty) as mo_rework_qty
+        from wip_rwk_bill_h rbh
+                 inner join wip_rwk_bill_l rbl
+                            on rbh.bill_id = rbl.bill_id
+        where rbh.factory_id in
+            <foreach collection="factoryIdList" item="factoryId" open="(" close=")" separator=",">
+                #{factoryId}
+            </foreach>
+          and rbl.mo_lot_no in
+            <foreach collection="moLotNoList" item="moLotNo" open="(" close=")" separator=",">
+                #{moLotNo}
+            </foreach>
+          and rbh.bill_status not in ('90068')
+          and rbl.status = '110'
+        group by rbh.factory_id, rbl.mo_lot_no
+    </select>
+</mapper>

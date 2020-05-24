@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.rework.mapper.WipRwkBillHMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.rework.mapper.dataobject.WipRwkBillHDO">
+        <result column="bill_id" property="billId" />
+        <result column="bill_no" property="billNo" />
+        <result column="organization_id" property="organizationId" />
+        <result column="factory_id" property="factoryId" />
+        <result column="rework_type" property="reworkType" />
+        <result column="rework_reason_type" property="reworkReasonType" />
+        <result column="rework_reason" property="reworkReason" />
+        <result column="rework_desc" property="reworkDesc" />
+        <result column="resp_bu" property="respBu" />
+        <result column="resp_dept" property="respDept" />
+        <result column="expect_finish_date" property="expectFinishDate" />
+        <result column="expect_delivery_date" property="expectDeliveryDate" />
+        <result column="source_so_no" property="sourceSoNo" />
+        <result column="reject_deal_type" property="rejectDealType" />
+        <result column="good_deal_type" property="goodDealType" />
+        <result column="reject_mtr_deal_type" property="rejectMtrDealType" />
+        <result column="good_mtr_deal_type" property="goodMtrDealType" />
+        <result column="reject_deal_other_type" property="rejectDealOtherType" />
+        <result column="remark" property="remark" />
+        <result column="rmk01" property="rmk01" />
+        <result column="rmk02" property="rmk02" />
+        <result column="rmk03" property="rmk03" />
+        <result column="rmk04" property="rmk04" />
+        <result column="rmk05" property="rmk05" />
+        <result column="rmk06" property="rmk06" />
+        <result column="rmk07" property="rmk07" />
+        <result column="rmk08" property="rmk08" />
+        <result column="rmk09" property="rmk09" />
+        <result column="rmk10" property="rmk10" />
+        <result column="bill_status" property="billStatus" />
+        <result column="crt_user" property="crtUser" />
+        <result column="crt_date" property="crtDate" />
+        <result column="upd_user" property="updUser" />
+        <result column="upd_date" property="updDate" />
+        <result column="source_order_id" property="sourceOrderId" />
+        <result column="source_code" property="sourceCode" />
+    </resultMap>
+    <select id="selectOrgByEbsCode" resultType="com.cvte.csb.sys.base.entity.SysOrg" >
+        select so.*
+        from scm.sys_org so
+        inner join scm.sys_org_ext soe
+        on so.id = soe.id
+        inner join scm.sys_org_relation sor
+        on so.id = sor.org_id
+        and sor.relation_code like #{relationCodeStarter} || '%'
+        where soe.ebs_code = #{ebsCode}
+    </select>
+    <select id="selectByKeyList" resultType="com.cvte.scm.wip.domain.core.rework.valueobject.ApiReworkBillVO">
+        select rbh.bill_id,
+               rbh.organization_id,
+               rbh.source_order_id,
+               rbh.bill_no,
+               rbh.bill_status,
+               rbh.factory_id,
+               rbh.rework_type,
+               rbh.rework_reason_type,
+               rbh.rework_reason,
+               rbh.resp_bu,
+               rbh.resp_dept,
+               rbl.mo_lot_no,
+               rbh.source_so_no,
+               rbl.product_model,
+               rbl.mo_rework_qty,
+               rbl.mo_lot_status,
+               rbh.consumer_name,
+               rbh.expect_finish_date,
+               rbh.expect_delivery_date,
+               rbh.remark,
+               rbh.crt_user,
+               rbh.crt_date,
+               rbh.upd_user,
+               rbh.upd_date
+        from wip_rwk_bill_h rbh
+                 inner join (
+            select rl.bill_id
+                 , array_to_string(array_agg(rl.mo_lot_no), ',') mo_lot_no
+                 , array_to_string(array_agg(rl.product_model), ',') product_model
+                 , array_to_string(array_agg(to_char(rl.mo_rework_qty)), ',') mo_rework_qty
+                 , max(rl.mo_lot_status) mo_lot_status
+            from wip_rwk_bill_l rl
+            where rl.status = '110'
+            group by rl.bill_id
+        ) rbl
+        on rbh.bill_id = rbl.bill_id
+        where rbh.bill_status not in ('90068')
+          and (
+          rbh.bill_id in
+          <foreach collection="billKeyList" item="billId" open="(" close=")" separator=",">
+              #{billId}
+          </foreach>
+          or rbh.bill_no in
+          <foreach collection="billKeyList" item="billNo" open="(" close=")" separator=",">
+              #{billNo}
+          </foreach>
+        )
+    </select>
+</mapper>
