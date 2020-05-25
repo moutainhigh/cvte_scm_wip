@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.subrule.mapper.WipSubRuleWfMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.subrule.mapper.dataobject.WipSubRuleWfDO">
+        <result column="id" property="id"/>
+        <result column="ruleId" property="ruleId"/>
+        <result column="node" property="node"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_time" property="updTime"/>
+    </resultMap>
+</mapper>
