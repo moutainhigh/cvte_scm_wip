@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.domain.core.ckd.entity;
 
 
-import com.cvte.csb.validator.entity.BaseEntity;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -24,7 +24,7 @@ import java.util.Date;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode
-public class WipMcInoutStockLineEntity extends BaseEntity {
+public class WipMcInoutStockLineEntity extends BaseModel {
 
     private static final long serialVersionUID = 1L;
 

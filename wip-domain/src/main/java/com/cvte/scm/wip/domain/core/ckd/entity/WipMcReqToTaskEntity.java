@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.domain.core.ckd.entity;
 
 
-import com.cvte.csb.validator.entity.BaseEntity;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -25,7 +25,7 @@ import javax.persistence.Table;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class WipMcReqToTaskEntity extends BaseEntity {
+public class WipMcReqToTaskEntity extends BaseModel {
 
     private static final long serialVersionUID = 1L;
 

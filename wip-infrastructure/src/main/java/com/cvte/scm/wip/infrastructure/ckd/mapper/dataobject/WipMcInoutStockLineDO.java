@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject;
 
 
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -23,7 +24,7 @@ import java.util.Date;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode
-public class WipMcInoutStockLineDO {
+public class WipMcInoutStockLineDO extends BaseModel {
 
     /**
      * ${field.comment}

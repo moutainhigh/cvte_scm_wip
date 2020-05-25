@@ -4,6 +4,7 @@ import com.cvte.csb.sys.common.MyBaseEntity;
 import com.cvte.csb.validator.vtor.annotation.NotBlankNull;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
@@ -12,6 +13,7 @@ import lombok.experimental.Accessors;
  **/
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode
 public class WipMcTaskLineDTO extends MyBaseEntity {
 
     @NotBlankNull

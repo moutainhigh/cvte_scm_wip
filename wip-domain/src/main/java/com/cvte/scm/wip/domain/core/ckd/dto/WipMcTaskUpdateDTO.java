@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.ckd.dto;
 import com.cvte.csb.sys.common.MyBaseEntity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.Date;
@@ -14,6 +15,7 @@ import java.util.List;
  **/
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode
 public class WipMcTaskUpdateDTO extends MyBaseEntity {
 
     private String optUser;
@@ -23,6 +25,7 @@ public class WipMcTaskUpdateDTO extends MyBaseEntity {
 
     @Data
     @Accessors(chain = true)
+    @EqualsAndHashCode
     public static class Record extends MyBaseEntity {
         /**
          * 配料任务编号

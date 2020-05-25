@@ -4,22 +4,27 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.exception.client.params.SourceNotFoundException;
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
 import com.cvte.csb.toolkit.ObjectUtils;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.common.repository.WipBaseRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.common.BaseMapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author zy
  * @date 2020-05-21 16:02
  **/
-public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T, E>
+@Slf4j
+public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends BaseModel, E extends BaseModel>
         implements WipBaseRepository<E> {
 
     @Autowired
@@ -29,14 +34,28 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T, E>
     @Autowired
     protected M mapper;
 
+    @Autowired
+    protected ModelMapper modelMapper;
 
-    protected abstract List<T> batchBuildDO(List<E> entityList);
+    protected abstract Class<E> getEntityClass();
 
-    protected abstract T buildDO(E entity);
+    protected abstract Class<T> getDomainClass();
 
-    protected abstract E buildEntity(T domain);
+    protected List<T> batchBuildDO(List<E> entityList) {
+        return entityList.stream().map(el -> buildDO(el)).collect(Collectors.toList());
+    }
 
-    protected abstract List<E> batchBuildEntity(List<T> entityList);
+    protected T buildDO(E entity) {
+        return modelMapper.map(entity, getDomainClass());
+    }
+
+    protected E buildEntity(T domain) {
+        return modelMapper.map(domain, getEntityClass());
+    }
+
+    protected List<E> batchBuildEntity(List<T> entityList) {
+        return entityList.stream().map(el -> buildEntity(el)).collect(Collectors.toList());
+    }
 
     public boolean isExist(String id) {
         E t = this.selectById(id);
@@ -49,6 +68,7 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T, E>
 
     public E selectById(Object id) {
         return buildEntity(this.mapper.selectByPrimaryKey(id));
+
     }
 
     public E selectByIdVerifyExist(String id) {

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Service
+@Service(value = "wipAuthService")
 public class AuthServiceImpl implements AuthService {
 
     private AuthApiClient authApiClient;

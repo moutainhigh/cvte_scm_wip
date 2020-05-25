@@ -60,24 +60,13 @@ public class WipMcTaskLineRepositoryImpl
                 new TypeToken<List<WipMcTaskLineEntity>>(){}.getType());
     }
 
-
     @Override
-    protected List<WipMcTaskLineDO> batchBuildDO(List<WipMcTaskLineEntity> entityList) {
-        return null;
+    protected Class<WipMcTaskLineEntity> getEntityClass() {
+        return WipMcTaskLineEntity.class;
     }
 
     @Override
-    protected WipMcTaskLineDO buildDO(WipMcTaskLineEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcTaskLineEntity buildEntity(WipMcTaskLineDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcTaskLineEntity> batchBuildEntity(List<WipMcTaskLineDO> entityList) {
-        return null;
+    protected Class<WipMcTaskLineDO> getDomainClass() {
+        return WipMcTaskLineDO.class;
     }
 }

@@ -194,24 +194,6 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         return copyMcTaskIds;
     }
 
-
-    public String getMcTaskIdBySourceLineId(String sourceLineId) {
-        if (StringUtils.isBlank(sourceLineId)) {
-            throw new ParamsRequiredException("原始单id不能为空");
-        }
-
-        Example example = new Example(WipMcTaskLineEntity.class);
-        example.createCriteria()
-                .andEqualTo("sourceLineId", sourceLineId);
-
-        List<WipMcTaskLineEntity> wipMcTaskLines = wipMcTaskLineRepository.selectByExample(example);
-        if (CollectionUtils.isEmpty(wipMcTaskLines)) {
-            return null;
-        }
-
-        return wipMcTaskLines.get(0).getMcTaskId();
-    }
-
     private void validateSourceLine(List<WipMcTaskSaveDTO.McLine> mcLines) {
         Set<String> lineIds = mcLines.stream().map(WipMcTaskSaveDTO.McLine::getSourceLineId).collect(Collectors.toSet());
         List<WipMcTaskLineEntity> wipMcTaskLines = listWipMcTaskLine(new WipMcTaskLineQuery().setSourceLineIds(new ArrayList<>(lineIds)));

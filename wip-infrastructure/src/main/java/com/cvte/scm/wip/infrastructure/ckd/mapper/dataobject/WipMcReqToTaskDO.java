@@ -2,6 +2,7 @@ package com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject;
 
 
 import com.cvte.csb.toolkit.ObjectUtils;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcInoutStockEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -27,7 +28,7 @@ import javax.persistence.Table;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class WipMcReqToTaskDO {
+public class WipMcReqToTaskDO extends BaseModel {
 
     /**
      * ${field.comment}

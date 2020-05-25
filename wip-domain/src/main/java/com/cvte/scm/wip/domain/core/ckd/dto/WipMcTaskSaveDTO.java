@@ -6,6 +6,7 @@ import com.cvte.csb.validator.vtor.annotation.NotBlankNull;
 import io.swagger.annotations.ApiModelProperty;
 import jodd.vtor.constraint.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.List;
  **/
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode
 public class WipMcTaskSaveDTO extends MyBaseEntity {
 
     @NotBlankNull

@@ -8,8 +8,6 @@ import com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcInoutStockDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
  *
  * @author zy
@@ -24,23 +22,13 @@ public class WipMcInoutStockRepositoryImpl
     private WipMcInoutStockMapper wipMcInoutStockMapper;
 
     @Override
-    protected List<WipMcInoutStockDO> batchBuildDO(List<WipMcInoutStockEntity> entityList) {
-        return null;
+    protected Class<WipMcInoutStockEntity> getEntityClass() {
+        return WipMcInoutStockEntity.class;
     }
 
     @Override
-    protected WipMcInoutStockDO buildDO(WipMcInoutStockEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcInoutStockEntity buildEntity(WipMcInoutStockDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcInoutStockEntity> batchBuildEntity(List<WipMcInoutStockDO> entityList) {
-        return null;
+    protected Class<WipMcInoutStockDO> getDomainClass() {
+        return WipMcInoutStockDO.class;
     }
 
     @Override

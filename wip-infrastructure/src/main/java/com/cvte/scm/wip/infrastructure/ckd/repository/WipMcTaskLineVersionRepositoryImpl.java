@@ -31,22 +31,12 @@ public class WipMcTaskLineVersionRepositoryImpl
     }
 
     @Override
-    protected List<WipMcTaskLineVersionDO> batchBuildDO(List<WipMcTaskLineVersionEntity> entityList) {
-        return null;
+    protected Class<WipMcTaskLineVersionEntity> getEntityClass() {
+        return WipMcTaskLineVersionEntity.class;
     }
 
     @Override
-    protected WipMcTaskLineVersionDO buildDO(WipMcTaskLineVersionEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcTaskLineVersionEntity buildEntity(WipMcTaskLineVersionDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcTaskLineVersionEntity> batchBuildEntity(List<WipMcTaskLineVersionDO> entityList) {
-        return null;
+    protected Class<WipMcTaskLineVersionDO> getDomainClass() {
+        return WipMcTaskLineVersionDO.class;
     }
 }

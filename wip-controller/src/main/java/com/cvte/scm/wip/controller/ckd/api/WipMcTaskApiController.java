@@ -49,12 +49,12 @@ public class WipMcTaskApiController {
     @ApiOperation(value = "开立配料任务")
     @PostMapping
     public RestResponse saveWipMcTaskSaveDTO(@RequestBody WipMcTaskSaveDTO wipMcTaskSaveDTO) {
-        ;
         return ResponseFactory.getOkResponse(wipMcTaskService.saveWipMcTaskSaveDTO(wipMcTaskSaveDTO));
     }
 
     @ApiOperation("获取配料任务行状态")
     @GetMapping("/line/status")
+    @Deprecated
     public RestResponse listWipLineStatusView(@ModelAttribute WipMcLineStatusQuery query) {
         return ResponseFactory.getOkResponse(wipMcTaskService.listWipLineStatusView(query));
     }

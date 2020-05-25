@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.domain.core.scm.service;
 
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
-import com.cvte.scm.wip.domain.core.scm.mapper.ScmViewCommonRepository;
+import com.cvte.scm.wip.domain.core.scm.repository.ScmViewCommonRepository;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

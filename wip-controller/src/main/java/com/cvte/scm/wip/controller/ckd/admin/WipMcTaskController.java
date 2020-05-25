@@ -3,6 +3,7 @@ package com.cvte.scm.wip.controller.ckd.admin;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
 import com.cvte.scm.wip.domain.core.ckd.dto.WipMcTaskUpdateStatusDTO;
+import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskVersionEntity;
 import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskService;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskVersionService;
@@ -11,6 +12,8 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author zy
@@ -40,7 +43,8 @@ public class WipMcTaskController {
     @ApiOperation(value = "配料任务版本列表", notes = "配料任务版本列表")
     @GetMapping("/{mcTaskId}/version")
     public RestResponse listWipMcTaskVersion(@PathVariable String mcTaskId) {
-        return ResponseFactory.getOkResponse(wipMcTaskVersionService.listWipMcTaskVersion(mcTaskId));
+        List<WipMcTaskVersionEntity> wipMcTaskVersionEntities = wipMcTaskVersionService.listWipMcTaskVersion(mcTaskId);
+        return ResponseFactory.getOkResponse(wipMcTaskVersionEntities);
     }
 
     @ApiOperation(value = "获取配料任务详情", notes = "获取配料任务详情")

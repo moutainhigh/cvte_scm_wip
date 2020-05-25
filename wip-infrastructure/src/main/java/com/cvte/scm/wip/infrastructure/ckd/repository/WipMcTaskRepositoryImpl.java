@@ -32,13 +32,23 @@ import java.util.List;
 @Repository
 public class WipMcTaskRepositoryImpl
         extends WipBaseRepositoryImpl<WipMcTaskMapper, WipMcTaskDO, WipMcTaskEntity>
-        implements WipMcTaskRepository {
+        implements WipMcTaskRepository{
 
     @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
     private WipMcTaskMapper wipMcTaskMapper;
+
+    @Override
+    protected Class<WipMcTaskEntity> getEntityClass() {
+        return WipMcTaskEntity.class;
+    }
+
+    @Override
+    protected Class<WipMcTaskDO> getDomainClass() {
+        return WipMcTaskDO.class;
+    }
 
     public WipMcTaskEntity getById(String mcTaskId) {
         WipMcTaskDO wipMcTaskDO = wipMcTaskMapper.selectByPrimaryKey(mcTaskId);
@@ -109,25 +119,5 @@ public class WipMcTaskRepositoryImpl
         return modelMapper.map(mapper.selectByExample(example), new TypeToken<List<WipMcTaskEntity>>(){}.getType());
     }
 
-
-    @Override
-    protected List<WipMcTaskDO> batchBuildDO(List<WipMcTaskEntity> entityList) {
-        return null;
-    }
-
-    @Override
-    protected WipMcTaskDO buildDO(WipMcTaskEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcTaskEntity buildEntity(WipMcTaskDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcTaskEntity> batchBuildEntity(List<WipMcTaskDO> entityList) {
-        return null;
-    }
 
 }

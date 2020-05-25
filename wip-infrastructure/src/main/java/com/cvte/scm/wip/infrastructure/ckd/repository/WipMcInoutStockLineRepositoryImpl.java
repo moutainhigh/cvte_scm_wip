@@ -7,8 +7,6 @@ import com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcInoutStockLineMapper;
 import com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcInoutStockLineDO;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
  *
  * @author zy
@@ -20,22 +18,12 @@ public class WipMcInoutStockLineRepositoryImpl
         implements WipMcInoutStockLineRepository {
 
     @Override
-    protected List<WipMcInoutStockLineDO> batchBuildDO(List<WipMcInoutStockLineEntity> entityList) {
-        return null;
+    protected Class<WipMcInoutStockLineEntity> getEntityClass() {
+        return WipMcInoutStockLineEntity.class;
     }
 
     @Override
-    protected WipMcInoutStockLineDO buildDO(WipMcInoutStockLineEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcInoutStockLineEntity buildEntity(WipMcInoutStockLineDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcInoutStockLineEntity> batchBuildEntity(List<WipMcInoutStockLineDO> entityList) {
-        return null;
+    protected Class<WipMcInoutStockLineDO> getDomainClass() {
+        return WipMcInoutStockLineDO.class;
     }
 }

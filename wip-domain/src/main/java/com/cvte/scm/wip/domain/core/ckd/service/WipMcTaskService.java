@@ -16,6 +16,9 @@ import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
 import com.cvte.scm.wip.common.utils.HostUtils;
 import com.cvte.scm.wip.domain.common.base.WipBaseService;
+import com.cvte.scm.wip.domain.common.log.constant.LogModuleConstant;
+import com.cvte.scm.wip.domain.common.log.dto.WipLogDTO;
+import com.cvte.scm.wip.domain.common.log.service.WipOperationLogService;
 import com.cvte.scm.wip.domain.common.user.entity.UserBaseEntity;
 import com.cvte.scm.wip.domain.common.user.service.UserService;
 import com.cvte.scm.wip.domain.core.ckd.constants.WipMcTaskConstant;
@@ -105,6 +108,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     @Autowired
     private WipMcInoutStockLineService wipMcInoutStockLineService;
 
+    @Autowired
+    private WipOperationLogService wipOperationLogService;
+
     public WipMcTaskEntity getById(String mcTaskId) {
         return repository.getById(mcTaskId);
     }
@@ -154,6 +160,18 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         wipMcTask.setMcTaskId(mcTaskInfoView.getMcTaskId()).setMcWfId(mcWfId);
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
         repository.updateSelectiveById(wipMcTask);
+
+        if (!McTaskStatusEnum.CHANGE.equals(curStatusEnum)) {
+            wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                    taskId,
+                    updateToStatusEnum.getOptName()));
+        } else {
+            // crm取消变更时会回滚到之前的状态，这里记录的日志信息需要特殊处理下
+            wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                    taskId,
+                    "驳回/取消变更审核"));
+        }
+
 
     }
 
@@ -302,6 +320,13 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         repository.updateSelectiveById(wipMcTask);
 
         wipMcTaskVersionService.sync(taskId, false);
+
+
+        String operation = TransactionTypeNameEnum.IN.equals(transactionTypeNameEnum) ?
+                "调拨入库" : "调拨出库";
+        wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                taskId,
+                operation));
 
     }
 
@@ -538,6 +563,10 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         // 新增版本信息
         wipMcTaskVersionService.add(wipMcTask.getMcTaskId(), wipMcTaskLines);
 
+        wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                wipMcTask.getMcTaskId(),
+                "创建审批流程"));
+
         WipMcTaskDetailView wipMcTaskDetailView = modelMapper.map(wipMcTask, WipMcTaskDetailView.class);
         wipMcTaskDetailView.setOrganizationId(firstMcReq.getOrganizationId())
                 .setStatus(McTaskStatusEnum.CREATE.getCode())
@@ -587,6 +616,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setStatus(mcTaskInfoView.getStatus())
                 .setChilds(modelMapper.map(wipMcTaskLines, new TypeToken<List<WipMcTaskLineView>>(){}.getType()));
 
+        wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                wipMcTask.getMcTaskId(),
+                "合并开立工单"));
         return wipMcTaskDetailView;
     }
 

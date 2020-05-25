@@ -29,6 +29,16 @@ public class WipMcReqToTaskRepositoryImpl
     private WipMcReqToTaskMapper wipMcReqToTaskMapper;
 
     @Override
+    protected Class<WipMcReqToTaskEntity> getEntityClass() {
+        return WipMcReqToTaskEntity.class;
+    }
+
+    @Override
+    protected Class<WipMcReqToTaskDO> getDomainClass() {
+        return WipMcReqToTaskDO.class;
+    }
+
+    @Override
     public List<WipMcReqToTaskEntity> selectList(WipMcReqToTaskEntity wipMcReqToTaskEntity) {
         List<WipMcReqToTaskDO> wipMcReqToTaskDOS =
                 wipMcReqToTaskMapper.select(modelMapper.map(wipMcReqToTaskEntity, WipMcReqToTaskDO.class));
@@ -36,23 +46,5 @@ public class WipMcReqToTaskRepositoryImpl
     }
 
 
-    @Override
-    protected List<WipMcReqToTaskDO> batchBuildDO(List<WipMcReqToTaskEntity> entityList) {
-        return modelMapper.map(entityList, new TypeToken<List<WipMcReqToTaskDO>>(){}.getType());
-    }
 
-    @Override
-    protected WipMcReqToTaskDO buildDO(WipMcReqToTaskEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcReqToTaskEntity buildEntity(WipMcReqToTaskDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcReqToTaskEntity> batchBuildEntity(List<WipMcReqToTaskDO> entityList) {
-        return null;
-    }
 }

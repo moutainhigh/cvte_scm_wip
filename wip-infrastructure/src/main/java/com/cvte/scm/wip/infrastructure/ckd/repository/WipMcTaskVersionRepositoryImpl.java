@@ -33,6 +33,7 @@ public class WipMcTaskVersionRepositoryImpl
     @Autowired
     private ModelMapper modelMapper;
 
+
     @Override
     public WipMcTaskVersionEntity getLastVersion(String taskId) {
 
@@ -58,30 +59,21 @@ public class WipMcTaskVersionRepositoryImpl
             throw new ParamsRequiredException("配料任务id不能为空");
         }
 
-        Example example = new Example(WipMcTaskVersionEntity.class);
+        Example example = new Example(WipMcTaskVersionDO.class);
         example.createCriteria()
                 .andEqualTo("mcTaskId", taskId);
         example.orderBy("crtTime").desc();
         return modelMapper.map(mapper.selectByExample(example), new TypeToken<List<WipMcTaskVersionEntity>>(){}.getType());
     }
 
+
     @Override
-    protected List<WipMcTaskVersionDO> batchBuildDO(List<WipMcTaskVersionEntity> entityList) {
-        return null;
+    protected Class<WipMcTaskVersionEntity> getEntityClass() {
+        return WipMcTaskVersionEntity.class;
     }
 
     @Override
-    protected WipMcTaskVersionDO buildDO(WipMcTaskVersionEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcTaskVersionEntity buildEntity(WipMcTaskVersionDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcTaskVersionEntity> batchBuildEntity(List<WipMcTaskVersionDO> entityList) {
-        return null;
+    protected Class<WipMcTaskVersionDO> getDomainClass() {
+        return WipMcTaskVersionDO.class;
     }
 }

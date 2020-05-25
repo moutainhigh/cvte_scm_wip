@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject;
 
 
-import com.cvte.csb.validator.entity.BaseEntity;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -25,7 +25,7 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class WipMcTaskLineDO {
+public class WipMcTaskLineDO extends BaseModel {
 
     /**
      * 主键

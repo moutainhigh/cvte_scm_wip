@@ -25,7 +25,7 @@ import java.util.List;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Service
+@Service(value = "wipPostService")
 public class PostServiceImpl implements PostService {
 
     private SysPostApiClient sysPostApiClient;

@@ -4,6 +4,7 @@ import com.cvte.csb.sys.common.MyBaseEntity;
 import com.cvte.csb.validator.vtor.annotation.NotBlankNull;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
  **/
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode
 public class WipMcTaskLineUpdateDTO extends MyBaseEntity {
 
     @NotBlankNull(message = "当前操作人不可为空")

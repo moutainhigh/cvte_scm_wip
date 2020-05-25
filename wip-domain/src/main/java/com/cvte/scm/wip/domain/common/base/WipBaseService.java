@@ -49,7 +49,7 @@ public abstract class WipBaseService<M, T extends WipBaseRepository<M>> {
     }
 
     public List<M> selectList(M entity) {
-        return selectList(entity);
+        return repository.selectList(entity);
     }
 
     public List<M> selectListAll() {

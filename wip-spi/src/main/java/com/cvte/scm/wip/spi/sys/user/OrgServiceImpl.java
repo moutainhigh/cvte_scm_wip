@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Service
+@Service(value = "wipOrgService")
 public class OrgServiceImpl implements OrgService {
 
     private SysOrgApiClient sysOrgApiClient;

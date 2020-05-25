@@ -34,7 +34,7 @@ public class WipMcWfRepositoryImpl
     @Override
     public List<WipMcWfEntity> listWipMcWf(WipMcWfQuery query) {
 
-        Example example = new Example(WipMcWfEntity.class);
+        Example example = new Example(WipMcWfDO.class);
         Example.Criteria criteria = example.createCriteria();
 
         criteria.andEqualTo("mcTaskId", query.getMcTaskId());
@@ -47,23 +47,14 @@ public class WipMcWfRepositoryImpl
         return modelMapper.map(mapper.selectByExample(example), new TypeToken<List<WipMcWfEntity>>(){}.getType());
     }
 
+
     @Override
-    protected List<WipMcWfDO> batchBuildDO(List<WipMcWfEntity> entityList) {
-        return null;
+    protected Class<WipMcWfEntity> getEntityClass() {
+        return WipMcWfEntity.class;
     }
 
     @Override
-    protected WipMcWfDO buildDO(WipMcWfEntity entity) {
-        return null;
-    }
-
-    @Override
-    protected WipMcWfEntity buildEntity(WipMcWfDO domain) {
-        return null;
-    }
-
-    @Override
-    protected List<WipMcWfEntity> batchBuildEntity(List<WipMcWfDO> entityList) {
-        return null;
+    protected Class<WipMcWfDO> getDomainClass() {
+        return WipMcWfDO.class;
     }
 }

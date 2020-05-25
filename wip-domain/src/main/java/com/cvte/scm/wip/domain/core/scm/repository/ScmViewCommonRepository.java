@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.core.scm.mapper;
+package com.cvte.scm.wip.domain.core.scm.repository;
 
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
