@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.changebill.entity;
 
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
@@ -77,6 +78,10 @@ public class ChangeBillEntity implements Entity<String> {
         return changeBillRepository.getById(billId);
     }
 
+    public ChangeBillEntity getByNo(String billNo) {
+        return changeBillRepository.getByNo(billNo);
+    }
+
     public List<ChangeBillDetailEntity> getDetailById() {
         if (ListUtil.notEmpty(this.billDetailList)) {
             return this.billDetailList;
@@ -108,10 +113,12 @@ public class ChangeBillEntity implements Entity<String> {
     }
 
     public ChangeBillEntity saveChangeBill(ChangeBillBuildVO vo) {
-        ChangeBillEntity billEntity = this.getById(vo.getBillId());
-        if (Objects.nonNull(billEntity)) {
+        if (StringUtils.isNotBlank(vo.getBillId())) {
             return this.updateChangeBill(vo);
         }
+        String billId = UUIDUtils.get32UUID();
+        vo.setBillId(billId);
+        vo.getDetailVOList().forEach(detail -> detail.setBillId(billId));
         return createChangeBill(vo);
     }
 

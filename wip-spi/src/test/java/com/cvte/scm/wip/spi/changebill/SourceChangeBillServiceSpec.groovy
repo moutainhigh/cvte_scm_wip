@@ -12,7 +12,7 @@ class SourceChangeBillServiceSpec extends Specification {
     private SourceChangeBillServiceImpl sourceChangeBillService;
 
     void setup() {
-        sourceChangeBillService = new SourceChangeBillServiceImpl();
+        sourceChangeBillService = new SourceChangeBillServiceImpl(wipCnBillMapper, accessTokenService, ebsApiInfoConfiguration);
     }
 
     void "空或一个位号"() {

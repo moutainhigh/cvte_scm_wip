@@ -4,6 +4,7 @@ import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
+import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
@@ -22,7 +23,7 @@ import java.util.List;
   * email   : xueyuting@cvte.com
   */
 @Component
-public class ChangeBillParseApplication implements Application<String, String> {
+public class ChangeBillParseApplication implements Application<ChangeBillQueryVO, String> {
 
     private SourceChangeBillService sourceChangeBillService;
     private WipReqHeaderService reqHeaderService;
@@ -34,10 +35,10 @@ public class ChangeBillParseApplication implements Application<String, String> {
 
     @Override
     @Transactional("pgTransactionManager")
-    public String doAction(String var1) {
+    public String doAction(ChangeBillQueryVO queryVO) {
 
         // 获取EBS更改单
-        List<ChangeBillBuildVO> changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(null);
+        List<ChangeBillBuildVO> changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
 
         for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
             // 生成更改单

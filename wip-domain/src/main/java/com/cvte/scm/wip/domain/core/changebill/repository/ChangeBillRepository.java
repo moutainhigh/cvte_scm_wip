@@ -18,4 +18,6 @@ public interface ChangeBillRepository extends Repository {
 
     ChangeBillEntity getById(String billId);
 
+    ChangeBillEntity getByNo(String billNo);
+
 }

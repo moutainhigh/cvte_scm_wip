@@ -2,6 +2,8 @@ package com.cvte.scm.wip.domain.core.changebill.valueobject;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
   * 获取更改单的参数值对象
   * @author  : xueyuting
@@ -13,5 +15,7 @@ import lombok.Data;
 public class ChangeBillQueryVO {
 
     private String organizationId;
+
+    private Date lastUpdDate;
 
 }
