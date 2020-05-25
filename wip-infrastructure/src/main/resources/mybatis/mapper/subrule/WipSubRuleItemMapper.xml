@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.subrule.mapper.WipSubRuleItemMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.subrule.mapper.dataobject.WipSubRuleItemDO">
+        <result column="item_rule_id" property="itemRuleId"/>
+        <result column="rule_id" property="ruleId"/>
+        <result column="before_item_id" property="beforeItemId"/>
+        <result column="after_item_id" property="afterItemId"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_time" property="updTime"/>
+    </resultMap>
+
+    <select id="getSubItemNoAggregateData" resultType="com.cvte.scm.wip.infrastructure.subrule.mapper.dataobject.WipSubRuleItemDO">
+        select string_agg(rmk01, #{splitSymbol}) as rmk01, rmk02 from wip.wip_sub_rule_item
+        where rule_id = #{ruleId} group by rmk02
+    </select>
+
+    <select id="getSubItemDetail" resultType="com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO">
+        select siv.organization_id,
+               siv.item_id,
+               siv.item_no,
+               siv.zstatus        as item_status,
+               siv.item_spec,
+               wmiav.onhand_qty
+        from scm.scm_item_v siv
+                 left join wip.wip_mtr_inv_all_v wmiav
+                            on siv.organization_id = wmiav.organization_id and siv.item_id = wmiav.item_id
+        where siv.organization_id = #{organizationId} and
+        <choose>
+            <when test="itemNos != null and itemNos.size() > 0">
+                siv.item_no in
+                <foreach collection="itemNos" index="index" item="itemNo" open="(" separator="," close=")">
+                    #{itemNo}
+                </foreach>
+            </when>
+            <otherwise>
+                1 = -1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getRepeatSubItemRuleIds" resultType="java.lang.String">
+        select rule_id
+        from wip.wip_sub_rule
+        where rule_id in (select rule_id from wip.wip_sub_rule_item where ${itemCondition})
+        and organization_id = #{organizationId}
+        and
+        <choose>
+            <when test="ruleStatusCollection != null and ruleStatusCollection.size() > 0">
+                rule_status in
+                <foreach collection="ruleStatusCollection" index="index" item="ruleStatus" open="(" separator="," close=")">
+                    #{ruleStatus}
+                </foreach>
+            </when>
+            <otherwise>
+                1 = -1
+            </otherwise>
+        </choose>
+        and rule_id != #{ruleId}
+        and now() &gt; enable_time
+        and now() &lt; coalesce(disable_time, now() + '1ms');
+    </select>
+</mapper>
