@@ -29,7 +29,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.cvte.csb.toolkit.StringUtils.format;
 import static com.cvte.csb.toolkit.StringUtils.isEmpty;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
@@ -59,9 +58,9 @@ public class WipSubRuleItemService {
         this.wipSubRuleItemRepository = wipSubRuleItemRepository;
     }
 
-    public Object insertOrDelete(WipSubRuleEntity wipSubRuleEntit) {
-        String ruleId = wipSubRuleEntit.getRuleId(), organizationId = wipSubRuleEntit.getOrganizationId();
-        List<String[]> subItemNoList = wipSubRuleEntit.getSubItemNoList();
+    public Object insertOrDelete(WipSubRuleEntity wipSubRuleEntity) {
+        String ruleId = wipSubRuleEntity.getRuleId(), organizationId = wipSubRuleEntity.getOrganizationId();
+        List<String[]> subItemNoList = wipSubRuleEntity.getSubItemNoList();
         if (isEmpty(ruleId) || isEmpty(organizationId) || CollUtil.isEmpty(subItemNoList)) {
             return "替换物料信息为空";
         }
@@ -73,8 +72,8 @@ public class WipSubRuleItemService {
             return "替换前后物料编码存在错误";
         }
         /* 成套替代时，不同组合可能存在相同替代前后的物料组合，故成套替代字段为 "是" 时，不校验替换物料的重复性。 */
-        if (CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntit.getIfCouple(), BooleanEnum.class) == BooleanEnum.NO
-                && !validateSubItemNo(subItemNoList, ruleId, organizationId)) {
+        if (CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntity.getIfCouple(), BooleanEnum.class) == BooleanEnum.NO
+                && !validateSubItemNo(subItemNoList, wipSubRuleEntity.getScopeMap(), ruleId, organizationId)) {
             return "替换物料信息已存在";
         }
         List<WipSubRuleItemEntity> insertionData = new LinkedList<>();
@@ -146,12 +145,23 @@ public class WipSubRuleItemService {
     /**
      * 校验替换物料的重复性，只校验状态为 审核中、生效中 的规则。
      */
-    private boolean validateSubItemNo(List<String[]> subItemNosList, String ruleId, String organizationId) {
-        String template = "(rmk01 = '{}' and rmk02 = '{}')";
-        String condition = subItemNosList.stream().map(s -> format(template, s[0], s[1])).collect(joining(" or "));
+    private boolean validateSubItemNo(List<String[]> subItemNosList, Map<String, Map<String, String>> scopeMap, String ruleId, String organizationId) {
+        List<String> scopeValueList = new ArrayList<>();
+        for (Map<String, String> scope : scopeMap.values()) {
+            for (String dimValue : scope.values()) {
+                scopeValueList.addAll(Arrays.asList(dimValue.split(";")));
+            }
+        }
+
+        List<SubItemValidateVO> subItemValidateDTOList = new ArrayList<>();
+        for (String[] subItemNo : subItemNosList) {
+            SubItemValidateVO subItemValidateDTO = new SubItemValidateVO().setBeforeItemNo(subItemNo[0]).setAfterItemNo(subItemNo[1]);
+            subItemValidateDTOList.add(subItemValidateDTO);
+        }
+
         final int REVIEW_EFFECTIVE = 6;
         List<Object> ruleStatusList = CodeableEnumUtils.getCodesByOrdinalFlag(REVIEW_EFFECTIVE, SubRuleStatusEnum.class);
-        return wipSubRuleItemRepository.getRepeatSubItemRuleIds(ruleId, organizationId, condition, ruleStatusList).isEmpty();
+        return wipSubRuleItemRepository.getRepeatSubItemRuleIds(ruleId, organizationId, subItemValidateDTOList, scopeValueList, ruleStatusList).isEmpty();
     }
 
     /**

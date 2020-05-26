@@ -37,6 +37,8 @@ logging:
     tk.mybatis: DEBUG
     com.cvte.csb: DEBUG
     org.springframework.core: INFO
+    org.springframework.jdbc: DEBUG
+    com.cvte.scm.wip.infrastructure: DEBUG
     com.cvte.scm.demo: INFO
     com.cvte.scm.demo.**.core.mapper: DEBUG
     com.xxl: ERROR

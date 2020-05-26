@@ -49,7 +49,20 @@
     <select id="getRepeatSubItemRuleIds" resultType="java.lang.String">
         select rule_id
         from wip.wip_sub_rule
-        where rule_id in (select rule_id from wip.wip_sub_rule_item where ${itemCondition})
+        where rule_id in (
+        select sri.rule_id
+        from wip_sub_rule_item sri
+        inner join wip_sub_rule_adapt sra
+        on sri.rule_id = sra.rule_id
+        where
+        <foreach collection="subItemNoList" item="subItemNo" open="(" separator="or" close=")">
+            sri.rmk01 = #{subItemNo.beforeItemNo} and sri.rmk02 = #{subItemNo.afterItemNo}
+        </foreach>
+        and sra.adapt_item in
+        <foreach collection="scopeValueList" item="scopeValue" open="(" separator="," close=")">
+            #{scopeValue}
+        </foreach>
+        )
         and organization_id = #{organizationId}
         and
         <choose>
@@ -67,4 +80,5 @@
         and now() &gt; enable_time
         and now() &lt; coalesce(disable_time, now() + '1ms');
     </select>
+
 </mapper>
