@@ -225,6 +225,35 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
         }
     }
 
+    @Transactional(
+            rollbackFor = {RuntimeException.class}
+    )
+    public void deleteList(List<E> entityList) {
+        SqlSession batchSqlSession = null;
+        List<T> doList = batchBuildDO(entityList);
+        try {
+            batchSqlSession = this.sqlSessionFactory.openSession(ExecutorType.BATCH, false);
+            BaseMapper baseMapper = (BaseMapper)batchSqlSession.getMapper(this.getMapperClazz());
+
+            for(int index = 0; index < doList.size(); ++index) {
+                baseMapper.updateByPrimaryKeySelective(doList.get(index));
+                if (index != 0 && index % 500 == 0) {
+                    batchSqlSession.commit();
+                }
+            }
+
+            batchSqlSession.commit();
+            batchSqlSession.clearCache();
+        } catch (Exception var8) {
+            var8.printStackTrace();
+            throw new RuntimeException("csb-jdbc update batch error", var8);
+        } finally {
+            if (batchSqlSession != null) {
+                batchSqlSession.close();
+            }
+
+        }
+    }
 
     private Class getMapperClazz() throws Exception {
         Class<?>[] interfaces = this.mapper.getClass().getInterfaces();
