@@ -254,9 +254,11 @@ public class WipReqLineService {
             return "备料失败，投料单行查询条件中头ID错误；";
         }
         line.setSourceCode(null);
-        List<WipReqLineEntity> reqLineEntityList = wipReqLineRepository.selectByColumnAndStatus(line, DRAFT_CONFIRMED);
-        if (ListUtil.empty(reqLineEntityList)) {
-            return "备料失败，投料单行查询结果为空";
+        List<WipReqLineEntity> reqLineEntityList;
+        try {
+            reqLineEntityList = wipReqLineRepository.selectByColumnAndStatus(line, DRAFT_CONFIRMED);
+        } catch (ParamsIncorrectException pe) {
+            return "备料失败，" + pe.getMessage();
         }
         preparedData.addAll(reqLineEntityList);
         return "";
