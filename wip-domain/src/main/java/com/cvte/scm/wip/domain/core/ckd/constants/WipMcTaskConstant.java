@@ -26,6 +26,9 @@ public class WipMcTaskConstant {
     /** 工厂编码分割符 **/
     public static String FACTORY_CODE_SEPARATOR = "-";
 
+    /** 组织编码分割符 **/
+    public static String ORG_CODE_SEPARATOR = "-";
+
     @Value("${ebd.storehouse.metric.code:01}")
     public void setDefaultStorehouseMetricCode(String defaultStorehouseMetricCode) {
         this.DEFAULT_STOREHOUSE_METRIC_CODE = defaultStorehouseMetricCode;

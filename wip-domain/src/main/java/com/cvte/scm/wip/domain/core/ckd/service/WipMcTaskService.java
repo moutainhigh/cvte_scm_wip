@@ -15,6 +15,10 @@ import com.cvte.scm.wip.common.utils.EmptyObjectUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
 import com.cvte.scm.wip.common.utils.HostUtils;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentDTO;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
+import com.cvte.scm.wip.domain.common.attachment.service.WipAttachmentService;
 import com.cvte.scm.wip.domain.common.base.WipBaseService;
 import com.cvte.scm.wip.domain.common.log.constant.LogModuleConstant;
 import com.cvte.scm.wip.domain.common.log.dto.WipLogDTO;
@@ -110,6 +114,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     @Autowired
     private WipOperationLogService wipOperationLogService;
+
+    @Autowired
+    private WipAttachmentService wipAttachmentService;
 
     public WipMcTaskEntity getById(String mcTaskId) {
         return repository.getById(mcTaskId);
@@ -330,6 +337,39 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     }
 
+    public void saveBatchAttachment(List<AttachmentDTO> attachmentSaveDTOList) {
+
+        if (CollectionUtils.isEmpty(attachmentSaveDTOList)) {
+            return;
+        }
+
+        wipAttachmentService.saveBatch(attachmentSaveDTOList);
+
+        String detail = attachmentSaveDTOList.stream().map(AttachmentDTO::getFileName).collect(Collectors.joining("；"));
+        WipLogDTO wipLogDTO = new WipLogDTO();
+        wipLogDTO.setModule(LogModuleConstant.CKD)
+                .setReferenceId(attachmentSaveDTOList.get(0).getReferenceId())
+                .setOperation("上传附件")
+                .setDetail(detail + " 附件上传");
+        wipOperationLogService.addLog(wipLogDTO);
+
+    }
+
+    public void removeAttachmentById(String id) {
+        AttachmentVO wipAttachment = wipAttachmentService.getAttachmentView(new AttachmentQuery().setId(id));
+        if (ObjectUtils.isNull(wipAttachment)) {
+            return;
+        }
+        wipAttachmentService.removeById(id);
+
+        WipLogDTO wipLogDTO = new WipLogDTO();
+        wipLogDTO.setModule(LogModuleConstant.CKD)
+                .setReferenceId(wipAttachment.getReferenceId())
+                .setOperation("删除附件")
+                .setDetail(wipAttachment.getFileName() + " 附件删除");
+        wipOperationLogService.addLog(wipLogDTO);
+    }
+
     private WipMcTaskEntity generateWipMcTaskByInoutStock(TransactionTypeNameEnum transactionTypeNameEnum,
                                                     String taskId,
                                                     String inoutStockId) {
@@ -448,13 +488,21 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setInterfaceAction(InterfaceActionEnum.INSERT.name())
                 .setTxnSourceTypeName(TxnSourceTypeNameEnum.INV.getName())
                 .setTransactionTypeName(transactionTypeNameEnum.getName())
-                .setBuName(mcTaskInfoView.getBuName())
+                .setBuName(getInoutStockVuName(mcTaskInfoView.getBuName()))
                 .setDeptName(mcTaskInfoView.getDeptName())
                 .setOrganizationName(WipMcTaskConstant.PREFIX_INV + mcTaskInfoView.getEbsOrganizationCode())
                 .setReqEmployeeNum(CurrentContext.getCurrentOperatingUser().getAccount())
                 .setImportLnJson(lines)
                 .setDescription(mcTaskInfoView.getMcTaskNo());
         return ebsInoutStockDTO;
+    }
+
+    private String getInoutStockVuName(String buName) {
+        if (StringUtils.isNotBlank(buName)) {
+            String[] buNames = buName.split(WipMcTaskConstant.ORG_CODE_SEPARATOR);
+            buName = buNames.length > 1 ? buNames[1] : buName;
+        }
+        return buName;
     }
 
     private void handlerDefaultValueOfInoutStockLineDTO(TransactionTypeNameEnum transactionTypeNameEnum,

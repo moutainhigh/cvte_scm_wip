@@ -28,6 +28,7 @@ public class WipAttachmentRepositoryImpl
         Example example = new Example(WipAttachmentDO.class);
         example.createCriteria()
                 .andEqualTo("referenceId", attachmentQuery.getReferenceId())
+                .andEqualTo("id", attachmentQuery.getId())
                 .andEqualTo("isDel", YesOrNoEnum.NO.getValue());
         example.orderBy("crtTime");
         List<WipAttachmentDO> attachmentList = mapper.selectByExample(example);

@@ -11,5 +11,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class AttachmentQuery {
 
+    private String id;
+
     private String referenceId;
 }
