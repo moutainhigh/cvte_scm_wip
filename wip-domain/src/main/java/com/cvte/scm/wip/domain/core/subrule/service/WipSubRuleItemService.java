@@ -15,6 +15,7 @@ import com.cvte.scm.wip.domain.core.subrule.entity.WipSubRuleEntity;
 import com.cvte.scm.wip.domain.core.subrule.entity.WipSubRuleItemEntity;
 import com.cvte.scm.wip.domain.core.subrule.repository.WipSubRuleItemRepository;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.GroupObjectVO;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleStatusEnum;
 import org.springframework.stereotype.Service;
@@ -185,4 +186,39 @@ public class WipSubRuleItemService {
         subItemDetail.put("after", stream(subItemNos[1].split(SPLIT_SYMBOL)).map(itemDetailMap::get).collect(toList()));
         return subItemDetail;
     }
+    
+    public Map<String, String> validateSubItem(List<SubItemValidateVO> itemValidateDTOList) {
+        if (Objects.isNull(itemValidateDTOList)) {
+            return null;
+        }
+        List<String> organizationIdList = itemValidateDTOList.stream().map(SubItemValidateVO::getOrganizationId).distinct().collect(toList());
+        if (ListUtil.empty(organizationIdList) || organizationIdList.size() > 1) {
+            throw new ParamsIncorrectException("必须只能有一个组织ID");
+        }
+        List<String> itemNoList = new ArrayList<>();
+        for (SubItemValidateVO subItemValidateDTO : itemValidateDTOList) {
+            if (StringUtils.isNotBlank(subItemValidateDTO.getBeforeItemNo())) {
+                itemNoList.add(subItemValidateDTO.getBeforeItemNo());
+            }
+            if (StringUtils.isNotBlank(subItemValidateDTO.getAfterItemNo())) {
+                itemNoList.add(subItemValidateDTO.getAfterItemNo());
+            }
+        }
+        // 去重
+        itemNoList = itemNoList.stream().distinct().collect(toList());
+        Map<String, String> itemMap = scmItemService.getItemMap(organizationIdList.get(0), itemNoList);
+        Set<String> existsItemNoList = itemMap.keySet();
+        if (existsItemNoList.size() != itemNoList.size()) {
+            StringBuilder errMsgBuilder = new StringBuilder();
+            for (String itemNo : itemNoList) {
+                if (!existsItemNoList.contains(itemNo)) {
+                    errMsgBuilder.append("[").append(itemNo).append("]");
+                }
+            }
+            errMsgBuilder.append("无效的物料编码");
+            throw new ParamsIncorrectException(errMsgBuilder.toString());
+        }
+        return itemMap;
+    }
+
 }
