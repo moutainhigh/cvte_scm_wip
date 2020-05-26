@@ -48,7 +48,7 @@ public class AppConfiguration extends WebMvcConfigurerAdapter {
         //管理后台接口 /admin/开头
         registry.addInterceptor(verifyInterceptor()).addPathPatterns("/admin/**")
                 .excludePathPatterns("/**/*export*"
-                        , "kl/admin/sys/behavior/login"
+                        , "/admin/sys/behavior/login"
                         , "/admin/sys/behavior/me_info"
                         , "/admin/sys/user/account/*");
 
