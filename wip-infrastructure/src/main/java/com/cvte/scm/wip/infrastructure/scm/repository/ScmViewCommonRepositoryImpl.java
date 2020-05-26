@@ -2,6 +2,7 @@ package com.cvte.scm.wip.infrastructure.scm.repository;
 
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.repository.ScmViewCommonRepository;
+import com.cvte.scm.wip.domain.core.scm.vo.SysBuDeptVO;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
 import com.cvte.scm.wip.infrastructure.scm.mapper.ScmViewCommonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,5 +24,10 @@ public class ScmViewCommonRepositoryImpl implements ScmViewCommonRepository {
     @Override
     public String getFactoryCodeById(String factoryId) {
         return scmViewCommonMapper.getFactoryCodeById(factoryId);
+    }
+
+    @Override
+    public SysBuDeptVO getSysBuDeptVO(String buCode, String deptCode) {
+        return scmViewCommonMapper.getSysBuDeptVO(buCode, deptCode);
     }
 }

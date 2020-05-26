@@ -40,6 +40,7 @@ import com.cvte.scm.wip.domain.core.ckd.handler.McTaskStatusUpdateIHandler;
 import com.cvte.scm.wip.domain.core.ckd.repository.WipMcTaskRepository;
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
+import com.cvte.scm.wip.domain.core.scm.vo.SysBuDeptVO;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
 import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockDTO;
 import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockResponse;
@@ -96,9 +97,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private ScmViewCommonService scmViewCommonSerivce;
 
     @Autowired
     private EbsInvokeService ebsInvokeService;
@@ -488,7 +486,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setInterfaceAction(InterfaceActionEnum.INSERT.name())
                 .setTxnSourceTypeName(TxnSourceTypeNameEnum.INV.getName())
                 .setTransactionTypeName(transactionTypeNameEnum.getName())
-                .setBuName(getInoutStockVuName(mcTaskInfoView.getBuName()))
+                .setBuName(mcTaskInfoView.getBuName())
                 .setDeptName(mcTaskInfoView.getDeptName())
                 .setOrganizationName(WipMcTaskConstant.PREFIX_INV + mcTaskInfoView.getEbsOrganizationCode())
                 .setReqEmployeeNum(CurrentContext.getCurrentOperatingUser().getAccount())
@@ -575,8 +573,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         mcReqs.forEach(el -> {
             el.validate();
             if (!(StringUtils.equals(el.getFactoryId(), firstMcReq.getFactoryId())
-                    && StringUtils.equals(el.getBuName(), firstMcReq.getBuName())
-                    && StringUtils.equals(el.getDeptName(), firstMcReq.getDeptName())
+                    && StringUtils.equals(el.getBuCode(), firstMcReq.getBuCode())
+                    && StringUtils.equals(el.getDeptCode(), firstMcReq.getDeptCode())
                     && StringUtils.equals(el.getOrganizationId(), firstMcReq.getOrganizationId())
                     && el.getMtrReadyTime().equals(firstMcReq.getMtrReadyTime())
             )) {
@@ -588,13 +586,18 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             soIdSet.add(el.getMcReqId());
         });
 
+        SysBuDeptVO sysBuDeptDetailVO = scmViewCommonService.getSysBuDeptVO(firstMcReq.getBuCode(), firstMcReq.getDeptCode());
+        if (ObjectUtils.isNull(sysBuDeptDetailVO)) {
+            throw new SourceNotFoundException(
+                    String.format("获取部门/事业错误：buCode=%s,deptCode=%s", firstMcReq.getBuCode(), firstMcReq.getDeptCode()));
+        }
 
         // 头表
         WipMcTaskEntity wipMcTask = modelMapper.map(mcReqs.get(0), WipMcTaskEntity.class);
         wipMcTask.setMcTaskId(UUIDUtils.getUUID())
                 .setMcTaskNo(getMcTaskNo(firstMcReq.getFactoryId()))
-                .setBuName(firstMcReq.getBuName())
-                .setDeptName(firstMcReq.getDeptName())
+                .setBuName(sysBuDeptDetailVO.getBuName())
+                .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
                 .setOrgId(getOrgIdByOrganizationId(firstMcReq.getOrganizationId()));
         EntityUtils.writeStdCrtInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
@@ -630,15 +633,17 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         // 校验是否可以变更
         McTaskInfoView mcTaskInfoView = wipMcTaskValidateService.validateUpdOpt(mcReq.getMcTaskId());
 
+        SysBuDeptVO sysBuDeptDetailVO = scmViewCommonService.getSysBuDeptVO(mcReq.getBuCode(), mcReq.getDeptCode());
+        if (ObjectUtils.isNull(sysBuDeptDetailVO)) {
+            throw new SourceNotFoundException(String.format("获取部门/事业错误：buCode=%s,deptCode=%s", mcReq.getBuCode(), mcReq.getDeptCode()));
+        }
 
         WipMcTaskEntity wipMcTask = getByTaskId(mcReq.getMcTaskId());
         wipMcTask.setMtrReadyTime(mcReq.getMtrReadyTime())
                 .setFactoryId(mcReq.getFactoryId())
-                .setBuName(mcReq.getBuName())
-                .setDeptName(mcReq.getDeptName())
+                .setBuName(sysBuDeptDetailVO.getBuName())
+                .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
-                .setBuName(mcReq.getBuName())
-                .setDeptName(mcReq.getDeptName())
                 .setOrgId(getOrgIdByOrganizationId(mcReq.getOrganizationId()));
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
 
@@ -743,7 +748,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             throw new ParamsRequiredException("ebs组织id不能为空");
         }
 
-        List<SysOrgOrganizationVO> sysOrgOrganizationVS = scmViewCommonSerivce.listSysOrgOrganizationVO(
+        List<SysOrgOrganizationVO> sysOrgOrganizationVS = scmViewCommonService.listSysOrgOrganizationVO(
                 new SysOrgOrganizationVQuery().setEbsOrganizationIds(Arrays.asList(organizationId)));
         if (CollectionUtils.isEmpty(sysOrgOrganizationVS)) {
             throw new SourceNotFoundException("获取组织" + organizationId + "信息失败");
