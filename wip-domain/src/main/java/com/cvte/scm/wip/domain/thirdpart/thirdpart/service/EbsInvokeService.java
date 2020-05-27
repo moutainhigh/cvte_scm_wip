@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,9 @@ public class EbsInvokeService {
                 throw new EbsInvokeException("调拨单创建失败：" + response.getString("message"));
             }
 
+            if (ObjectUtils.isNull(response.getJSONArray("data"))) {
+                return new ArrayList<>();
+            }
             return response.getJSONArray("data").toJavaList(EbsInoutStockView.class);
 
         } catch (Exception e) {
