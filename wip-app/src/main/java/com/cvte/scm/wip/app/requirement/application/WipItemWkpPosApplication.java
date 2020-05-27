@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.app.requirement.application;
+package com.cvte.scm.wip.app.requirement.application;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;

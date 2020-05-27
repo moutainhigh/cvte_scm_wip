@@ -2,7 +2,7 @@ package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
-import com.cvte.scm.wip.domain.app.requirement.application.WipItemWkpPosApplication;
+import com.cvte.scm.wip.app.requirement.application.WipItemWkpPosApplication;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
