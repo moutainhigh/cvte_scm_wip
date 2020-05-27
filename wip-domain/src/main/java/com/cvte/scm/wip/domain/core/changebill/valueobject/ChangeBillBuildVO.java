@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import javax.persistence.Transient;
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +38,9 @@ public class ChangeBillBuildVO implements VO {
     private Date disableDate;
 
     private Date lastUpdateDate;
+
+    @Transient
+    private Boolean needUpdate;
 
     private List<ChangeBillDetailBuildVO> detailVOList;
 

@@ -15,6 +15,6 @@ public interface ReqInstructionRepository {
 
     void update(ReqInstructionEntity entity);
 
-    ReqInstructionEntity getById(String insId);
+    ReqInstructionEntity getByKey(String insKey);
 
 }

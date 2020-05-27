@@ -1,11 +1,12 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInstructionEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInstructionRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionDetailBuildVO;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +15,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
   * 
@@ -67,13 +65,16 @@ public class ReqInstructionEntity implements Entity<String> {
 
     private String invalidReason;
 
-    private List<ReqInstructionDetailEntity> detailList;
+    private List<ReqInstructionDetailEntity> detailList = Collections.emptyList();
 
-    public ReqInstructionEntity getById(String insId) {
-        return headerRepository.getById(insId);
+    public ReqInstructionEntity getByKey(String insKey) {
+        return headerRepository.getByKey(insKey);
     }
 
     public ReqInstructionEntity createInstruction(ReqInstructionBuildVO vo) {
+        String newInstructionId = UUIDUtils.get32UUID();
+        vo.setInstructionHeaderId(newInstructionId);
+        vo.getDetailList().forEach(detail -> detail.setInstructionHeaderId(newInstructionId));
         ReqInstructionEntity instructionEntity = headerEntityFactory.perfect(vo);
         headerRepository.insert(instructionEntity);
         return instructionEntity;
@@ -91,8 +92,8 @@ public class ReqInstructionEntity implements Entity<String> {
      * @author xueyuting
      */
     public ReqInstructionEntity saveInstruction(ReqInstructionBuildVO vo) {
-        ReqInstructionEntity instructionEntity = getById(vo.getInstructionHeaderId());
-        if (Objects.nonNull(instructionEntity)) {
+        ReqInstructionEntity instructionEntity;
+        if (StringUtils.isNotBlank(vo.getInstructionHeaderId())) {
             instructionEntity = this.updateInstruction(vo);
         } else {
             instructionEntity = this.createInstruction(vo);

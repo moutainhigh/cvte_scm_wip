@@ -5,6 +5,7 @@ import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class ReqInstructionBuildVO implements VO {
 
     private Date disableDate;
 
-    private List<ReqInstructionDetailBuildVO> detailList;
+    private List<ReqInstructionDetailBuildVO> detailList = Collections.emptyList();
 
     public static ReqInstructionBuildVO buildVO(ChangeBillEntity billEntity) {
         ReqInstructionBuildVO instructionBuildVO = new ReqInstructionBuildVO();

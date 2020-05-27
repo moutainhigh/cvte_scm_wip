@@ -12,19 +12,18 @@ import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionDetailBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ReqInstructionStatusEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author : xueyuting
@@ -41,9 +40,6 @@ public class ChangeBillEntity implements Entity<String> {
 
     @Resource
     private DomainFactory<ChangeBillBuildVO, ChangeBillEntity> changeBillEntityFactory;
-
-    @Resource
-    private DomainFactory<ChangeBillBuildVO, UpdateChangeBillEntity> updateChangeBillEntityFactory;
 
     private ChangeBillRepository changeBillRepository;
 
@@ -72,14 +68,18 @@ public class ChangeBillEntity implements Entity<String> {
 
     private Date disableDate;
 
-    private List<ChangeBillDetailEntity> billDetailList;
+    private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
-    public ChangeBillEntity getById(String billId) {
-        return changeBillRepository.getById(billId);
-    }
-
-    public ChangeBillEntity getByNo(String billNo) {
-        return changeBillRepository.getByNo(billNo);
+    public ChangeBillEntity getByKey(String billKey) {
+        ChangeBillEntity billEntity = changeBillRepository.getByKey(billKey);
+        if (Objects.isNull(billEntity)) {
+            return null;
+        }
+        ChangeBillBuildVO buildVO = new ChangeBillBuildVO();
+        buildVO.setBillType(billEntity.getBillType());
+        ChangeBillEntity rebuildBillEntity = changeBillEntityFactory.perfect(buildVO);
+        BeanUtils.copyProperties(billEntity, rebuildBillEntity);
+        return rebuildBillEntity;
     }
 
     public List<ChangeBillDetailEntity> getDetailById() {
@@ -96,29 +96,29 @@ public class ChangeBillEntity implements Entity<String> {
      * @author xueyuting
      */
     public ChangeBillEntity createChangeBill(ChangeBillBuildVO vo) {
-        ChangeBillEntity entity;
-        switch (vo.getBillType()) {
-            default:
-                entity = changeBillEntityFactory.perfect(vo);
-                break;
+        if (StringUtils.isBlank(vo.getBillId())) {
+            String newBillId = UUIDUtils.get32UUID();
+            vo.setBillId(newBillId);
+            if (ListUtil.notEmpty(vo.getDetailVOList())) {
+                vo.getDetailVOList().forEach(detail -> detail.setBillId(newBillId));
+            }
         }
+        ChangeBillEntity entity = changeBillEntityFactory.perfect(vo);
         changeBillRepository.insert(entity);
         return entity;
     }
 
     public ChangeBillEntity updateChangeBill(ChangeBillBuildVO vo) {
-        ChangeBillEntity entity = updateChangeBillEntityFactory.perfect(vo);
+        ChangeBillEntity entity = changeBillEntityFactory.perfect(vo);
         changeBillRepository.update(entity);
         return entity;
     }
 
     public ChangeBillEntity saveChangeBill(ChangeBillBuildVO vo) {
         if (StringUtils.isNotBlank(vo.getBillId())) {
+            vo.setNeedUpdate(true);
             return this.updateChangeBill(vo);
         }
-        String billId = UUIDUtils.get32UUID();
-        vo.setBillId(billId);
-        vo.getDetailVOList().forEach(detail -> detail.setBillId(billId));
         return createChangeBill(vo);
     }
 
@@ -143,10 +143,8 @@ public class ChangeBillEntity implements Entity<String> {
      */
     public ReqInstructionBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
         // 生成投料单指令头
-        String instructionHeaderId = UUIDUtils.get32UUID();
         ReqInstructionBuildVO instructionBuildVO = ReqInstructionBuildVO.buildVO(this);
-        instructionBuildVO.setInstructionHeaderId(instructionHeaderId)
-                .setInstructionHeaderStatus("未确认")
+        instructionBuildVO.setInstructionHeaderStatus(ProcessingStatusEnum.PENDING.getCode())
                 .setAimHeaderId(reqHeaderVO.getHeaderId())
                 .setAimReqLotNo(reqHeaderVO.getSourceLotNo());
 
@@ -155,8 +153,6 @@ public class ChangeBillEntity implements Entity<String> {
         for (ChangeBillDetailEntity billDetailEntity : this.getBillDetailList()) {
             // 解析更改单明细
             ReqInstructionDetailBuildVO detailBuildVO = parseChangeBillDetail(billDetailEntity);
-
-            detailBuildVO.setInstructionHeaderId(instructionHeaderId);
             instructionDetailBuildVOList.add(detailBuildVO);
         }
 
@@ -200,7 +196,7 @@ public class ChangeBillEntity implements Entity<String> {
         ReqInstructionDetailBuildVO detailBuildVO = ReqInstructionDetailBuildVO.buildVO(billDetailEntity);
         detailBuildVO.setInstructionDetailId(UUIDUtils.get32UUID())
                 .setOperationType(billDetailEntity.getOperationType())
-                .setInsStatus(ReqInstructionStatusEnum.UNCONFIRMED.getCode());
+                .setInsStatus(billDetailEntity.getStatus());
         return detailBuildVO;
     }
 

@@ -16,8 +16,6 @@ public interface ChangeBillRepository extends Repository {
 
     void update(ChangeBillEntity entity);
 
-    ChangeBillEntity getById(String billId);
-
-    ChangeBillEntity getByNo(String billNo);
+    ChangeBillEntity getByKey(String billKey);
 
 }

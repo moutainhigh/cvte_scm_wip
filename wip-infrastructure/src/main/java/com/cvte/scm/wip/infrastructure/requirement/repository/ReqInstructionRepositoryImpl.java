@@ -1,12 +1,15 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInstructionRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsHMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsHeaderDO;
 import org.springframework.stereotype.Repository;
+import tk.mybatis.mapper.entity.Example;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -36,17 +39,24 @@ public class ReqInstructionRepositoryImpl implements ReqInstructionRepository {
     public void update(ReqInstructionEntity entity) {
         WipReqInsHeaderDO insDO = WipReqInsHeaderDO.buildDO(entity);
         EntityUtils.writeStdUpdInfoToEntity(insDO, EntityUtils.getWipUserId());
-        insHMapper.insertSelective(insDO);
+        insHMapper.updateByPrimaryKeySelective(insDO);
 
     }
 
     @Override
-    public ReqInstructionEntity getById(String insId) {
-        WipReqInsHeaderDO insDO = insHMapper.selectByPrimaryKey(insId);
-        if (Objects.isNull(insDO)) {
+    public ReqInstructionEntity getByKey(String insKey) {
+        Example example = new Example(WipReqInsHeaderDO.class);
+        example.createCriteria().andEqualTo("insHId", insKey);
+        Example.Criteria sourceBillCriteria = example.createCriteria().andEqualTo("sourceCnBillId", insKey);
+        example.or(sourceBillCriteria);
+        List<WipReqInsHeaderDO> insDOList = insHMapper.selectByExample(example);
+        if (Objects.isNull(insDOList)) {
             return null;
         }
-        return WipReqInsHeaderDO.buildEntity(insDO);
+        if (insDOList.size() > 1) {
+            throw new ParamsIncorrectException("投料单指令集不惟一");
+        }
+        return WipReqInsHeaderDO.buildEntity(insDOList.get(0));
     }
 
 }

@@ -2,9 +2,9 @@ package com.cvte.scm.wip.spi.changebill.DTO;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillDetailBuildVO;
-import com.cvte.scm.wip.domain.core.changebill.valueobject.enums.ChangeBillStatusEnum;
 import lombok.Data;
 
 import java.util.Date;
@@ -91,7 +91,7 @@ public class SourceChangeBillDTO {
                 .setDisableDate(changeBillDTO.getDisableDate())
                 .setLastUpdateDate(changeBillDTO.getLastUpdDate());
         if (StringUtils.isBlank(billBuildVO.getBillStatus())) {
-            billBuildVO.setBillStatus(ChangeBillStatusEnum.ACTIVE.getCode());
+            billBuildVO.setBillStatus(StatusEnum.NORMAL.getCode());
         }
         return billBuildVO;
     }
@@ -111,7 +111,7 @@ public class SourceChangeBillDTO {
                 .setEnableDate(changeBillDTO.getDetailEnableDate())
                 .setDisableDate(changeBillDTO.getDetailDisableDate());
         if (StringUtils.isBlank(detailBuildVO.getStatus())) {
-            detailBuildVO.setStatus(ChangeBillStatusEnum.ACTIVE.getCode());
+            detailBuildVO.setStatus(StatusEnum.NORMAL.getCode());
         }
         if (StringUtils.isBlank(detailBuildVO.getWkpNo())) {
             detailBuildVO.setWkpNo("");

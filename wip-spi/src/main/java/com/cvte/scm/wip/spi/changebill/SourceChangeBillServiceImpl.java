@@ -105,7 +105,7 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
         List<ChangeBillBuildVO> billBuildVOList = new ArrayList<>();
 
         Map<String, List<SourceChangeBillDTO>> sourceBillMap = sourceBillList.stream()
-                .collect(Collectors.groupingBy(bill -> bill.getBillId() + bill.getOrganizationId()));
+                .collect(Collectors.groupingBy(bill -> bill.getBillNo() + bill.getOrganizationId()));
         for (Map.Entry<String, List<SourceChangeBillDTO>> entry : sourceBillMap.entrySet()) {
             List<SourceChangeBillDTO> sourceChangeBillDTOList = entry.getValue();
 

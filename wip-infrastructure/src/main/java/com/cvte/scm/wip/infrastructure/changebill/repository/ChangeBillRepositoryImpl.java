@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.infrastructure.changebill.repository;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
@@ -7,6 +8,7 @@ import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.WipCnBillMapper;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.dataobject.WipCnBillDO;
 import org.springframework.stereotype.Repository;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,23 +44,19 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
     }
 
     @Override
-    public ChangeBillEntity getById(String billId) {
-        WipCnBillDO billDO = cnBillMapper.selectByPrimaryKey(billId);
-        if (Objects.isNull(billDO)) {
+    public ChangeBillEntity getByKey(String billKey) {
+        Example example = new Example(WipCnBillDO.class);
+        example.createCriteria().andEqualTo("billId", billKey);
+        Example.Criteria noCriteria = example.createCriteria().andEqualTo("billNo", billKey);
+        example.or(noCriteria);
+        List<WipCnBillDO> billDOList = cnBillMapper.selectByExample(example);
+        if (ListUtil.notEmpty(billDOList)) {
             return null;
         }
-        return WipCnBillDO.buildEntity(billDO);
-    }
-
-    @Override
-    public ChangeBillEntity getByNo(String billNo) {
-        WipCnBillDO queryBill = new WipCnBillDO();
-        queryBill.setBillNo(billNo);
-        List<WipCnBillDO> billDOList = cnBillMapper.select(queryBill);
-        if (ListUtil.notEmpty(billDOList)) {
-            return WipCnBillDO.buildEntity(billDOList.get(0));
+        if (billDOList.size() > 1) {
+            throw new ParamsIncorrectException("更改单不惟一");
         }
-        return null;
+        return WipCnBillDO.buildEntity(billDOList.get(0));
     }
 
 }
