@@ -32,4 +32,5 @@ public interface WipReqHeaderRepository {
 
     void updateStatusById(String billStatus, String headerId);
 
+    boolean existLotNumber(String headerId, String lotNumber);
 }

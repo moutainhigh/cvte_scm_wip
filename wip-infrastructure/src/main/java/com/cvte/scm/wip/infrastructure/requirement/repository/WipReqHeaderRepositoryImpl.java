@@ -113,6 +113,11 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
         wipReqHeaderMapper.updateByExampleSelective(header, example);
     }
 
+    @Override
+    public boolean existLotNumber(String headerId, String lotNumber) {
+        return wipReqHeaderMapper.existLotNumber(headerId, lotNumber);
+    }
+
     private String validateIndex(WipReqHeaderEntity wipReqHeader) {
         StringBuilder indexErrorMsg = new StringBuilder();
         BiFunction<String, String, String> format = (s1, s2) -> StringUtils.isEmpty(s1) ? s2 + "不可为空; " : "";

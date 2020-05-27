@@ -9,7 +9,10 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
-import com.cvte.scm.wip.common.utils.*;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.CurrentContextUtils;
+import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.common.utils.ValidateUtils;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
@@ -25,11 +28,9 @@ import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
-import javax.persistence.Column;
-import javax.persistence.Transient;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -58,6 +59,7 @@ import static java.util.stream.Collectors.toList;
   */
 @Slf4j
 @Service
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqLineService {
 
     private static final BiFunction<String, ChangedTypeEnum, String> logFormat = (errorMsg, type) ->
@@ -128,6 +130,8 @@ public class WipReqLineService {
             return "添加失败，您填写的组织或物料编码错误，请您修改无误后再添加；";
         } else if (StringUtils.isEmpty(wipReqHeaderRepository.getSourceId(wipReqLine.getHeaderId()))) {
             return "添加失败，您填写的投料单头ID错误，请您修改无误后再添加；";
+        } else if (!wipReqHeaderRepository.existLotNumber(wipReqLine.getHeaderId(), wipReqLine.getLotNumber())) {
+            return "添加失败，您填写的批次号错误，请您修改无误后再添加；";
         }
         addedData.add(wipReqLine.setItemId(itemId));
         return "";
@@ -210,6 +214,9 @@ public class WipReqLineService {
         if (invalidLineIds.length > 0) {
             log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；", Arrays.toString(invalidLineIds)), ChangedTypeEnum.DELETE));
             return "删除失败，请您刷新页面后再执行删除操作；";
+        }
+        if (cancelledData.stream().anyMatch(el -> BillStatusEnum.ISSUED.getCode().equals(el.getLineStatus()))) {
+            return "不能删除已领料的投料单行，请检查；";
         }
         return "";
     }
