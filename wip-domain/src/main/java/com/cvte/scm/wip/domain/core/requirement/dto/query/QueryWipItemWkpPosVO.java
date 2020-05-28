@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,5 +17,11 @@ import java.util.List;
 public class QueryWipItemWkpPosVO {
 
     private List<String> itemCodes;
+
+    private List<String> productModels;
+
+    private List<String> organizationIds;
+
+    private Date queryDate;
 
 }

@@ -5,6 +5,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.scm.wip.common.constants.CommonDateConstant;
 import com.cvte.scm.wip.common.listener.ExcelListener;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.ExcelUtils;
@@ -13,6 +14,10 @@ import com.cvte.scm.wip.domain.core.requirement.dto.WipItemWkpPostImportDTO;
 import com.cvte.scm.wip.domain.core.requirement.dto.query.QueryWipItemWkpPosVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipItemWkpPosEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipItemWkpPosRepository;
+import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
+import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
+import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
+import jodd.util.StringUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -34,51 +40,59 @@ public class WipItemWkpPosService {
     private WipItemWkpPosRepository repository;
 
     @Autowired
+    private ScmViewCommonService scmViewCommonService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     /**
-     * 根据导入excel删除原有数据
-     * <p>
-     *     删除规则：根据"产品规格 + 物料编码"匹配，匹配到则删除
-     * </p>
+     * 批量保存
      *
-     * @param wipItemWkpPostImportDTOS
+     * 根据"产品规格 + 物料编码 + 组织"匹配当前生效数据，如果数据已存在，则失效旧数据
+     *
+     * @param wipItemWkpPosEntities
      * @return void
      **/
-    public void deleteByWipItemWkpPostImportDTO(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
-
-        Map<String, Set<String>> importMap = new HashMap<>();
-        for (WipItemWkpPostImportDTO wipItemWkpPostImportDTO : wipItemWkpPostImportDTOS) {
-            String itemCode = wipItemWkpPostImportDTO.getItemCode();
-            if (!importMap.containsKey(itemCode)) {
-                importMap.put(itemCode, new HashSet<>());
-            }
-            importMap.get(itemCode).add(wipItemWkpPostImportDTO.getProductModel());
-        }
-
-        List<String> itemCodes = wipItemWkpPostImportDTOS.stream().map(WipItemWkpPostImportDTO::getItemCode).collect(Collectors.toList());
-        List<WipItemWkpPosEntity> wipItemWkpPosEntities =
-                repository.listWipItemWkpPosEntity(new QueryWipItemWkpPosVO().setItemCodes(itemCodes));
-        List<String> deleteList = new ArrayList<>();
-        for (WipItemWkpPosEntity wipItemWkpPosEntity : wipItemWkpPosEntities) {
-            String itemCode = wipItemWkpPosEntity.getItemCode();
-            if (importMap.containsKey(itemCode)
-                    && importMap.get(itemCode).contains(wipItemWkpPosEntity.getProductModel())) {
-                deleteList.add(wipItemWkpPosEntity.getId());
-            }
-        }
-
-        if (CollectionUtils.isNotEmpty(deleteList)) {
-            repository.deleteListByIds(deleteList.toArray(new String[0]));
-        }
-    }
-
     public void batchSave(List<WipItemWkpPosEntity> wipItemWkpPosEntities) {
+        if (CollectionUtils.isEmpty(wipItemWkpPosEntities)) {
+            return;
+        }
+
+        Date curDate = new Date();
+
+        QueryWipItemWkpPosVO queryWipItemWkpPosVO = new QueryWipItemWkpPosVO()
+                .setQueryDate(curDate)
+                .setItemCodes(mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getItemCode))
+                .setProductModels(mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getProductModel))
+                .setOrganizationIds(mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getOrganizationId));
+        List<WipItemWkpPosEntity> existEntity = repository.listWipItemWkpPosEntity(queryWipItemWkpPosVO);
+
+        Set<String> postImportKeySet = wipItemWkpPosEntities.stream().map(WipItemWkpPosEntity::generateUniqueKey).collect(Collectors.toSet());
+
+        List<WipItemWkpPosEntity> invalidList = new ArrayList<>();
+        for (WipItemWkpPosEntity wipItemWkpPosEntity : existEntity) {
+            if (postImportKeySet.contains(wipItemWkpPosEntity.generateUniqueKey())) {
+                WipItemWkpPosEntity invalidEntity = new WipItemWkpPosEntity()
+                        .setId(wipItemWkpPosEntity.getId())
+                        .setEndDate(curDate);
+                EntityUtils.writeCurUserStdUpdInfoToEntity(invalidEntity);
+                invalidList.add(invalidEntity);
+            }
+        }
+
+        wipItemWkpPosEntities.forEach(el -> {
+            el.setId(UUIDUtils.getUUID()).setBeginDate(curDate).setEndDate(CommonDateConstant.END_DATE);
+            EntityUtils.writeCurUserStdCrtInfoToEntity(el);
+        });
+
+        repository.updateList(invalidList);
         repository.insertList(wipItemWkpPosEntities);
     }
 
     /**
      * 批量导入
+     *
+     * 根据"产品规格 + 物料编码 + 组织"匹配当前生效数据，如果数据已存在，则失效旧数据
      *
      * @param wipItemWkpPostImportDTOS
      * @return void
@@ -87,16 +101,8 @@ public class WipItemWkpPosService {
         if (CollectionUtils.isEmpty(wipItemWkpPostImportDTOS)) {
             return;
         }
-
-        List<WipItemWkpPosEntity> wipItemWkpPosEntities =
-                modelMapper.map(wipItemWkpPostImportDTOS, new TypeToken<List<WipItemWkpPosEntity>>(){}.getType());
-        wipItemWkpPosEntities.forEach(el -> {
-            el.setId(UUIDUtils.getUUID());
-            EntityUtils.writeCurUserStdCrtInfoToEntity(el);
-        });
-        repository.insertList(wipItemWkpPosEntities);
+        batchSave(modelMapper.map(wipItemWkpPostImportDTOS, new TypeToken<List<WipItemWkpPosEntity>>(){}.getType()));
     }
-
 
     /**
      * 校验导入数据
@@ -104,16 +110,31 @@ public class WipItemWkpPosService {
      * @param wipItemWkpPostImportDTOS
      * @return void
      **/
-    public void validateWipItemWkpPostImportDTO(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
+    public void validateAndInitWipItemWkpPostImportDTO(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
+
+        Map<String, String> orgCodeAndIdMap = getOrgCodeAndIdMapByImportDTOS(wipItemWkpPostImportDTOS);
+
+
         StringBuilder errMsgs = new StringBuilder();
-        List<String> itemCodes = new ArrayList<>();
+        Set<String> uniqueKeySet = new HashSet<>();
         wipItemWkpPostImportDTOS.forEach(el -> {
-            String errMsg = ValidateUtils.validate(el);
-            if (StringUtils.isNotBlank(errMsg)) {
+
+            StringBuilder errMsg = new StringBuilder(ValidateUtils.validate(el));
+            if (StringUtil.isNotBlank(el.getOrganizationCode()) && !orgCodeAndIdMap.containsKey(el.getOrganizationCode())) {
+                errMsg.append(String.format("组织%s未找到;", el.getOrganizationCode()));
+            }
+
+            el.setOrganizationId(orgCodeAndIdMap.get(el.getOrganizationCode()));
+            String uniqueKey = el.generateUniqueKey();
+
+            if (uniqueKeySet.contains(uniqueKey)) {
+                errMsg.append("不可同时导入重复数据;");
+            }
+            if (errMsg.length() > 0) {
                 errMsgs.append(String.format("【第%d行：%s】", el.getRowNum(), errMsg));
             }
 
-            itemCodes.add(el.getItemCode());
+            uniqueKeySet.add(uniqueKey);
         });
 
         if (errMsgs.length() > 0) {
@@ -139,4 +160,20 @@ public class WipItemWkpPosService {
             throw new ParamsIncorrectException("excel解析错误，请联系管理员");
         }
     }
+
+    private Map<String, String> getOrgCodeAndIdMapByImportDTOS(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
+        List<String> organizationCodes = wipItemWkpPostImportDTOS.stream()
+                .map(WipItemWkpPostImportDTO::getOrganizationCode)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
+        List<SysOrgOrganizationVO> sysOrgOrganizationVOS = scmViewCommonService.listSysOrgOrganizationVO(
+                new SysOrgOrganizationVQuery().setEbsOrganizationCodes(organizationCodes));
+        return sysOrgOrganizationVOS.stream()
+                .collect(Collectors.toMap(SysOrgOrganizationVO::getEbsOrganizationCode, SysOrgOrganizationVO::getEbsOrganizationId));
+    }
+
+    private <T, R>List<R> mapToList(List<T> list, Function<T, R> function) {
+        return list.stream().map(function).collect(Collectors.toList());
+    }
+
 }

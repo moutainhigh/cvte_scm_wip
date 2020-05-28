@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.toolkit.CollectionUtils;
+import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.scm.wip.domain.core.requirement.dto.query.QueryWipItemWkpPosVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipItemWkpPosEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipItemWkpPosRepository;
@@ -37,10 +38,21 @@ public class WipItemWkpPosRepositoryImpl
         Example example = new Example(WipItemWkpPosDO.class);
         Example.Criteria criteria = example.createCriteria();
 
+        if (ObjectUtils.isNotNull(query.getQueryDate())) {
+            criteria.andLessThanOrEqualTo("beginDate", query.getQueryDate());
+            criteria.andGreaterThan("endDate", query.getQueryDate());
+        }
         if (CollectionUtils.isNotEmpty(query.getItemCodes())) {
             criteria.andIn("itemCode",  query.getItemCodes());
         }
 
+        if (CollectionUtils.isNotEmpty(query.getOrganizationIds())) {
+            criteria.andIn("organizationId", query.getOrganizationIds());
+        }
+
+        if (CollectionUtils.isNotEmpty(query.getProductModels())) {
+            criteria.andIn("productModel", query.getProductModels());
+        }
         return modelMapper.map(mapper.selectByExample(example), new TypeToken<List<WipItemWkpPosEntity>>(){}.getType());
     }
 

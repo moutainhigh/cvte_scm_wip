@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
 
+import com.cvte.scm.wip.common.constants.CommonConstant;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -33,7 +34,14 @@ public class WipItemWkpPosEntity extends BaseModel {
     @ApiModelProperty(value = "物料code")
     private String itemCode;
 
-    private String versionNo;
+    @ApiModelProperty(value = "组织id")
+    private String organizationId;
+
+    @ApiModelProperty(value = "生效时间")
+    private Date beginDate;
+
+    @ApiModelProperty(value = "失效时间")
+    private Date endDate;
 
     private String productModel;
     /**
@@ -116,5 +124,20 @@ public class WipItemWkpPosEntity extends BaseModel {
      */
     @ApiModelProperty(value = "${field.comment}")
     private Date updTime;
+
+    /**
+     * 获取唯一索引键
+     *
+     * @return java.lang.String
+     **/
+    public String generateUniqueKey() {
+        return this.getOrganizationId()
+                + CommonConstant.COMMON_SEPARATOR
+                + this.getProductModel()
+                + CommonConstant.COMMON_SEPARATOR
+                + this.getItemCode()
+                + CommonConstant.COMMON_SEPARATOR
+                + this.getTechniqueAttr();
+    }
 
 }

@@ -39,9 +39,17 @@ public class WipItemWkpPosDO extends BaseModel {
     @ApiModelProperty(value = "物料id")
     private String itemCode;
 
-    @Column(name = "version_no")
-    @ApiModelProperty(value = "版本号")
-    private String versionNo;
+    @ApiModelProperty(value = "组织id")
+    @Column(name = "organization_id")
+    private String organizationId;
+
+    @Column(name = "begin_date")
+    @ApiModelProperty(value = "生效时间")
+    private Date beginDate;
+
+    @Column(name = "end_date")
+    @ApiModelProperty(value = "失效时间")
+    private Date endDate;
 
     @Column(name = "product_model")
     private String productModel;

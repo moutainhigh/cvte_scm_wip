@@ -36,9 +36,7 @@ public class WipItemWkpPosApplication {
             throw new ParamsIncorrectException("导入数据不能为空");
         }
 
-        wipItemWkpPosService.validateWipItemWkpPostImportDTO(wipItemWkpPostImportDTOS);
-
-        wipItemWkpPosService.deleteByWipItemWkpPostImportDTO(wipItemWkpPostImportDTOS);
+        wipItemWkpPosService.validateAndInitWipItemWkpPostImportDTO(wipItemWkpPostImportDTOS);
 
         wipItemWkpPosService.batchSaveWipItemWkpPostImportDTO(wipItemWkpPostImportDTOS);
     }

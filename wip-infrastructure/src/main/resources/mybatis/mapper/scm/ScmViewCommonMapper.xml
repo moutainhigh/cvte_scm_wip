@@ -25,6 +25,12 @@
                 #{item}
             </foreach>
         </if>
+        <if test="ebsOrganizationCodes != null and ebsOrganizationCodes.size > 0" >
+            AND Soov.ebs_organization_code IN
+            <foreach collection="ebsOrganizationCodes" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
     </select>
     <select id="getFactoryCodeById" resultType="String">
         select factory_code
