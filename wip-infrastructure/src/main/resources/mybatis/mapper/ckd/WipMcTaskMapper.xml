@@ -43,11 +43,8 @@
         <result column="org_id" property="orgId"/>
         <result column="ebs_organization_code" property="ebsOrganizationCode"/>
         <result column="mcFinishStatusName" property="mcFinishStatusName" />
-        <result column="delivery_in_status" property="deliveryInStatus" />
-        <result column="delivery_out_status" property="deliveryOutStatus" />
         <result column="bu_name" property="buName" />
         <result column="dept_name" property="deptName" />
-        <result column="inout_stock_id" property="inoutStockId" />
     </resultMap>
 
 
@@ -97,8 +94,6 @@
         , Soov.ebs_organization_code
         , Wmt.bu_name
         , Wmt.dept_name
-        , Wmt.in_stock_id
-        , Wmt.out_stock_id
         from wip_mc_task Wmt
         join wip_mc_wf Wmw on Wmw.mc_task_id = Wmt.mc_task_id and wmw.wf_id = wmt.mc_wf_id
         left join scm.sys_org_factory_v Sofv on Wmt.factory_id = Sofv.ebs_factory_id
