@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.dto;
+package com.cvte.scm.wip.domain.core.thirdpart.ebs.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

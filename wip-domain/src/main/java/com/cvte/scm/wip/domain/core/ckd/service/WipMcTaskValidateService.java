@@ -7,13 +7,17 @@ import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
+import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
+import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
 import com.cvte.scm.wip.domain.core.ckd.utils.McTaskStatusUtils;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.EbsDeliveryStatusEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.EbsDeliveryStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  *
@@ -74,7 +78,7 @@ public class WipMcTaskValidateService {
     }
 
 
-    public void validateInoutStock(TransactionTypeNameEnum transactionTypeNameEnum, McTaskInfoView mcTaskInfoView) {
+    public void validateInoutStock(TransactionTypeNameEnum transactionTypeNameEnum, McTaskInfoView mcTaskInfoView, List<WipMcTaskLineView> wipMcTaskLineViews) {
 
         if (ObjectUtils.isNull(mcTaskInfoView) || StringUtils.isBlank(mcTaskInfoView.getStatus())) {
             throw new ParamsRequiredException("获取配料任务状态错误");
@@ -85,33 +89,35 @@ public class WipMcTaskValidateService {
                 McTaskStatusEnum.VERIFY,
                 McTaskStatusEnum.REJECT,
                 McTaskStatusEnum.CANCEL,
-                McTaskStatusEnum.CLOSE,
                 McTaskStatusEnum.CHANGE)) {
             McTaskStatusEnum mcTaskStatusEnum = EnumUtils.getByCode(mcTaskInfoView.getStatus(), McTaskStatusEnum.class);
             throw new ParamsIncorrectException("不可对" + mcTaskStatusEnum.getValue() + "状态的配料进行调拨操作");
         }
 
-        switch (transactionTypeNameEnum) {
-            case OUT:
-                if (StringUtils.isNotBlank(mcTaskInfoView.getDeliveryOutStatus())
-                    && !EbsDeliveryStatusEnum.CANCELLED.getCode().equals(mcTaskInfoView.getDeliveryOutStatus())) {
-                    throw new ParamsIncorrectException("调拨出库单已存在");
-                }
-                break;
-            case IN:
-                if (StringUtils.isNotBlank(mcTaskInfoView.getDeliveryInStatus())
-                        && !EbsDeliveryStatusEnum.CANCELLED.getCode().equals(mcTaskInfoView.getDeliveryInStatus())) {
-                    throw new ParamsIncorrectException("调拨入库单已存在");
-                }
+        for (WipMcTaskLineView wipMcTaskLineView : wipMcTaskLineViews) {
+            switch (transactionTypeNameEnum) {
+                case OUT:
+                    // 行数据调拨单不存在/已取消，才可创建
+                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
+                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨出库单已存在的行，请检查");
+                    }
+                    break;
+                case IN:
+                    // 行数据调拨单不存在/已取消，且行出库单对应的调拨单行、头已过账才可创建
+                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
+                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
+                    }
 
-                if (!EbsDeliveryStatusEnum.POSTED.getCode().equals(mcTaskInfoView.getDeliveryOutStatus())) {
-                    throw new ParamsIncorrectException("调拨出库单未过账不允许创建调拨入库");
-                }
-
-                // 头表已过账，行表含有未过账数据，也不能创建入库单
-                break;
-            default:
-                throw new ParamsIncorrectException("不支持的调拨类型");
+                    if (!EbsDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutStatus())
+                        || !McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
+                    }
+                    break;
+                default:
+                    throw new ParamsIncorrectException("不支持的调拨类型");
+            }
         }
 
     }

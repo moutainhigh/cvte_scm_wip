@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.query;
+package com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.query;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

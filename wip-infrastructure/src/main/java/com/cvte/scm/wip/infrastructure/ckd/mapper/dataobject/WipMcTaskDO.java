@@ -85,11 +85,6 @@ public class WipMcTaskDO extends BaseModel {
     @ApiModelProperty(value = "scm库存组织")
     private String orgId;
 
-    @Column(name = "in_stock_id")
-    private String inStockId;
-
-    @Column(name = "out_stock_id")
-    private String outStockId;
     /**
      * ${field.comment}
      */

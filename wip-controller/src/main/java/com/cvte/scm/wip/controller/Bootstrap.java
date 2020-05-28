@@ -32,7 +32,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableCSBMsg
 @EnableCSBLog
-@ComponentScan({"com.cvte.scm.wip", "com.cvte.csb.wfp.api.sdk", ""})
+@ComponentScan({"com.cvte.scm.wip", "com.cvte.csb.wfp.api.sdk"})
 @EnableCSBJwt
 @EnableAsync
 @EnableCSBCloud

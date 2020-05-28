@@ -5,14 +5,21 @@ import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.core.ckd.annotation.McTaskStatusAnnotation;
+import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskLineQuery;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
+import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
+import com.cvte.scm.wip.domain.core.ckd.enums.McTaskLineStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.handler.McTaskStatusUpdateIHandler;
+import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskLineService;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskVersionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author zy
@@ -25,6 +32,10 @@ public class McTaskConfirmUpdateToRejectHandler implements McTaskStatusUpdateIHa
 
     @Autowired
     private WipMcTaskVersionService wipMcTaskVersionService;
+
+    @Autowired
+    private WipMcTaskLineService wipMcTaskLineService;
+
 
     @Override
     public void handler(McTaskInfoView mcTaskInfoView) {
@@ -47,12 +58,19 @@ public class McTaskConfirmUpdateToRejectHandler implements McTaskStatusUpdateIHa
             throw new ParamsRequiredException("配料任务不能为空");
         }
 
-        if (StringUtils.isNotBlank(mcTaskInfoView.getDeliveryInStatus())
-                && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(mcTaskInfoView.getDeliveryInStatus())
-                || (StringUtils.isNotBlank(mcTaskInfoView.getDeliveryOutStatus())
-                && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(mcTaskInfoView.getDeliveryOutStatus()))
-        ) {
-            throw new ParamsIncorrectException("必须作废已创建的调拨单才可驳回");
+
+        List<WipMcTaskLineView> wipMcTaskLineViews = wipMcTaskLineService.listWipMcTaskLineView(new WipMcTaskLineQuery()
+                .setTaskIds(Arrays.asList(mcTaskInfoView.getMcTaskId()))
+                .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
+
+        for (WipMcTaskLineView wipMcTaskLineView : wipMcTaskLineViews) {
+            if ((StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
+                    && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus()))
+                    || (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
+                    && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus()))
+            ) {
+                throw new ParamsIncorrectException("必须作废已创建的调拨单才可进行驳回操作");
+            }
         }
     }
 }

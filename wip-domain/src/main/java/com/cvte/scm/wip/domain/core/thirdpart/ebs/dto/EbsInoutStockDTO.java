@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.dto;
+package com.cvte.scm.wip.domain.core.thirdpart.ebs.dto;
 
 import com.cvte.csb.sys.common.MyBaseEntity;
 import io.swagger.annotations.ApiModelProperty;

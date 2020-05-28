@@ -11,7 +11,6 @@ import lombok.experimental.Accessors;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import java.util.Date;
 
 /**
@@ -20,7 +19,6 @@ import java.util.Date;
  * @author zy
  * @since 2020-04-29
  */
-@Table(name = "wip_mc_wf")
 @ApiModel(description = "${table.comment}")
 @Data
 @EqualsAndHashCode
@@ -34,13 +32,11 @@ public class WipMcWfEntity extends BaseModel {
      */
     @Id
     @GeneratedValue(generator = "UUID")
-    @Column(name = "wf_id")
     @ApiModelProperty(value = "主键")
     private String wfId;
     /**
      * 配料任务ID
      */
-    @Column(name = "mc_task_id")
     @ApiModelProperty(value = "配料任务ID")
     private String mcTaskId;
     /**
@@ -51,13 +47,11 @@ public class WipMcWfEntity extends BaseModel {
     /**
      * ${field.comment}
      */
-    @Column(name = "crt_time")
     @ApiModelProperty(value = "${field.comment}")
     private Date crtTime;
     /**
      * ${field.comment}
      */
-    @Column(name = "crt_user")
     @ApiModelProperty(value = "${field.comment}")
     private String crtUser;
 

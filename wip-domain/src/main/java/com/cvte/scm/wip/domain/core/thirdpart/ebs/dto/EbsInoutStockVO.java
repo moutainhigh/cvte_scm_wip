@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.dto;
+package com.cvte.scm.wip.domain.core.thirdpart.ebs.dto;
 
 import lombok.Data;
 
@@ -7,7 +7,7 @@ import lombok.Data;
  * @date 2020-05-11 16:24
  **/
 @Data
-public class EbsInoutStockView {
+public class EbsInoutStockVO {
 
     private String ticketNo;
 

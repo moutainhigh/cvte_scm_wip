@@ -9,9 +9,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 
 /**
@@ -20,7 +17,6 @@ import javax.persistence.Table;
  * @author zy
  * @since 2020-04-28
  */
-@Table(name = "wip_mc_req_to_task")
 @ApiModel(description = "${table.comment}")
 @Data
 @EqualsAndHashCode
@@ -32,20 +28,16 @@ public class WipMcReqToTaskEntity extends BaseModel {
     /**
      * ${field.comment}
      */
-    @Id
-    @GeneratedValue(generator = "UUID")
     @ApiModelProperty(value = "${field.comment}")
     private String id;
     /**
      * ${field.comment}
      */
-    @Column(name = "mc_req_id")
     @ApiModelProperty(value = "${field.comment}")
     private String mcReqId;
     /**
      * ${field.comment}
      */
-    @Column(name = "mc_task_id")
     @ApiModelProperty(value = "${field.comment}")
     private String mcTaskId;
 

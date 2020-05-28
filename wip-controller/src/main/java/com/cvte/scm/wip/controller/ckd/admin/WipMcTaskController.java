@@ -65,15 +65,17 @@ public class WipMcTaskController {
 
     @PostMapping("/{mcTaskId}/stock/{versionId}/in")
     public RestResponse inStock(@PathVariable String mcTaskId,
-                                @PathVariable String versionId) {
-        wipMcTaskService.inoutStock(TransactionTypeNameEnum.IN, mcTaskId, versionId);
+                                @PathVariable String versionId,
+                                @RequestBody List<String> mcTaskLineIds) {
+        wipMcTaskService.inoutStock(TransactionTypeNameEnum.IN, mcTaskId, versionId, mcTaskLineIds);
         return ResponseFactory.getOkResponse(null);
     }
 
     @PostMapping("/{mcTaskId}/stock/{versionId}/out")
     public RestResponse outStock(@PathVariable String mcTaskId,
-                                 @PathVariable String versionId) {
-        wipMcTaskService.inoutStock(TransactionTypeNameEnum.OUT, mcTaskId, versionId);
+                                 @PathVariable String versionId,
+                                 @RequestBody List<String> mcTaskLineIds) {
+        wipMcTaskService.inoutStock(TransactionTypeNameEnum.OUT, mcTaskId, versionId, mcTaskLineIds);
         return ResponseFactory.getOkResponse(null);
     }
 

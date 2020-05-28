@@ -42,12 +42,12 @@ import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
 import com.cvte.scm.wip.domain.core.scm.vo.SysBuDeptVO;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockDTO;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockResponse;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.EbsDeliveryStatusEnum;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.InterfaceActionEnum;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.TxnSourceTypeNameEnum;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.service.EbsInvokeService;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockDTO;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockResponse;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.EbsDeliveryStatusEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.InterfaceActionEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.TxnSourceTypeNameEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.service.EbsInvokeService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -76,9 +76,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private WipMcTaskRepository repository;
 
     @Autowired
     private WipMcTaskLineService wipMcTaskLineService;
@@ -266,10 +263,14 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     }
 
     
-    public void inoutStock(TransactionTypeNameEnum transactionTypeNameEnum, String taskId, String versionId) {
+    public void inoutStock(TransactionTypeNameEnum transactionTypeNameEnum, String taskId, String versionId, List<String> mcTaskLineIds) {
 
         if (StringUtils.isBlank(taskId, versionId)) {
             throw new ParamsRequiredException("配料任务id/版本id不能为空");
+        }
+
+        if (CollectionUtils.isEmpty(mcTaskLineIds)) {
+            throw new ParamsRequiredException("请先勾选需要调拨的配料任务行");
         }
 
         McTaskInfoView mcTaskInfoView = getMcTaskInfoView(taskId);
@@ -281,13 +282,15 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             throw new ParamsIncorrectException("只能调拨最新版本的配料清单");
         }
 
-        wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView);
-
         String inoutStockId = UUIDUtils.getUUID();
         List<WipMcTaskLineView> wipMcTaskLineViews = wipMcTaskLineService.listWipMcTaskLineView(
                 new WipMcTaskLineQuery()
                         .setTaskIds(Arrays.asList(taskId))
+                        .setTaskLineIds(mcTaskLineIds)
                         .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
+
+        wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView, wipMcTaskLineViews);
+
         EbsInoutStockDTO ebsInoutStockDTO = generateEbsInoutStockDTO(transactionTypeNameEnum, inoutStockId, mcTaskInfoView, wipMcTaskLineViews);
         EbsInoutStockResponse ebsInoutStockResponse = ebsInvokeService.inoutStockImport(ebsInoutStockDTO);
 
@@ -320,8 +323,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         wipMcInoutStockLineService.insertList(wipMcInoutStockLines);
         wipMcInoutStockService.insertSelective(wipMcInoutStock);
 
-        // 更新头表
-        WipMcTaskEntity wipMcTask = generateWipMcTaskByInoutStock(transactionTypeNameEnum, taskId, inoutStockId);
+        // 更新头表的更新时间
+        WipMcTaskEntity wipMcTask = new WipMcTaskEntity().setMcTaskId(taskId);
+        EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
         repository.updateSelectiveById(wipMcTask);
 
         wipMcTaskVersionService.sync(taskId, false);
@@ -368,22 +372,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         wipOperationLogService.addLog(wipLogDTO);
     }
 
-    private WipMcTaskEntity generateWipMcTaskByInoutStock(TransactionTypeNameEnum transactionTypeNameEnum,
-                                                    String taskId,
-                                                    String inoutStockId) {
-        WipMcTaskEntity wipMcTask = new WipMcTaskEntity();
-        wipMcTask.setMcTaskId(taskId);
-        EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
-        switch (transactionTypeNameEnum) {
-            case IN:
-                wipMcTask.setInStockId(inoutStockId);
-                break;
-            case OUT:
-                wipMcTask.setOutStockId(inoutStockId);
-                break;
-        }
-        return wipMcTask;
-    }
+
     private WipMcInoutStockEntity generateWipMcInoutStockByInoutStock(TransactionTypeNameEnum transactionTypeNameEnum,
                                                           String taskId,
                                                           String headerId,
@@ -612,7 +601,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         wipMcReqToTaskService.saveTaskRel(wipMcTask.getMcTaskId(), soIdSet);
 
         // 新增版本信息
-        wipMcTaskVersionService.add(wipMcTask.getMcTaskId(), wipMcTaskLines);
+        wipMcTaskVersionService.add(wipMcTask.getMcTaskId(), modelMapper.map(wipMcTaskLines, new TypeToken<List<WipMcTaskLineView>>(){}.getType()));
 
         wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
                 wipMcTask.getMcTaskId(),

@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.service;
+package com.cvte.scm.wip.spi.sys.ebs;
 
 
 import com.alibaba.fastjson.JSONObject;
@@ -7,11 +7,12 @@ import com.cvte.csb.toolkit.ErrorUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockDTO;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockResponse;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockView;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.query.EbsInoutStockQuery;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.exception.EbsInvokeException;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockDTO;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockResponse;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockVO;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.query.EbsInoutStockQuery;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.exception.EbsInvokeException;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.service.EbsInvokeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 @Service
-public class EbsInvokeService {
+public class EbsInvokeServiceImpl implements EbsInvokeService {
 
 
     @Value("${ebs.csbp.host:https://itapitest.gz.cvte.cn/csbp}")
@@ -45,7 +46,7 @@ public class EbsInvokeService {
     private AccessTokenService accessTokenService;
 
 
-    public List<EbsInoutStockView> listEbsInoutStockView(EbsInoutStockQuery query) {
+    public List<EbsInoutStockVO> listEbsInoutStockView(EbsInoutStockQuery query) {
 
 
         Map<String, Object> map = new HashMap<>();
@@ -66,7 +67,7 @@ public class EbsInvokeService {
             if (ObjectUtils.isNull(response.getJSONArray("data"))) {
                 return new ArrayList<>();
             }
-            return response.getJSONArray("data").toJavaList(EbsInoutStockView.class);
+            return response.getJSONArray("data").toJavaList(EbsInoutStockVO.class);
 
         } catch (Exception e) {
             log.error("[listEbsInoutStockView] 调拨单查询失败: {}", ErrorUtils.getErrorMessage(e));

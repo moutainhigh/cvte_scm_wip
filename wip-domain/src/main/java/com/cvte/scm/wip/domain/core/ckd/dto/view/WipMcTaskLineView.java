@@ -42,6 +42,9 @@ public class WipMcTaskLineView {
     @ApiModelProperty(value = "调拨出库状态")
     private String deliveryOutStatus;
 
+    @ApiModelProperty(value = "调拨出库行状态")
+    private String deliveryOutLineStatus;
+
     @ApiModelProperty(value = "调拨出库数量")
     private Integer deliveryOutQty;
 
@@ -55,6 +58,9 @@ public class WipMcTaskLineView {
 
     @ApiModelProperty(value = "调拨入库状态")
     private String deliveryInStatus;
+
+    @ApiModelProperty(value = "调拨入库行状态")
+    private String deliveryInLineStatus;
 
     @ApiModelProperty(value = "调拨入库数量")
     private Integer deliveryInQty;
@@ -92,8 +98,8 @@ public class WipMcTaskLineView {
     @ApiModelProperty(value = "工厂名")
     private String factoryName;
 
-    private String outStockLineId;
+    private String deliveryOutStockLineId;
 
-    private String inStockLineId;
+    private String deliveryInStockLineId;
 
 }

@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.exception;
+package com.cvte.scm.wip.domain.core.thirdpart.ebs.exception;
 
 
 import com.cvte.csb.core.exception.ServerException;

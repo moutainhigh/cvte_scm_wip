@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.thirdpart.thirdpart.enums;
+package com.cvte.scm.wip.domain.core.thirdpart.ebs.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

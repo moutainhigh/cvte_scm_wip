@@ -71,10 +71,4 @@ public class McTaskInfoView {
 
     private String ebsOrganizationCode;
 
-    private String deliveryInStatus;
-
-    private String deliveryOutStatus;
-
-    private String inoutStockId;
-
 }

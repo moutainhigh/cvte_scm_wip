@@ -30,18 +30,20 @@
         <result column="delivery_out_no" property="deliveryOutNo"/>
         <result column="delivery_out_line_no" property="deliveryOutLineNo"/>
         <result column="delivery_out_status" property="deliveryOutStatus"/>
+        <result column="delivery_out_line_status" property="deliveryOutLineStatus"/>
         <result column="delivery_out_qty" property="deliveryOutQty"/>
         <result column="delivery_out_post_qty" property="deliveryOutPostQty"/>
         <result column="delivery_in_no" property="deliveryInNo"/>
         <result column="delivery_in_line_no" property="deliveryInLineNo"/>
         <result column="delivery_in_status" property="deliveryInStatus"/>
+        <result column="delivery_in_line_status" property="deliveryInLineStatus"/>
         <result column="delivery_in_qty" property="deliveryInQty"/>
         <result column="delivery_in_post_qty" property="deliveryInPostQty"/>
         <result column="factory_code" property="factoryCode"/>
         <result column="factory_id" property="factoryId"/>
         <result column="factory_name" property="factoryName"/>
-        <result column="out_stock_line_id" property="outStockLineId"/>
-        <result column="in_stock_line_id" property="inStockLineId"/>
+        <result column="delivery_out_stock_line_id" property="deliveryOutStockLineId"/>
+        <result column="delivery_in_stock_line_id" property="deliveryInStockLineId"/>
         <result column="crt_time" property="crtTime" />
         <result column="crt_user" property="crtUser" />
         <result column="crt_host" property="crtHost" />
@@ -53,24 +55,35 @@
 
 
     <select id="listWipMcTaskLineView" resultMap="WipMcTaskLineView">
+        WITH Inout_Stock_View as (
+            select Wmis."type"
+            , Wmis.header_no
+            , Wmis.mc_task_id
+            , Wmis.status header_status
+            , Wmisl.*
+            , row_number() OVER( partition by Wmis."type", Wmisl.mc_task_line_id order by Wmisl.crt_time desc) Rn
+            from wip_mc_inout_stock Wmis
+            left join wip_mc_inout_stock_line Wmisl on Wmisl.inout_stock_id = Wmis.inout_stock_id
+        )
         select Wmtl.line_id
         , Wmtl.mc_task_id
         , Wmtl.item_id
         , Wmtl.source_line_no
         , Wmtl.source_line_id
         , Wmtl.mc_qty
-        , Out_wmis.header_no delivery_out_no
-        , Out_wmisl.inout_stock_line_id out_stock_line_id
-        , Out_wmisl.line_no delivery_out_line_no
-        , Out_wmisl.status delivery_out_status
-        , Out_wmisl.qty delivery_out_qty
-        , Out_wmisl.post_qty delivery_out_post_qty
-        , In_wmis.header_no delivery_in_no
-        , In_wmisl.inout_stock_line_id in_stock_line_id
-        , In_wmisl.line_no delivery_in_line_no
-        , In_wmisl.status delivery_in_status
-        , In_wmisl.qty delivery_in_qty
-        , In_wmisl.post_qty delivery_in_post_qty
+        , Out_View.header_no delivery_out_no
+        , Out_View.header_status delivery_out_status
+        , Out_View.inout_stock_line_id delivery_out_stock_line_id
+        , Out_View.line_no delivery_out_line_no
+        , Out_View.status delivery_out_line_status
+        , Out_View.qty delivery_out_qty
+        , Out_View.post_qty delivery_out_post_qty
+        , In_View.header_no delivery_in_no
+        , In_View.inout_stock_line_id delivery_in_stock_line_id
+        , In_View.line_no delivery_in_line_no
+        , In_View.status delivery_in_line_status
+        , In_View.qty delivery_in_qty
+        , In_View.post_qty delivery_in_post_qty
         , Mi.item_code
         , Sofv.factory_code
         , sofv.factory_id
@@ -86,10 +99,10 @@
         join wip_mc_task Wmt on Wmt.mc_task_id = Wmtl.mc_task_id
         join scm.md_item Mi on Mi.inventory_item_id = Wmtl.item_id
         left join scm.sys_org_factory_v Sofv on Sofv.ebs_factory_id = Wmt.factory_id
-        left join wip_mc_inout_stock In_wmis on In_wmis.inout_stock_id = wmt.in_stock_id
-        left join wip_mc_inout_stock_line In_wmisl on Wmtl.line_id = In_wmisl.mc_task_line_id and In_wmisl.inout_stock_id = Wmt.in_stock_id
-        left join wip_mc_inout_stock_line Out_wmisl on Wmtl.line_id = Out_wmisl.mc_task_line_id and Out_wmisl.inout_stock_id = Wmt.out_stock_id
-        left join wip_mc_inout_stock Out_wmis on Out_wmis.inout_stock_id = wmt.out_stock_id
+        left join Inout_Stock_View In_View
+        on In_View.mc_task_id = wmt.mc_task_id and In_view.mc_task_line_id = Wmtl.line_id and In_View.Rn = 1 and In_View.type = 'IN'
+        left join Inout_Stock_View Out_View
+        on Out_View.mc_task_id = wmt.mc_task_id and Out_View.mc_task_line_id = Wmtl.line_id and Out_View.Rn = 1 and Out_View.type = 'OUT'
         where 1=1
         <if test="lineStatus != null and lineStatus != ''">
             AND Wmtl.line_status = #{lineStatus}
@@ -106,6 +119,11 @@
                 #{item}
             </foreach>
         </if>
-
+        <if test="taskLineIds != null and taskLineIds.size()>0">
+            AND Wmtl.line_id in
+            <foreach collection="taskLineIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
     </select>
 </mapper>
