@@ -1,12 +1,14 @@
 package com.cvte.scm.wip.domain.core.changebill.valueobject;
 
 import com.cvte.scm.wip.common.base.domain.VO;
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
   * 
@@ -47,5 +49,7 @@ public class ChangeBillDetailBuildVO implements VO {
     private Date enableDate;
 
     private Date disableDate;
+
+    private String sourceLineId;
 
 }

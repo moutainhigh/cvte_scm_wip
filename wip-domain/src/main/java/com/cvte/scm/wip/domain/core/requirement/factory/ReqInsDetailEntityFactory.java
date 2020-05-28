@@ -1,8 +1,8 @@
 package com.cvte.scm.wip.domain.core.requirement.factory;
 
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionDetailEntity;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionDetailBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsDetailBuildVO;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,15 +13,15 @@ import org.springframework.stereotype.Component;
   * email   : xueyuting@cvte.com
   */
 @Component
-public class ReqInstructionDetailEntityFactory implements DomainFactory<ReqInstructionDetailBuildVO, ReqInstructionDetailEntity> {
+public class ReqInsDetailEntityFactory implements DomainFactory<ReqInsDetailBuildVO, ReqInsDetailEntity> {
 
     @Override
-    public ReqInstructionDetailEntity perfect(ReqInstructionDetailBuildVO vo) {
-        ReqInstructionDetailEntity detailEntity = ReqInstructionDetailEntity.get();
-        detailEntity.setInstructionDetailId(vo.getInstructionDetailId())
-                .setInstructionHeaderId(vo.getInstructionHeaderId())
+    public ReqInsDetailEntity perfect(ReqInsDetailBuildVO vo) {
+        ReqInsDetailEntity detailEntity = ReqInsDetailEntity.get();
+        detailEntity.setInsDetailId(vo.getInsDetailId())
+                .setInsHeaderId(vo.getInsHeaderId())
                 .setOrganizationId(vo.getOrganizationId())
-                .setSourceChangeDetailId(vo.getSourceChangeDetailId())
+                .setSourceDetailId(vo.getSourceChangeDetailId())
                 .setMoLotNo(vo.getMoLotNo())
                 .setItemIdOld(vo.getItemIdOld())
                 .setItemIdNew(vo.getItemIdNew())

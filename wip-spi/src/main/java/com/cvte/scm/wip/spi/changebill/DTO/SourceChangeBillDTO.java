@@ -50,7 +50,7 @@ public class SourceChangeBillDTO {
     private Date lastUpdDate;
 
     @JSONField(name = "LINE_ID")
-    private String detailId;
+    private String lineId;
 
     @JSONField(name = "BILL_MO_LOT_NO")
     private String moLotNo;
@@ -100,7 +100,6 @@ public class SourceChangeBillDTO {
         ChangeBillDetailBuildVO detailBuildVO = new ChangeBillDetailBuildVO();
         detailBuildVO.setBillId(changeBillDTO.getBillId())
                 .setOrganizationId(changeBillDTO.getOrganizationId())
-                .setDetailId(changeBillDTO.getDetailId())
                 .setMoLotNo(changeBillDTO.getDetailMoLotNo())
                 .setStatus(changeBillDTO.getDetailStatus())
                 .setWkpNo(changeBillDTO.getWkpNo())
@@ -109,7 +108,8 @@ public class SourceChangeBillDTO {
                 .setOperationType(changeBillDTO.getOperationType())
                 .setPosNo(changeBillDTO.getPosNo())
                 .setEnableDate(changeBillDTO.getDetailEnableDate())
-                .setDisableDate(changeBillDTO.getDetailDisableDate());
+                .setDisableDate(changeBillDTO.getDetailDisableDate())
+                .setSourceLineId(changeBillDTO.getLineId());
         if (StringUtils.isBlank(detailBuildVO.getStatus())) {
             detailBuildVO.setStatus(StatusEnum.NORMAL.getCode());
         }

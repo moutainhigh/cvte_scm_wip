@@ -1,16 +1,16 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
-import com.cvte.scm.wip.domain.core.requirement.repository.ReqInstructionRepository;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsHMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsHeaderDO;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
   * 
@@ -20,23 +20,23 @@ import java.util.Objects;
   * email   : xueyuting@cvte.com
   */
 @Repository
-public class ReqInstructionRepositoryImpl implements ReqInstructionRepository {
+public class ReqInsRepositoryImpl implements ReqInsRepository {
 
     private WipReqInsHMapper insHMapper;
 
-    public ReqInstructionRepositoryImpl(WipReqInsHMapper insHMapper) {
+    public ReqInsRepositoryImpl(WipReqInsHMapper insHMapper) {
         this.insHMapper = insHMapper;
     }
 
     @Override
-    public void insert(ReqInstructionEntity entity) {
+    public void insert(ReqInsEntity entity) {
         WipReqInsHeaderDO insDO = WipReqInsHeaderDO.buildDO(entity);
         EntityUtils.writeStdCrtInfoToEntity(insDO, EntityUtils.getWipUserId());
         insHMapper.insertSelective(insDO);
     }
 
     @Override
-    public void update(ReqInstructionEntity entity) {
+    public void update(ReqInsEntity entity) {
         WipReqInsHeaderDO insDO = WipReqInsHeaderDO.buildDO(entity);
         EntityUtils.writeStdUpdInfoToEntity(insDO, EntityUtils.getWipUserId());
         insHMapper.updateByPrimaryKeySelective(insDO);
@@ -44,13 +44,13 @@ public class ReqInstructionRepositoryImpl implements ReqInstructionRepository {
     }
 
     @Override
-    public ReqInstructionEntity getByKey(String insKey) {
+    public ReqInsEntity getByKey(String insKey) {
         Example example = new Example(WipReqInsHeaderDO.class);
         example.createCriteria().andEqualTo("insHId", insKey);
         Example.Criteria sourceBillCriteria = example.createCriteria().andEqualTo("sourceCnBillId", insKey);
         example.or(sourceBillCriteria);
         List<WipReqInsHeaderDO> insDOList = insHMapper.selectByExample(example);
-        if (Objects.isNull(insDOList)) {
+        if (ListUtil.empty(insDOList)) {
             return null;
         }
         if (insDOList.size() > 1) {

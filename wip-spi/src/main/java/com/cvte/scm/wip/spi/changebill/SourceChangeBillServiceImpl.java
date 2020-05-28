@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
@@ -76,24 +77,30 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
         if (!"S".equals(ebsResponse.getRtStatus())) {
             throw new ServerException("", "EBS接口请求异常");
         }
-        List<SourceChangeBillDTO> sourceBillList = ebsResponse.getRtData();
-        filterChangedBill(sourceBillList);
-        return sourceBillList;
+        return ebsResponse.getRtData();
     }
 
-    private void filterChangedBill(List<SourceChangeBillDTO> sourceBillList) {
-        Iterator<SourceChangeBillDTO> iterator = sourceBillList.iterator();
+    private void filterChangedBill(Map<String, List<SourceChangeBillDTO>> sourceBillMap) {
+        Iterator<Map.Entry<String, List<SourceChangeBillDTO>>> iterator = sourceBillMap.entrySet().iterator();
         while (iterator.hasNext()) {
-            SourceChangeBillDTO sourceBill = iterator.next();
+            Map.Entry<String, List<SourceChangeBillDTO>> sourceBillEntry = iterator.next();
+            // 取更改单号相同的一个项 查询是否已有更改单
+            SourceChangeBillDTO sourceBill = sourceBillEntry.getValue().get(0);
             WipCnBillDO queryBill = new WipCnBillDO();
             queryBill.setBillNo(sourceBill.getBillNo());
+            queryBill.setOrganizationId(sourceBill.getOrganizationId());
+            queryBill.setBillStatus(StatusEnum.NORMAL.getCode());
             List<WipCnBillDO> billDOList = wipCnBillMapper.select(queryBill);
             if (ListUtil.empty(billDOList)) {
+                if (StatusEnum.CLOSE.getCode().equals(sourceBill.getBillStatus())) {
+                    // 如果不存在有效的更改单, 且同步的更改单状态为 关闭, 则不处理
+                    iterator.remove();
+                }
                 continue;
             }
+            // 存在则更新其ID
             WipCnBillDO billDO = billDOList.get(0);
-            // 存在ID
-            sourceBill.setBillId(billDO.getBillId());
+            sourceBillEntry.getValue().forEach(item -> item.setBillId(billDO.getBillId()));
             if (billDO.getUpdTime().equals(sourceBill.getLastUpdDate())) {
                 iterator.remove();
             }
@@ -106,6 +113,8 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
 
         Map<String, List<SourceChangeBillDTO>> sourceBillMap = sourceBillList.stream()
                 .collect(Collectors.groupingBy(bill -> bill.getBillNo() + bill.getOrganizationId()));
+        this.filterChangedBill(sourceBillMap);
+
         for (Map.Entry<String, List<SourceChangeBillDTO>> entry : sourceBillMap.entrySet()) {
             List<SourceChangeBillDTO> sourceChangeBillDTOList = entry.getValue();
 

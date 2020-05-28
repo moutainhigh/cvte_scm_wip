@@ -2,6 +2,7 @@ package com.cvte.scm.wip.infrastructure.changebill.repository;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
   * 
@@ -49,6 +49,7 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
         example.createCriteria().andEqualTo("billId", billKey);
         Example.Criteria noCriteria = example.createCriteria().andEqualTo("billNo", billKey);
         example.or(noCriteria);
+        example.createCriteria().andNotEqualTo("billStatus", StatusEnum.CLOSE.getCode());
         List<WipCnBillDO> billDOList = cnBillMapper.selectByExample(example);
         if (ListUtil.notEmpty(billDOList)) {
             return null;

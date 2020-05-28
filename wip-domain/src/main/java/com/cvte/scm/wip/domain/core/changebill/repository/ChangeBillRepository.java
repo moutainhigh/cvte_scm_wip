@@ -3,6 +3,8 @@ package com.cvte.scm.wip.domain.core.changebill.repository;
 import com.cvte.scm.wip.common.base.domain.Repository;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting

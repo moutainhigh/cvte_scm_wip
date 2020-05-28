@@ -1,6 +1,6 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject;
 
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -153,34 +153,34 @@ public class WipReqInsHeaderDO extends BaseEntity {
     @ApiModelProperty(value = "${field.comment}")
     private String updHost;
 
-    public static ReqInstructionEntity buildEntity(WipReqInsHeaderDO headerDO) {
-        ReqInstructionEntity headerEntity = ReqInstructionEntity.get();
+    public static ReqInsEntity buildEntity(WipReqInsHeaderDO headerDO) {
+        ReqInsEntity headerEntity = ReqInsEntity.get();
         BeanUtils.copyProperties(headerDO, headerEntity);
-        headerEntity.setInstructionHeaderId(headerDO.getInsHId())
+        headerEntity.setInsHeaderId(headerDO.getInsHId())
                 .setSourceChangeBillId(headerDO.getSourceCnBillId());
         return headerEntity;
     }
 
-    public static WipReqInsHeaderDO buildDO(ReqInstructionEntity headerEntity) {
+    public static WipReqInsHeaderDO buildDO(ReqInsEntity headerEntity) {
         WipReqInsHeaderDO headerDO = new WipReqInsHeaderDO();
         BeanUtils.copyProperties(headerEntity, headerDO);
-        headerDO.setInsHId(headerEntity.getInstructionHeaderId());
+        headerDO.setInsHId(headerEntity.getInsHeaderId());
         headerDO.setSourceCnBillId(headerEntity.getSourceChangeBillId());
         return headerDO;
     }
 
-    public static List<ReqInstructionEntity> batchBuildEntity(List<WipReqInsHeaderDO> headerDOList) {
-        List<ReqInstructionEntity> headerEntityList = new ArrayList<>();
+    public static List<ReqInsEntity> batchBuildEntity(List<WipReqInsHeaderDO> headerDOList) {
+        List<ReqInsEntity> headerEntityList = new ArrayList<>();
         for (WipReqInsHeaderDO headerDO : headerDOList) {
-            ReqInstructionEntity headerEntity = buildEntity(headerDO);
+            ReqInsEntity headerEntity = buildEntity(headerDO);
             headerEntityList.add(headerEntity);
         }
         return headerEntityList;
     }
 
-    public static List<WipReqInsHeaderDO> batchBuildDO(List<ReqInstructionEntity> headerEntityList) {
+    public static List<WipReqInsHeaderDO> batchBuildDO(List<ReqInsEntity> headerEntityList) {
         List<WipReqInsHeaderDO> headerDOList = new ArrayList<>();
-        for (ReqInstructionEntity headerEntity : headerEntityList) {
+        for (ReqInsEntity headerEntity : headerEntityList) {
             WipReqInsHeaderDO headerDO = new WipReqInsHeaderDO();
             BeanUtils.copyProperties(headerEntity, headerDO);
             headerDOList.add(headerDO);

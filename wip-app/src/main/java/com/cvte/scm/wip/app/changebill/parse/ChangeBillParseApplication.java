@@ -6,10 +6,10 @@ import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,10 +49,10 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
             ChangeReqVO reqVO = ChangeReqVO.buildVO(reqHeaderEntity);
 
             // 解析更改单
-            ReqInstructionBuildVO instructionBuildVO = billEntity.parseChangeBill(reqVO);
+            ReqInsBuildVO instructionBuildVO = billEntity.parseChangeBill(reqVO);
 
             // 生成投料单指令
-            ReqInstructionEntity.get().completeInstruction(instructionBuildVO);
+            ReqInsEntity.get().completeInstruction(instructionBuildVO);
         }
 
         return null;

@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.changebill.valueobject;
 
 import com.cvte.scm.wip.common.base.domain.VO;
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -38,9 +39,6 @@ public class ChangeBillBuildVO implements VO {
     private Date disableDate;
 
     private Date lastUpdateDate;
-
-    @Transient
-    private Boolean needUpdate;
 
     private List<ChangeBillDetailBuildVO> detailVOList;
 

@@ -55,6 +55,7 @@ public class WipCnBillDetailDO extends BaseEntity {
     /**
      * 状态
      */
+    @Column(name = "status")
     @ApiModelProperty(value = "状态")
     private String status;
     /**
@@ -160,36 +161,42 @@ public class WipCnBillDetailDO extends BaseEntity {
     @Column(name = "item_qty")
     @ApiModelProperty(value = "用量")
     private Double itemQty;
+    /**
+     * 来源行ID
+     */
+    @Column(name = "source_line_id")
+    @ApiModelProperty(value = "来源行ID")
+    private String sourceLineId;
 
-    public static ChangeBillDetailEntity buildEntity(WipCnBillDetailDO headerDO) {
-        ChangeBillDetailEntity headerEntity = ChangeBillDetailEntity.get();
-        BeanUtils.copyProperties(headerDO, headerEntity);
-        return headerEntity;
+    public static ChangeBillDetailEntity buildEntity(WipCnBillDetailDO detailDO) {
+        ChangeBillDetailEntity detailEntity = ChangeBillDetailEntity.get();
+        BeanUtils.copyProperties(detailDO, detailEntity);
+        return detailEntity;
     }
 
-    public static WipCnBillDetailDO buildDO(ChangeBillDetailEntity headerEntity) {
-        WipCnBillDetailDO headerDO = new WipCnBillDetailDO();
-        BeanUtils.copyProperties(headerEntity, headerDO);
-        return headerDO;
+    public static WipCnBillDetailDO buildDO(ChangeBillDetailEntity detailEntity) {
+        WipCnBillDetailDO detailDO = new WipCnBillDetailDO();
+        BeanUtils.copyProperties(detailEntity, detailDO);
+        return detailDO;
     }
 
-    public static List<ChangeBillDetailEntity> batchBuildEntity(List<WipCnBillDetailDO> headerDOList) {
-        List<ChangeBillDetailEntity> headerEntityList = new ArrayList<>();
-        for (WipCnBillDetailDO headerDO : headerDOList) {
-            ChangeBillDetailEntity headerEntity = buildEntity(headerDO);
-            headerEntityList.add(headerEntity);
+    public static List<ChangeBillDetailEntity> batchBuildEntity(List<WipCnBillDetailDO> detailDOList) {
+        List<ChangeBillDetailEntity> detailEntityList = new ArrayList<>();
+        for (WipCnBillDetailDO detailDO : detailDOList) {
+            ChangeBillDetailEntity detailEntity = buildEntity(detailDO);
+            detailEntityList.add(detailEntity);
         }
-        return headerEntityList;
+        return detailEntityList;
     }
 
-    public static List<WipCnBillDetailDO> batchBuildDO(List<ChangeBillDetailEntity> headerEntityList) {
-        List<WipCnBillDetailDO> headerDOList = new ArrayList<>();
-        for (ChangeBillDetailEntity headerEntity : headerEntityList) {
-            WipCnBillDetailDO headerDO = new WipCnBillDetailDO();
-            BeanUtils.copyProperties(headerEntity, headerDO);
-            headerDOList.add(headerDO);
+    public static List<WipCnBillDetailDO> batchBuildDO(List<ChangeBillDetailEntity> detailEntityList) {
+        List<WipCnBillDetailDO> detailDOList = new ArrayList<>();
+        for (ChangeBillDetailEntity detailEntity : detailEntityList) {
+            WipCnBillDetailDO detailDO = new WipCnBillDetailDO();
+            BeanUtils.copyProperties(detailEntity, detailDO);
+            detailDOList.add(detailDO);
         }
-        return headerDOList;
+        return detailDOList;
     }
 
 }

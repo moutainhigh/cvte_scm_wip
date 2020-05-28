@@ -19,11 +19,11 @@ import java.util.List;
   */
 @Data
 @Accessors(chain = true)
-public class ReqInstructionDetailBuildVO implements VO {
+public class ReqInsDetailBuildVO implements VO {
 
-    private String instructionDetailId;
+    private String insDetailId;
 
-    private String instructionHeaderId;
+    private String insHeaderId;
 
     private String organizationId;
 
@@ -51,8 +51,8 @@ public class ReqInstructionDetailBuildVO implements VO {
 
     private Date disableDate;
 
-    public static ReqInstructionDetailBuildVO buildVO(ChangeBillDetailEntity billDetailEntity) {
-        ReqInstructionDetailBuildVO detailBuildVO = new ReqInstructionDetailBuildVO();
+    public static ReqInsDetailBuildVO buildVO(ChangeBillDetailEntity billDetailEntity) {
+        ReqInsDetailBuildVO detailBuildVO = new ReqInsDetailBuildVO();
         detailBuildVO.setOrganizationId(billDetailEntity.getOrganizationId())
                 .setSourceChangeDetailId(billDetailEntity.getDetailId())
                 .setMoLotNo(billDetailEntity.getMoLotNo())
@@ -66,10 +66,10 @@ public class ReqInstructionDetailBuildVO implements VO {
         return detailBuildVO;
     }
 
-    public static List<ReqInstructionDetailBuildVO> batchBuildVO(List<ChangeBillDetailEntity> detailEntityList) {
-        List<ReqInstructionDetailBuildVO> detailBuildVOList = new ArrayList<>();
+    public static List<ReqInsDetailBuildVO> batchBuildVO(List<ChangeBillDetailEntity> detailEntityList) {
+        List<ReqInsDetailBuildVO> detailBuildVOList = new ArrayList<>();
         for (ChangeBillDetailEntity detailEntity : detailEntityList) {
-            detailBuildVOList.add(ReqInstructionDetailBuildVO.buildVO(detailEntity));
+            detailBuildVOList.add(ReqInsDetailBuildVO.buildVO(detailEntity));
         }
         return detailBuildVOList;
     }

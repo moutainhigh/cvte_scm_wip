@@ -2,18 +2,19 @@ package com.cvte.scm.wip.domain.core.changebill.entity;
 
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.csb.toolkit.date.DateUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionDetailBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsDetailBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ReqInstructionStatusEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +69,8 @@ public class ChangeBillEntity implements Entity<String> {
 
     private Date disableDate;
 
+    private Long version;
+
     private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
     public ChangeBillEntity getByKey(String billKey) {
@@ -90,20 +93,18 @@ public class ChangeBillEntity implements Entity<String> {
         return this.billDetailList;
     }
 
+    public ChangeBillEntity buildChangeBill(ChangeBillBuildVO vo) {
+        return changeBillEntityFactory.perfect(vo);
+    }
+
     /**
      * 根据 更改单的类型/变更(撤销、更新) 生成对应的更改单实体
      * @since 2020/5/23 10:47 上午
      * @author xueyuting
      */
     public ChangeBillEntity createChangeBill(ChangeBillBuildVO vo) {
-        if (StringUtils.isBlank(vo.getBillId())) {
-            String newBillId = UUIDUtils.get32UUID();
-            vo.setBillId(newBillId);
-            if (ListUtil.notEmpty(vo.getDetailVOList())) {
-                vo.getDetailVOList().forEach(detail -> detail.setBillId(newBillId));
-            }
-        }
         ChangeBillEntity entity = changeBillEntityFactory.perfect(vo);
+        entity.setBillId(UUIDUtils.get32UUID());
         changeBillRepository.insert(entity);
         return entity;
     }
@@ -114,12 +115,34 @@ public class ChangeBillEntity implements Entity<String> {
         return entity;
     }
 
-    public ChangeBillEntity saveChangeBill(ChangeBillBuildVO vo) {
-        if (StringUtils.isNotBlank(vo.getBillId())) {
-            vo.setNeedUpdate(true);
-            return this.updateChangeBill(vo);
-        }
-        return createChangeBill(vo);
+    public ChangeBillEntity deleteChangeBill(ChangeBillBuildVO vo) {
+        ChangeBillEntity entity = changeBillEntityFactory.perfect(vo);
+        entity.setBillStatus(StatusEnum.CLOSE.getCode());
+        entity.setVersion(Long.valueOf(DateUtils.DateToString(new Date(), "yyyyMMddHHmmssSSS")));
+        changeBillRepository.update(entity);
+        return entity;
+    }
+
+    public ChangeBillEntity createCompleteChangeBill(ChangeBillBuildVO vo) {
+        ChangeBillEntity billEntity = this.createChangeBill(vo);
+        vo.getDetailVOList().forEach(detail -> detail.setBillId(billEntity.getBillId()));
+        List<ChangeBillDetailEntity> detailEntityList = ChangeBillDetailEntity.get().batchCreateDetail(vo.getDetailVOList());
+        billEntity.setBillDetailList(detailEntityList);
+        return billEntity;
+    }
+
+    public ChangeBillEntity updateCompleteChangeBill(ChangeBillBuildVO vo) {
+        ChangeBillEntity billEntity = this.updateChangeBill(vo);
+        List<ChangeBillDetailEntity> detailEntityList = ChangeBillDetailEntity.get().batchSaveDetail(vo, true);
+        billEntity.setBillDetailList(detailEntityList);
+        return billEntity;
+    }
+
+    public ChangeBillEntity deleteCompleteChangeBill(ChangeBillBuildVO vo) {
+        ChangeBillEntity billEntity = this.deleteChangeBill(vo);
+        List<ChangeBillDetailEntity> billDetailEntityList = billEntity.getDetailById();
+        ChangeBillDetailEntity.get().batchDeleteDetail(billDetailEntityList);
+        return billEntity;
     }
 
     /**
@@ -128,12 +151,15 @@ public class ChangeBillEntity implements Entity<String> {
      * @author xueyuting
      */
     public ChangeBillEntity completeChangeBill(ChangeBillBuildVO vo) {
-        ChangeBillEntity billEntity = this.saveChangeBill(vo);
-
-        List<ChangeBillDetailEntity> billDetailEntityList = ChangeBillDetailEntity.get().batchSaveDetail(vo);
-
-        billEntity.setBillDetailList(billDetailEntityList);
-        return billEntity;
+        if (StringUtils.isNotBlank(vo.getBillId())) {
+            if (StatusEnum.CLOSE.getCode().equals(vo.getBillStatus())) {
+                return this.deleteCompleteChangeBill(vo);
+            } else {
+                return this.updateCompleteChangeBill(vo);
+            }
+        } else {
+            return this.createCompleteChangeBill(vo);
+        }
     }
 
     /**
@@ -141,18 +167,19 @@ public class ChangeBillEntity implements Entity<String> {
      * @since 2020/5/23 10:43 上午
      * @author xueyuting
      */
-    public ReqInstructionBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
+    public ReqInsBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
+        ReqInsBuildVO instructionBuildVO = ReqInsBuildVO.buildVO(this);
+        instructionBuildVO.setChangeType(ChangedTypeEnum.ADD.getCode());
         // 生成投料单指令头
-        ReqInstructionBuildVO instructionBuildVO = ReqInstructionBuildVO.buildVO(this);
-        instructionBuildVO.setInstructionHeaderStatus(ProcessingStatusEnum.PENDING.getCode())
+        instructionBuildVO.setInsHeaderStatus(ProcessingStatusEnum.PENDING.getCode())
                 .setAimHeaderId(reqHeaderVO.getHeaderId())
                 .setAimReqLotNo(reqHeaderVO.getSourceLotNo());
 
         // 生成所有投料单指令行
-        List<ReqInstructionDetailBuildVO> instructionDetailBuildVOList = new ArrayList<>();
+        List<ReqInsDetailBuildVO> instructionDetailBuildVOList = new ArrayList<>();
         for (ChangeBillDetailEntity billDetailEntity : this.getBillDetailList()) {
             // 解析更改单明细
-            ReqInstructionDetailBuildVO detailBuildVO = parseChangeBillDetail(billDetailEntity);
+            ReqInsDetailBuildVO detailBuildVO = parseChangeBillDetail(billDetailEntity);
             instructionDetailBuildVOList.add(detailBuildVO);
         }
 
@@ -165,7 +192,7 @@ public class ChangeBillEntity implements Entity<String> {
      * @since 2020/5/23 10:45 上午
      * @author xueyuting
      */
-    protected ReqInstructionDetailBuildVO addTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
+    protected ReqInsDetailBuildVO addTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         return defaultTypeDetailParse(billDetailEntity);
     }
 
@@ -174,7 +201,7 @@ public class ChangeBillEntity implements Entity<String> {
      * @since 2020/5/23 10:45 上午
      * @author xueyuting
      */
-    protected ReqInstructionDetailBuildVO deleteTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
+    protected ReqInsDetailBuildVO deleteTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         return defaultTypeDetailParse(billDetailEntity);
     }
 
@@ -183,7 +210,7 @@ public class ChangeBillEntity implements Entity<String> {
      * @since 2020/5/23 10:45 上午
      * @author xueyuting
      */
-    protected ReqInstructionDetailBuildVO replaceTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
+    protected ReqInsDetailBuildVO replaceTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
         return defaultTypeDetailParse(billDetailEntity);
     }
 
@@ -192,9 +219,9 @@ public class ChangeBillEntity implements Entity<String> {
      * @since 2020/5/23 10:45 上午
      * @author xueyuting
      */
-    protected ReqInstructionDetailBuildVO defaultTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
-        ReqInstructionDetailBuildVO detailBuildVO = ReqInstructionDetailBuildVO.buildVO(billDetailEntity);
-        detailBuildVO.setInstructionDetailId(UUIDUtils.get32UUID())
+    protected ReqInsDetailBuildVO defaultTypeDetailParse(ChangeBillDetailEntity billDetailEntity) {
+        ReqInsDetailBuildVO detailBuildVO = ReqInsDetailBuildVO.buildVO(billDetailEntity);
+        detailBuildVO.setInsDetailId(UUIDUtils.get32UUID())
                 .setOperationType(billDetailEntity.getOperationType())
                 .setInsStatus(billDetailEntity.getStatus());
         return detailBuildVO;
@@ -205,7 +232,7 @@ public class ChangeBillEntity implements Entity<String> {
      * @since 2020/5/23 10:46 上午
      * @author xueyuting
      */
-    private ReqInstructionDetailBuildVO parseChangeBillDetail(ChangeBillDetailEntity billDetailEntity) {
+    private ReqInsDetailBuildVO parseChangeBillDetail(ChangeBillDetailEntity billDetailEntity) {
         String operationType = billDetailEntity.getOperationType();
         ChangedTypeEnum changedTypeEnum = CodeableEnumUtils.getCodeableEnumByCode(operationType, ChangedTypeEnum.class);
         if (Objects.nonNull(changedTypeEnum)) {

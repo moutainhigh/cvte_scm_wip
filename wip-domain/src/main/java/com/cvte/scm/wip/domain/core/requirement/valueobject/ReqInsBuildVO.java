@@ -18,13 +18,13 @@ import java.util.List;
   */
 @Data
 @Accessors(chain = true)
-public class ReqInstructionBuildVO implements VO {
+public class ReqInsBuildVO implements VO {
 
-    private String instructionHeaderId;
+    private String insHeaderId;
 
     private String sourceChangeBillId;
 
-    private String instructionHeaderStatus;
+    private String insHeaderStatus;
 
     private String aimHeaderId;
 
@@ -34,14 +34,16 @@ public class ReqInstructionBuildVO implements VO {
 
     private Date disableDate;
 
-    private List<ReqInstructionDetailBuildVO> detailList = Collections.emptyList();
+    private String changeType;
 
-    public static ReqInstructionBuildVO buildVO(ChangeBillEntity billEntity) {
-        ReqInstructionBuildVO instructionBuildVO = new ReqInstructionBuildVO();
-        instructionBuildVO.setSourceChangeBillId(billEntity.getBillId())
+    private List<ReqInsDetailBuildVO> detailList = Collections.emptyList();
+
+    public static ReqInsBuildVO buildVO(ChangeBillEntity billEntity) {
+        ReqInsBuildVO insBuildVO = new ReqInsBuildVO();
+        insBuildVO.setSourceChangeBillId(billEntity.getBillId())
                 .setEnableDate(billEntity.getEnableDate())
                 .setDisableDate(billEntity.getDisableDate());
-        return instructionBuildVO;
+        return insBuildVO;
     }
 
 }

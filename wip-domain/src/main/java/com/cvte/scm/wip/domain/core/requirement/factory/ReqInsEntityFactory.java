@@ -1,8 +1,8 @@
 package com.cvte.scm.wip.domain.core.requirement.factory;
 
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,14 +13,14 @@ import org.springframework.stereotype.Component;
   * email   : xueyuting@cvte.com
   */
 @Component
-public class ReqInstructionEntityFactory implements DomainFactory<ReqInstructionBuildVO, ReqInstructionEntity> {
+public class ReqInsEntityFactory implements DomainFactory<ReqInsBuildVO, ReqInsEntity> {
 
     @Override
-    public ReqInstructionEntity perfect(ReqInstructionBuildVO vo) {
-        ReqInstructionEntity headerEntity = ReqInstructionEntity.get();
-        headerEntity.setInstructionHeaderId(vo.getInstructionHeaderId())
+    public ReqInsEntity perfect(ReqInsBuildVO vo) {
+        ReqInsEntity headerEntity = ReqInsEntity.get();
+        headerEntity.setInsHeaderId(vo.getInsHeaderId())
                 .setSourceChangeBillId(vo.getSourceChangeBillId())
-                .setStatus(vo.getInstructionHeaderStatus())
+                .setStatus(vo.getInsHeaderStatus())
                 .setAimHeaderId(vo.getAimHeaderId())
                 .setAimReqLotNo(vo.getAimReqLotNo())
                 .setEnableDate(vo.getEnableDate())

@@ -1,16 +1,16 @@
 package com.cvte.scm.wip.domain.core.changebill.entity;
 
-import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInstructionEntity;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInstructionBuildVO;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -21,6 +21,7 @@ import java.util.Objects;
   * email   : xueyuting@cvte.com
   */
 @Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UpdateChangeBillEntity extends ChangeBillEntity {
 
     public UpdateChangeBillEntity(ChangeBillRepository changeBillRepository) {
@@ -28,21 +29,18 @@ public class UpdateChangeBillEntity extends ChangeBillEntity {
     }
 
     @Override
-    public ReqInstructionBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
-        ReqInstructionBuildVO instructionBuildVO = ReqInstructionBuildVO.buildVO(this);
-        if (StringUtils.isNotBlank(this.getBillStatus()) && StatusEnum.CLOSE.getCode().equals(this.getBillStatus())) {
-            // EBS作废更改单
-            instructionBuildVO.setInstructionHeaderStatus(ProcessingStatusEnum.UNHANDLED.getCode());
+    public ReqInsBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
+        ReqInsBuildVO insBuildVO = super.parseChangeBill(reqHeaderVO);
+        ReqInsEntity insEntity = ReqInsEntity.get().getByKey(this.getBillId());
+        if (Objects.nonNull(insEntity)) {
+            insBuildVO.setInsHeaderId(insEntity.getInsHeaderId());
+            insBuildVO.getDetailList().forEach(detailBuildVO -> detailBuildVO.setInsHeaderId(insEntity.getInsHeaderId()));
         }
-
-        instructionBuildVO.setAimHeaderId(reqHeaderVO.getHeaderId())
-                .setAimReqLotNo(reqHeaderVO.getSourceLotNo());
-
-        ReqInstructionEntity instructionEntity = ReqInstructionEntity.get().getByKey(this.getBillId());
-        if (Objects.nonNull(instructionEntity)) {
-            instructionBuildVO.setInstructionHeaderId(instructionEntity.getInstructionHeaderId());
+        insBuildVO.setChangeType(ChangedTypeEnum.UPDATE.getCode());
+        if (StatusEnum.CLOSE.getCode().equals(this.getBillStatus())) {
+            insBuildVO.setChangeType(ChangedTypeEnum.DELETE.getCode());
         }
-        return instructionBuildVO;
+        return insBuildVO;
     }
 
     public static UpdateChangeBillEntity get() {

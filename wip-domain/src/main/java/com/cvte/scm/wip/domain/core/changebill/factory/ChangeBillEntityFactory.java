@@ -1,15 +1,12 @@
 package com.cvte.scm.wip.domain.core.changebill.factory;
 
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.entity.UpdateChangeBillEntity;
-import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 /**
   * 
@@ -22,16 +19,10 @@ import java.util.Objects;
 @Component
 public class ChangeBillEntityFactory implements DomainFactory<ChangeBillBuildVO, ChangeBillEntity> {
 
-    private ChangeBillRepository changeBillRepository;
-
-    public ChangeBillEntityFactory(ChangeBillRepository changeBillRepository) {
-        this.changeBillRepository = changeBillRepository;
-    }
-
     @Override
     public ChangeBillEntity perfect(ChangeBillBuildVO vo) {
         ChangeBillEntity entity;
-        if (Objects.nonNull(vo.getNeedUpdate()) && vo.getNeedUpdate()) {
+        if (StringUtils.isNotBlank(vo.getBillId())) {
             entity = UpdateChangeBillEntity.get();
         } else {
             switch (vo.getBillType()) {

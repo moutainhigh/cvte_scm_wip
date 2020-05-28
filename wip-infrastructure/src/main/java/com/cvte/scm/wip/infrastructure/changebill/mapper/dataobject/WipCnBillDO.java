@@ -137,6 +137,12 @@ public class WipCnBillDO extends BaseEntity {
     @Column(name = "upd_host")
     @ApiModelProperty(value = "${field.comment}")
     private String updHost;
+    /**
+     * 版本
+     */
+    @Column(name = "version")
+    @ApiModelProperty(value = "版本")
+    private Long version;
 
     public static ChangeBillEntity buildEntity(WipCnBillDO headerDO) {
         ChangeBillEntity headerEntity = ChangeBillEntity.get();
