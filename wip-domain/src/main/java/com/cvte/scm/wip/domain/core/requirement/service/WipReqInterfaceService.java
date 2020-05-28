@@ -81,7 +81,12 @@ public class WipReqInterfaceService {
     public void executeOmissionData() {
         OperatingUser user = new OperatingUser();
         user.setId("SCM-TRANSIT");
-        scheduleChangedRequest(wipReqInterfaceRepository.selectOmissionData(PENDING.getCode()), SLOPPY, ChangedModeEnum.AUTOMATIC);
+        List<WipReqInterfaceEntity> omissionInterfaceList = wipReqInterfaceRepository.selectOmissionData(PENDING.getCode());
+        Map<String, List<WipReqInterfaceEntity>> omissionInterfaceMap = omissionInterfaceList.stream().collect(Collectors.groupingBy(WipReqInterfaceEntity::getGroupId));
+        for (Map.Entry<String, List<WipReqInterfaceEntity>> entry : omissionInterfaceMap.entrySet()) {
+            List<WipReqInterfaceEntity> groupOmissionInterfaceList = entry.getValue();
+            scheduleChangedRequest(groupOmissionInterfaceList, SLOPPY, ChangedModeEnum.AUTOMATIC);
+        }
     }
 
     /**
