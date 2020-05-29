@@ -42,7 +42,7 @@
         <result column="versionDate" property="versionDate" />
         <result column="org_id" property="orgId"/>
         <result column="ebs_organization_code" property="ebsOrganizationCode"/>
-        <result column="mcFinishStatusName" property="mcFinishStatusName" />
+        <result column="mcFinishStatus" property="mcFinishStatus" />
         <result column="bu_name" property="buName" />
         <result column="dept_name" property="deptName" />
     </resultMap>
@@ -73,7 +73,7 @@
         , Wmw.status
         , case Wmw.status
         when 'finish' then '已完成'
-        else '未完成' end mcFinishStatusName
+        else '未完成' end mcFinishStatus
         , Wmt.client
         , Wmt.mtr_ready_time
         , sofv.factory_name

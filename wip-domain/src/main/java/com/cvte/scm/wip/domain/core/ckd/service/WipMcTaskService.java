@@ -302,7 +302,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 mcTaskInfoView.getMcTaskId(),
                 ebsInoutStockResponse.getReturnInfo().getHeaderId(),
                 ebsInoutStockResponse.getReturnInfo().getTicketNo());
-        EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcInoutStock);
         wipMcInoutStock.setInoutStockId(inoutStockId);
 
         if (CollectionUtils.isEmpty(ebsInoutStockResponse.getRtLines())) {
@@ -384,7 +383,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setHeaderNo(deliveryNo)
                 .setStatus(EbsDeliveryStatusEnum.ENTER.getCode())
                 .setType(transactionTypeNameEnum.name());
-        EntityUtils.writeStdUpdInfoToEntity(wipMcInoutStock, CurrentContext.getCurrentOperatingUser().getId());
+        EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcInoutStock);
         return wipMcInoutStock;
     }
 

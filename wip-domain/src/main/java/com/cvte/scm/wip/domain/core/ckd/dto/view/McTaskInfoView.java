@@ -42,9 +42,6 @@ public class McTaskInfoView {
     @ApiModelProperty("配料完成状态")
     private String mcFinishStatus;
 
-    @ApiModelProperty("配料完成状态名")
-    private String mcFinishStatusName;
-
     @ApiModelProperty("生管审核人")
     private String pmAuditUser;
 

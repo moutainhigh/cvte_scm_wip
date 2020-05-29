@@ -2,12 +2,14 @@ package com.cvte.scm.wip.domain.core.ckd.dto.view;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * @author zy
  * @date 2020-05-12 12:01
  **/
 @Data
+@Accessors(chain = true)
 public class McTaskDeliveringStockView {
 
     private String inoutStockLineId;

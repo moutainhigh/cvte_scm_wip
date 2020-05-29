@@ -10,8 +10,10 @@ import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.log.constant.LogModuleConstant;
 import com.cvte.scm.wip.domain.common.log.dto.WipLogDTO;
 import com.cvte.scm.wip.domain.common.log.service.WipOperationLogService;
+import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskLineQuery;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
+import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcInoutStockEntity;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcInoutStockLineEntity;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskEntity;
@@ -63,6 +65,9 @@ public class WipMcInoutStockWriteBackService {
     @Autowired
     private WipMcTaskService wipMcTaskService;
 
+    @Autowired
+    private WipMcTaskLineService wipMcTaskLineService;
+
 
     public void writeBackInoutStock(WriteBackHook writeBackHook) {
 
@@ -84,6 +89,7 @@ public class WipMcInoutStockWriteBackService {
         }
 
         Map<String, String> inoutLineIdAndTaskIdMap = deliveringStockViewList.stream()
+                .filter(el -> StringUtils.isNotBlank(el.getInoutStockLineId()))
                 .collect(Collectors.toMap(McTaskDeliveringStockView::getInoutStockLineId, McTaskDeliveringStockView::getMcTaskId));
         Map<String, String> deliveryIdAndInoutStockId = new HashMap<>();
         for (McTaskDeliveringStockView mcTaskDeliveringStockView : deliveringStockViewList) {
@@ -93,14 +99,11 @@ public class WipMcInoutStockWriteBackService {
             deliveryIdAndInoutStockId.put(mcTaskDeliveringStockView.getDeliveryNo(), mcTaskDeliveringStockView.getInoutStockId());
         }
 
-        Set<String> needUpdateToFinishTaskIds = deliveringStockViewList.stream()
-                .map(McTaskDeliveringStockView::getMcTaskId).collect(Collectors.toSet());
-        Set<String> needUpdateToCloseTaskIds = new HashSet<>(needUpdateToFinishTaskIds);
         // 回写调拨数据
         List<WipMcTaskEntity> wipMcTaskUpdateList = new ArrayList<>();
         List<WipMcInoutStockEntity> wipMcInoutStocks = new ArrayList<>();
         List<WipMcInoutStockLineEntity> wipMcInoutStockLines = new ArrayList<>();
-        // 需要更新配料任务状态的
+        // 辅助性字段，记录ebs返回调拨数据相关的mcTaskIds
         Set<String> repWipMcTaskIds = new HashSet<>();
         for (EbsInoutStockVO ebsInoutStockView : ebsInoutStockViews) {
             if (StringUtils.isBlank(ebsInoutStockView.getOrigSysSourceId())) {
@@ -110,6 +113,10 @@ public class WipMcInoutStockWriteBackService {
 
             // 更新调拨头
             String mcTaskId = inoutLineIdAndTaskIdMap.get(ebsInoutStockView.getOrigSysSourceId());
+            if (StringUtils.isBlank(mcTaskId)){
+                continue;
+            }
+
             if (!repWipMcTaskIds.contains(mcTaskId)) {
                 WipMcInoutStockEntity wipMcInoutStock = new WipMcInoutStockEntity();
                 wipMcInoutStock.setInoutStockId(deliveryIdAndInoutStockId.get(ebsInoutStockView.getTicketNo()))
@@ -127,39 +134,24 @@ public class WipMcInoutStockWriteBackService {
             EntityUtils.writeCurUserStdUpdInfoToEntity(wipMcInoutStockLine);
             wipMcInoutStockLines.add(wipMcInoutStockLine);
 
-
-
-            if (needUpdateToFinishTaskIds.contains(mcTaskId)
-                    && (!EbsDeliveryStatusEnum.POSTED.getCode().equals(ebsInoutStockView.getStatus())
-                    || (BooleanEnum.NO.getCode().equals(ebsInoutStockView.getCancelledFlag())
-                    && !BooleanEnum.YES.getCode().equals(ebsInoutStockView.getPostedFlag()))
-            )) {
-                // 头状态不是【已过账】，或行有【未取消】的【未过账数据】数据，则移除, 最后剩下的即是全部数据都已过账的
-                needUpdateToFinishTaskIds.remove(mcTaskId);
-            }
-
-
-            if (!EbsDeliveryStatusEnum.CANCELLED.getCode().equals(ebsInoutStockView.getStatus())) {
-                // 含有调拨头状态不是取消的，则移除，最后剩下的即是需要进去关闭状态的
-                needUpdateToCloseTaskIds.remove(mcTaskId);
-            }
-
-            if (StringUtils.isBlank(mcTaskId) || repWipMcTaskIds.contains(mcTaskId)) {
-                continue;
-            }
-
             repWipMcTaskIds.add(mcTaskId);
         }
 
-
-        if (writeBackHook.needUpdateStatusToFinish()) {
-            wipMcTaskUpdateList.addAll(handlerNeedUpdateStatusTasks(needUpdateToFinishTaskIds, McTaskStatusEnum.FINISH));
-        }
-        wipMcTaskUpdateList.addAll(handlerNeedUpdateStatusTasks(needUpdateToCloseTaskIds, McTaskStatusEnum.CLOSE));
-
-
+        // 更新调拨数据
         wipMcInoutStockService.updateList(wipMcInoutStocks);
         wipMcInoutStockLineService.updateList(wipMcInoutStockLines);
+
+
+        // 拉取所有更新了的配料任务行，并筛选出需要更新状态的配料任务id
+        List<WipMcTaskLineView> wipMcTaskLineViews =
+                wipMcTaskLineService.listWipMcTaskLineView(new WipMcTaskLineQuery().setTaskIds(new ArrayList<>(repWipMcTaskIds)));
+        Set<String> needUpdateToFinishTaskIds = findNeedUpdateStatusToFinishTaskIds(repWipMcTaskIds, wipMcTaskLineViews);
+        Set<String> needUpdateToCloseTaskIds = findNeedUpdateStatusToCancelTaskIds(repWipMcTaskIds, wipMcTaskLineViews);
+
+        // 避免ebs无数据返回而导致误更新
+        wipMcTaskUpdateList.addAll(handlerNeedUpdateStatusTasks(needUpdateToFinishTaskIds, McTaskStatusEnum.FINISH));
+        wipMcTaskUpdateList.addAll(handlerNeedUpdateStatusTasks(needUpdateToCloseTaskIds, McTaskStatusEnum.CLOSE));
+
         wipMcTaskService.updateList(wipMcTaskUpdateList);
 
 
@@ -167,6 +159,42 @@ public class WipMcInoutStockWriteBackService {
         for (String taskId : repWipMcTaskIds) {
             wipMcTaskVersionService.sync(taskId, false);
         }
+    }
+
+    /**
+     * 当前业务场景下：
+     *  1. 调拨出库过账后才能调拨入库
+     *  2. 调拨出库全部过账后状态更新为完成，全部为取消后更新为关闭。
+     *  综上，判断是否更新配料任务是否更新时仅判断出库状态即可
+     *
+     * @param allMcTaskIds
+     * @param wipMcTaskLineViews
+     * @return java.util.Set<java.lang.String>
+     **/
+    private Set<String> findNeedUpdateStatusToCancelTaskIds(Set<String> allMcTaskIds,
+                                                    List<WipMcTaskLineView> wipMcTaskLineViews) {
+        Set<String> filterIds = wipMcTaskLineViews.stream()
+                .filter(el -> !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(el.getDeliveryOutLineStatus()))
+                .map(WipMcTaskLineView::getMcTaskId)
+                .collect(Collectors.toSet());
+        Set<String> afterFilter = new HashSet<>(allMcTaskIds);
+        afterFilter.removeAll(filterIds);
+        afterFilter.retainAll(wipMcTaskLineViews.stream().map(WipMcTaskLineView::getMcTaskId).collect(Collectors.toSet()));
+        return afterFilter;
+    }
+
+
+    private Set<String> findNeedUpdateStatusToFinishTaskIds(Set<String> allMcTaskIds,
+                                                            List<WipMcTaskLineView> wipMcTaskLineViews) {
+        Set<String> filterIds = wipMcTaskLineViews.stream()
+                .filter(el -> !McTaskDeliveryStatusEnum.POSTED.getCode().equals(el.getDeliveryOutLineStatus())
+                        || EbsDeliveryStatusEnum.POSTED.getCode().equals(el.getDeliveryOutStatus()))
+                .map(WipMcTaskLineView::getMcTaskId)
+                .collect(Collectors.toSet());
+        Set<String> afterFilter = new HashSet<>(allMcTaskIds);
+        afterFilter.removeAll(filterIds);
+        afterFilter.retainAll(wipMcTaskLineViews.stream().map(WipMcTaskLineView::getMcTaskId).collect(Collectors.toSet()));
+        return afterFilter;
     }
 
     private List<WipMcTaskEntity> handlerNeedUpdateStatusTasks(Set<String> taskIds, McTaskStatusEnum mcTaskStatusEnum) {

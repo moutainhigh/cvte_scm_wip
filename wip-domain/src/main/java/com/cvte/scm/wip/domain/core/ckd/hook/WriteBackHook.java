@@ -16,6 +16,4 @@ public interface WriteBackHook {
      * @return java.util.List<com.cvte.scm.wip.ckd.dto.view.McTaskDeliveringStockView>
      **/
     List<McTaskDeliveringStockView> listMcTaskDeliveringStockView();
-
-    boolean needUpdateStatusToFinish();
 }
