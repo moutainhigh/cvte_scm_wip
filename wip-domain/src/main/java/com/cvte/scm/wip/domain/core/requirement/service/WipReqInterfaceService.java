@@ -51,12 +51,8 @@ public class WipReqInterfaceService {
 
     private WipReqInterfaceRepository wipReqInterfaceRepository;
 
-    private BaseBatchMapper batchMapper;
-
     public WipReqInterfaceService(WipReqLineService wipReqLinesService,
-                                  WipReqInterfaceRepository wipReqInterfaceRepository,
-                                  @Qualifier("pgBatchMapper") BaseBatchMapper batchMapper) {
-        this.batchMapper = batchMapper;
+                                  WipReqInterfaceRepository wipReqInterfaceRepository) {
         this.wipReqLinesService = wipReqLinesService;
         this.wipReqInterfaceRepository = wipReqInterfaceRepository;
     }
@@ -81,7 +77,12 @@ public class WipReqInterfaceService {
     public void executeOmissionData() {
         OperatingUser user = new OperatingUser();
         user.setId("SCM-TRANSIT");
-        scheduleChangedRequest(wipReqInterfaceRepository.selectOmissionData(PENDING.getCode()), SLOPPY, ChangedModeEnum.AUTOMATIC);
+        List<WipReqInterfaceEntity> omissionInterfaceList = wipReqInterfaceRepository.selectOmissionData(PENDING.getCode());
+        Map<String, List<WipReqInterfaceEntity>> omissionInterfaceMap = omissionInterfaceList.stream().collect(Collectors.groupingBy(WipReqInterfaceEntity::getGroupId));
+        for (Map.Entry<String, List<WipReqInterfaceEntity>> entry : omissionInterfaceMap.entrySet()) {
+            List<WipReqInterfaceEntity> groupOmissionInterfaceList = entry.getValue();
+            scheduleChangedRequest(groupOmissionInterfaceList, SLOPPY, ChangedModeEnum.AUTOMATIC);
+        }
     }
 
     /**
@@ -230,7 +231,7 @@ public class WipReqInterfaceService {
         }
         updateStatus(solvedIdList, new WipReqInterfaceEntity().setProceed(ProcessingStatusEnum.SOLVED.getCode()).setExceptionReason(""), AutoOperationIdentityEnum.WIP.getCode());
         exceptionInterfaceList.forEach(in -> EntityUtils.writeStdUpdInfoToEntity(in.setProceed(ProcessingStatusEnum.EXCEPTION.getCode()), AutoOperationIdentityEnum.WIP.getCode()));
-        batchMapper.update(exceptionInterfaceList);
+        wipReqInterfaceRepository.batchUpdate(exceptionInterfaceList);
     }
 
     /**
