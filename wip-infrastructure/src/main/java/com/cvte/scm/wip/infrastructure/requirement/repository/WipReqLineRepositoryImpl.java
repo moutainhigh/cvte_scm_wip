@@ -141,7 +141,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
             criteria.andEqualTo(field.getName(), value);
         }
         if (!criteria.isValid()) {
-            return null;
+            throw new ParamsIncorrectException("投料单行查询条件为空；");
         }
         criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(status, BillStatusEnum.class));
         List<WipReqLineDO> lineDOList = wipReqLinesMapper.selectByExample(example);
