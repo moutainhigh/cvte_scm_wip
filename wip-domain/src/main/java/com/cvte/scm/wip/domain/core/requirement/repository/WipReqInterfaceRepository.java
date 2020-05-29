@@ -1,7 +1,6 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqInterfaceEntity;
-import tk.mybatis.mapper.entity.Example;
 
 import java.util.Date;
 import java.util.List;
@@ -42,5 +41,7 @@ public interface WipReqInterfaceRepository {
     List<WipReqInterfaceEntity> selectBetweenTimeInStatus(Date timeFrom, Date timeTo, String... proceed);
 
     void updateByIdSelective(WipReqInterfaceEntity interfaceEntity, List<String> idList);
+
+    void batchUpdate(List<WipReqInterfaceEntity> entityList);
     
 }

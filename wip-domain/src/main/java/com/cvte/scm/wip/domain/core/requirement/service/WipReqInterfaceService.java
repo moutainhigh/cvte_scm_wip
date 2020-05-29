@@ -51,12 +51,8 @@ public class WipReqInterfaceService {
 
     private WipReqInterfaceRepository wipReqInterfaceRepository;
 
-    private BaseBatchMapper batchMapper;
-
     public WipReqInterfaceService(WipReqLineService wipReqLinesService,
-                                  WipReqInterfaceRepository wipReqInterfaceRepository,
-                                  @Qualifier("pgBatchMapper") BaseBatchMapper batchMapper) {
-        this.batchMapper = batchMapper;
+                                  WipReqInterfaceRepository wipReqInterfaceRepository) {
         this.wipReqLinesService = wipReqLinesService;
         this.wipReqInterfaceRepository = wipReqInterfaceRepository;
     }
@@ -235,7 +231,7 @@ public class WipReqInterfaceService {
         }
         updateStatus(solvedIdList, new WipReqInterfaceEntity().setProceed(ProcessingStatusEnum.SOLVED.getCode()).setExceptionReason(""), AutoOperationIdentityEnum.WIP.getCode());
         exceptionInterfaceList.forEach(in -> EntityUtils.writeStdUpdInfoToEntity(in.setProceed(ProcessingStatusEnum.EXCEPTION.getCode()), AutoOperationIdentityEnum.WIP.getCode()));
-        batchMapper.update(exceptionInterfaceList);
+        wipReqInterfaceRepository.batchUpdate(exceptionInterfaceList);
     }
 
     /**
