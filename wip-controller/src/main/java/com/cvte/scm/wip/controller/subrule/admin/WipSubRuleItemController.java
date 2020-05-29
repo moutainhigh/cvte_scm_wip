@@ -3,7 +3,10 @@ package com.cvte.scm.wip.controller.subrule.admin;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
 import com.cvte.scm.wip.domain.core.subrule.service.WipSubRuleItemService;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author : jf
@@ -26,4 +29,10 @@ public class WipSubRuleItemController {
                                          @RequestBody String[] subItemNos) {
         return ResponseFactory.getOkResponse(wipSubRuleItemService.getSubItemDetail(organizationId, subItemNos));
     }
+
+    @PostMapping("/validate")
+    public RestResponse validateSubItem(@RequestBody List<SubItemValidateVO> itemValidateDTOList) {
+        return ResponseFactory.getOkResponse(wipSubRuleItemService.validateSubItem(itemValidateDTOList));
+    }
+
 }

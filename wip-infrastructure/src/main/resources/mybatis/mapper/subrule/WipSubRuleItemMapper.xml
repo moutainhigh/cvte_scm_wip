@@ -46,15 +46,27 @@
         </choose>
     </select>
 
-    <select id="getRepeatSubItemRuleIds" resultType="java.lang.String">
-        select rule_id
-        from wip.wip_sub_rule
-        where rule_id in (select rule_id from wip.wip_sub_rule_item where ${itemCondition})
-        and organization_id = #{organizationId}
+    <select id="getRepeatSubItemRuleIds" resultType="com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO">
+        select sr.rule_no AS ruleNo,
+               array_to_string(array_agg(distinct sra.adapt_item),',') AS adaptItem
+        from wip_sub_rule_adapt sra
+        inner join wip_sub_rule_item sri
+        on sri.rule_id = sra.rule_id
+        inner join wip_sub_rule sr
+        on sra.rule_id = sr.rule_id
+        where sra.adapt_item in
+        <foreach collection="scopeValueList" item="scopeValue" open="(" separator="," close=")">
+            #{scopeValue}
+        </foreach>
+        and
+        <foreach collection="subItemNoList" item="subItemNo" open="(" separator="or" close=")">
+            sri.rmk01 = #{subItemNo.beforeItemNo} and sri.rmk02 = #{subItemNo.afterItemNo}
+        </foreach>
+        and sr.organization_id = #{organizationId}
         and
         <choose>
             <when test="ruleStatusCollection != null and ruleStatusCollection.size() > 0">
-                rule_status in
+                sr.rule_status in
                 <foreach collection="ruleStatusCollection" index="index" item="ruleStatus" open="(" separator="," close=")">
                     #{ruleStatus}
                 </foreach>
@@ -63,8 +75,10 @@
                 1 = -1
             </otherwise>
         </choose>
-        and rule_id != #{ruleId}
+        and sr.rule_id != #{ruleId}
         and now() &gt; enable_time
-        and now() &lt; coalesce(disable_time, now() + '1ms');
+        and now() &lt; coalesce(disable_time, now() + '1ms')
+        group by sr.rule_no
     </select>
+
 </mapper>

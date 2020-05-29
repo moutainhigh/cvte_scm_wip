@@ -49,7 +49,7 @@ public class WipSubRuleService{
     public static final String SPLIT_SYMBOL = ";";
 
     private static final BiFunction<ChangedTypeEnum, String, String> ERROR_FORMAT = (changeType, errorMessage) ->
-            String.format("{}失败，您填写的{}，请仔细修改后再重试；", changeType.getDesc(), errorMessage);
+            StringUtils.format("{}失败，您填写的{}，请仔细修改后再重试；", changeType.getDesc(), errorMessage);
 
     private static final String SERIAL_CODE = "SCM_WIP_SERI_SUB_RULE_CODE";
 
