@@ -41,6 +41,10 @@ public class WipMcTaskLineVersionDO extends BaseModel {
     @ApiModelProperty(value = "版本id")
     private String versionId;
 
+    @Column(name = "line_id")
+    @ApiModelProperty(value = "版本id")
+    private String lineId;
+
     /**
      * 物料id
      */

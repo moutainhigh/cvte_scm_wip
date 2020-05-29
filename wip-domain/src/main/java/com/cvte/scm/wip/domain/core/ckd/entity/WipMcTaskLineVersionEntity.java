@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.util.Date;
 
 /**
@@ -29,10 +27,11 @@ public class WipMcTaskLineVersionEntity extends BaseModel {
     /**
      * ${field.comment}
      */
-    @Id
-    @GeneratedValue(generator = "UUID")
     @ApiModelProperty(value = "${field.comment}")
     private String id;
+
+    private String lineId;
+
     /**
      * 版本id
      */

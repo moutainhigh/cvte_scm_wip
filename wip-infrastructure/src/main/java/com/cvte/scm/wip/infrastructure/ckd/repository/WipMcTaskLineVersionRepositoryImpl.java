@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Repository
 public class WipMcTaskLineVersionRepositoryImpl
-        extends WipBaseRepositoryImpl<WipMcTaskLineVersionMapper, WipMcTaskLineVersionDO,WipMcTaskLineVersionEntity>
+        extends WipBaseRepositoryImpl<WipMcTaskLineVersionMapper, WipMcTaskLineVersionDO, WipMcTaskLineVersionEntity>
         implements WipMcTaskLineVersionRepository {
 
     @Autowired
