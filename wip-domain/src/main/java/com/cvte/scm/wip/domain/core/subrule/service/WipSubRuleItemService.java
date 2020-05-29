@@ -17,6 +17,7 @@ import com.cvte.scm.wip.domain.core.subrule.repository.WipSubRuleItemRepository;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.GroupObjectVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleScopeTypeEnum;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleStatusEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,9 +73,16 @@ public class WipSubRuleItemService {
             return "替换前后物料编码存在错误";
         }
         /* 成套替代时，不同组合可能存在相同替代前后的物料组合，故成套替代字段为 "是" 时，不校验替换物料的重复性。 */
-        if (CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntity.getIfCouple(), BooleanEnum.class) == BooleanEnum.NO
-                && !validateSubItemNo(subItemNoList, wipSubRuleEntity.getScopeMap(), ruleId, organizationId)) {
-            return "替换物料信息已存在";
+        if (CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntity.getIfCouple(), BooleanEnum.class) == BooleanEnum.NO) {
+            List<SubItemValidateVO> itemValidateList = validateSubItemNo(subItemNoList, wipSubRuleEntity.getScopeMap(), ruleId, organizationId);
+            if (ListUtil.notEmpty(itemValidateList)) {
+                String scopeTypeName = CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntity.getScopeMap().keySet().stream().distinct().collect(Collectors.toList()).get(0), SubRuleScopeTypeEnum.class).getDesc();
+                StringBuilder errMsgBuilder = new StringBuilder();
+                for (SubItemValidateVO validateVO : itemValidateList) {
+                    errMsgBuilder.append(String.format("【%s%s已存在 有效规则%s】", scopeTypeName, validateVO.getAdaptItem(), validateVO.getRuleNo()));
+                }
+                return errMsgBuilder.toString();
+            }
         }
         List<WipSubRuleItemEntity> insertionData = new LinkedList<>();
         List<String> deletionData = new LinkedList<>();
@@ -145,7 +153,7 @@ public class WipSubRuleItemService {
     /**
      * 校验替换物料的重复性，只校验状态为 审核中、生效中 的规则。
      */
-    private boolean validateSubItemNo(List<String[]> subItemNosList, Map<String, Map<String, String>> scopeMap, String ruleId, String organizationId) {
+    private List<SubItemValidateVO> validateSubItemNo(List<String[]> subItemNosList, Map<String, Map<String, String>> scopeMap, String ruleId, String organizationId) {
         List<String> scopeValueList = new ArrayList<>();
         for (Map<String, String> scope : scopeMap.values()) {
             for (String dimValue : scope.values()) {
@@ -161,7 +169,7 @@ public class WipSubRuleItemService {
 
         final int REVIEW_EFFECTIVE = 6;
         List<Object> ruleStatusList = CodeableEnumUtils.getCodesByOrdinalFlag(REVIEW_EFFECTIVE, SubRuleStatusEnum.class);
-        return wipSubRuleItemRepository.getRepeatSubItemRuleIds(ruleId, organizationId, subItemValidateDTOList, scopeValueList, ruleStatusList).isEmpty();
+        return wipSubRuleItemRepository.getRepeatSubItemRuleIds(ruleId, organizationId, subItemValidateDTOList, scopeValueList, ruleStatusList);
     }
 
     /**

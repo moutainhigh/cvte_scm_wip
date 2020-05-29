@@ -14,6 +14,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class SubItemValidateVO {
 
+    private String ruleNo;
+
     private String organizationId;
 
     private String beforeItemId;
@@ -23,5 +25,7 @@ public class SubItemValidateVO {
     private String beforeItemNo;
 
     private String afterItemNo;
+
+    private String adaptItem;
 
 }

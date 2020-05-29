@@ -22,7 +22,7 @@ public interface WipSubRuleItemMapper extends CommonMapper<WipSubRuleItemDO> {
     List<WipSubRuleItemDetailVO> getSubItemDetail(@Param("organizationId") String organizationId, @Param("itemNos") Collection<String> itemNos);
 
     /* 获取替换前后物料信息重复的规则ID */
-    List<String> getRepeatSubItemRuleIds(@Param("ruleId") String ruleId,
+    List<SubItemValidateVO> getRepeatSubItemRuleIds(@Param("ruleId") String ruleId,
                                          @Param("organizationId") String organizationId,
                                          @Param("subItemNoList") List<SubItemValidateVO> subItemNoList,
                                          @Param("scopeValueList") List<String> scopeValueList,
