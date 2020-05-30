@@ -280,10 +280,10 @@ public class WipMcInoutStockWriteBackServiceTest extends BaseMcTaskTest {
                 view.setMcTaskId(mcTaskId)
                         .setMcTaskLineId(mcTaskLineId)
                         .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode())
-                        .setDeliveryId(UUIDUtils.get32UUID())
+                        .setDeliveryId(deliveryOutHeaderId)
                         .setDeliveryLineId(InoutStockTaskContext.inoutStockLineIdMap.get(inoutStockLineId))
                         .setDeliveryLineNo(UUIDUtils.get32UUID())
-                        .setDeliveryNo(UUIDUtils.get32UUID())
+                        .setDeliveryNo(deliveryOutHeaderNo)
                         .setInoutStockId(inoutStockId)
                         .setInoutStockLineId(inoutStockLineId);
                 views.add(view);

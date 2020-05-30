@@ -91,12 +91,12 @@ public class WipMcInoutStockWriteBackService {
         Map<String, String> inoutLineIdAndTaskIdMap = deliveringStockViewList.stream()
                 .filter(el -> StringUtils.isNotBlank(el.getInoutStockLineId()))
                 .collect(Collectors.toMap(McTaskDeliveringStockView::getInoutStockLineId, McTaskDeliveringStockView::getMcTaskId));
-        Map<String, String> deliveryIdAndInoutStockId = new HashMap<>();
+        Map<String, String> deliveryNoAndInoutStockId = new HashMap<>();
         for (McTaskDeliveringStockView mcTaskDeliveringStockView : deliveringStockViewList) {
-            if (deliveryIdAndInoutStockId.containsKey(mcTaskDeliveringStockView.getDeliveryNo())) {
+            if (deliveryNoAndInoutStockId.containsKey(mcTaskDeliveringStockView.getDeliveryNo())) {
                 continue;
             }
-            deliveryIdAndInoutStockId.put(mcTaskDeliveringStockView.getDeliveryNo(), mcTaskDeliveringStockView.getInoutStockId());
+            deliveryNoAndInoutStockId.put(mcTaskDeliveringStockView.getDeliveryNo(), mcTaskDeliveringStockView.getInoutStockId());
         }
 
         // 回写调拨数据
@@ -119,7 +119,7 @@ public class WipMcInoutStockWriteBackService {
 
             if (!repWipMcTaskIds.contains(mcTaskId)) {
                 WipMcInoutStockEntity wipMcInoutStock = new WipMcInoutStockEntity();
-                wipMcInoutStock.setInoutStockId(deliveryIdAndInoutStockId.get(ebsInoutStockView.getTicketNo()))
+                wipMcInoutStock.setInoutStockId(deliveryNoAndInoutStockId.get(ebsInoutStockView.getTicketNo()))
                         .setStatus(ebsInoutStockView.getStatus());
                 EntityUtils.writeCurUserStdUpdInfoToEntity(wipMcInoutStock);
                 wipMcInoutStocks.add(wipMcInoutStock);
@@ -188,7 +188,7 @@ public class WipMcInoutStockWriteBackService {
                                                             List<WipMcTaskLineView> wipMcTaskLineViews) {
         Set<String> filterIds = wipMcTaskLineViews.stream()
                 .filter(el -> !McTaskDeliveryStatusEnum.POSTED.getCode().equals(el.getDeliveryOutLineStatus())
-                        || EbsDeliveryStatusEnum.POSTED.getCode().equals(el.getDeliveryOutStatus()))
+                        || !EbsDeliveryStatusEnum.POSTED.getCode().equals(el.getDeliveryOutStatus()))
                 .map(WipMcTaskLineView::getMcTaskId)
                 .collect(Collectors.toSet());
         Set<String> afterFilter = new HashSet<>(allMcTaskIds);
