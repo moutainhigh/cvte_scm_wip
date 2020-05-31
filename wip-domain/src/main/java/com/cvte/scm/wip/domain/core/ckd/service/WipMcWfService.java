@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,7 +87,7 @@ public class WipMcWfService {
 
     public void batchRestorePreStatusIfCurStatusEqualsTo(List<String> mcTaskIds, McTaskStatusEnum mcTaskStatusEnum) {
 
-        for (String mcTaskId : mcTaskIds) {
+        for (String mcTaskId : new HashSet<>(mcTaskIds)) {
             restorePreStatusIfCurStatusEqualsTo(mcTaskId, mcTaskStatusEnum);
         }
     }

@@ -132,7 +132,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         operatingUser.setAccount(wipMcTaskUpdateStatus.getOptUser());
         CurrentContext.setCurrentOperatingUser(operatingUser);
 
-        wipMcTaskViews.forEach(el -> this.updateStatus(el.getMcTaskId(), wipMcTaskUpdateStatus.getUpdateToStatus()));
+        Set<String> mcTaskIds = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
+        mcTaskIds.forEach(el -> this.updateStatus(el, wipMcTaskUpdateStatus.getUpdateToStatus()));
     }
 
     public void updateStatus(String taskId, String updateToStatus) {
