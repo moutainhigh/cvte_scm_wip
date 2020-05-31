@@ -2,7 +2,7 @@ package com.cvte.scm.wip.infrastructure.boot.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.cvte.csb.toolkit.StringUtils;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.github.pagehelper.PageHelper;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.session.SqlSessionFactory;

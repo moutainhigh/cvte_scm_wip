@@ -6,7 +6,7 @@ import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
