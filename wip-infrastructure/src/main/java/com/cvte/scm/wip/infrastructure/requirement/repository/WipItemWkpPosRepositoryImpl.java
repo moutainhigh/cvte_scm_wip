@@ -2,7 +2,7 @@ package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
-import com.cvte.scm.wip.domain.core.requirement.dto.query.QueryWipItemWkpPosVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipItemWkpPosVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipItemWkpPosEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipItemWkpPosRepository;
 import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;

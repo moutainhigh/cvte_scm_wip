@@ -8,6 +8,7 @@ import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipReqHeaderVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqHeaderMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqHeaderDO;
@@ -111,6 +112,16 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
         Example example = new Example(WipReqHeaderDO.class);
         example.createCriteria().andEqualTo("headerId", headerId);
         wipReqHeaderMapper.updateByExampleSelective(header, example);
+    }
+
+    @Override
+    public List<WipReqHeaderEntity> listWipReqHeaderEntity(QueryWipReqHeaderVO queryWipReqHeaderVO) {
+        Example example = new Example(WipReqHeaderDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        if (CollectionUtils.isNotEmpty(queryWipReqHeaderVO.getWipHeaderIds())) {
+            criteria.andIn("headerId", queryWipReqHeaderVO.getWipHeaderIds());
+        }
+        return WipReqHeaderDO.batchBuildEntity(wipReqHeaderMapper.selectByExample(example));
     }
 
     private String validateIndex(WipReqHeaderEntity wipReqHeader) {

@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.core.requirement.dto.query;
+package com.cvte.scm.wip.domain.core.requirement.valueobject;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

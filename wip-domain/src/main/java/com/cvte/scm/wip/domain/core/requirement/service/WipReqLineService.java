@@ -9,7 +9,10 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
-import com.cvte.scm.wip.common.utils.*;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.CurrentContextUtils;
+import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.common.utils.ValidateUtils;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
@@ -27,9 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
-import javax.persistence.Column;
-import javax.persistence.Transient;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -81,14 +81,16 @@ public class WipReqLineService {
     private WipReqHeaderRepository wipReqHeaderRepository;
     private WipReqPrintLogService wipReqPrintLogService;
     private XxwipMoInterfaceRepository xxwipMoInterfaceRepository;
+    private WipReqLineSplitService wipReqLineSplitService;
 
-    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository) {
+    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService) {
         this.scmItemService = scmItemService;
         this.wipReqLineRepository = wipReqLineRepository;
         this.wipReqLogService = wipReqLogService;
         this.wipReqHeaderRepository = wipReqHeaderRepository;
         this.wipReqPrintLogService = wipReqPrintLogService;
         this.xxwipMoInterfaceRepository = xxwipMoInterfaceRepository;
+        this.wipReqLineSplitService = wipReqLineSplitService;
     }
 
 
@@ -103,9 +105,11 @@ public class WipReqLineService {
      * 添加多条投料单行数据。详情可参见KB文档：https://kb.cvte.com/pages/viewpage.action?pageId=168289967
      */
     public String[] addMany(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
-        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.ADD, this::validateAndGetAddedData);
+
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(
+                wipReqLineList, ChangedTypeEnum.ADD, this::validateAndGetAddedData);
         Consumer<WipReqLineEntity> complete = line -> completeAddedData(line, userId);
-        Consumer<WipReqLineEntity> manipulate = wipReqLineRepository::insertSelective;
+        Consumer<WipReqLineEntity> manipulate = this::splitAndSaveEntity;
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.ADD).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
         return change(parameters);
@@ -552,6 +556,18 @@ public class WipReqLineService {
         }
         log.error(info.toString());
         return errorMessages;
+    }
+
+
+    /**
+     * 分割并保存数据
+     *
+     * @param wipReqLineEntity
+     * @return void
+     **/
+    private void splitAndSaveEntity(WipReqLineEntity wipReqLineEntity) {
+        List<WipReqLineEntity> wipReqLineEntities = wipReqLineSplitService.splitByItemWkpPos(Arrays.asList(wipReqLineEntity));
+        wipReqLineEntities.forEach(wipReqLineRepository::insertSelective);
     }
 
     /**

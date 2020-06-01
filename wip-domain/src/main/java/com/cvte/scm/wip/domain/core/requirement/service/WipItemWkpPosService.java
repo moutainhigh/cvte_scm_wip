@@ -6,14 +6,13 @@ import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.constants.CommonDateConstant;
+import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.listener.ExcelListener;
-import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.common.utils.ExcelUtils;
-import com.cvte.scm.wip.common.utils.ValidateUtils;
+import com.cvte.scm.wip.common.utils.*;
 import com.cvte.scm.wip.domain.core.requirement.dto.WipItemWkpPostImportDTO;
-import com.cvte.scm.wip.domain.core.requirement.dto.query.QueryWipItemWkpPosVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipItemWkpPosEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipItemWkpPosRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipItemWkpPosVO;
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
@@ -26,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +43,17 @@ public class WipItemWkpPosService {
     @Autowired
     private ModelMapper modelMapper;
 
+
+    /**
+     *
+     *
+     * @param queryWipItemWkpPosVO
+     * @return java.util.List<com.cvte.scm.wip.domain.core.requirement.entity.WipItemWkpPosEntity>
+     **/
+    public List<WipItemWkpPosEntity> listWipItemWkpPosEntity(QueryWipItemWkpPosVO queryWipItemWkpPosVO) {
+        return repository.listWipItemWkpPosEntity(queryWipItemWkpPosVO);
+    }
+
     /**
      * 批量保存
      *
@@ -62,10 +71,10 @@ public class WipItemWkpPosService {
 
         QueryWipItemWkpPosVO queryWipItemWkpPosVO = new QueryWipItemWkpPosVO()
                 .setQueryDate(curDate)
-                .setItemCodes(mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getItemCode))
-                .setProductModels(mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getProductModel))
-                .setOrganizationIds(mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getOrganizationId));
-        List<WipItemWkpPosEntity> existEntity = repository.listWipItemWkpPosEntity(queryWipItemWkpPosVO);
+                .setItemCodes(LambdaUtils.mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getItemCode))
+                .setProductModels(LambdaUtils.mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getProductModel))
+                .setOrganizationIds(LambdaUtils.mapToList(wipItemWkpPosEntities, WipItemWkpPosEntity::getOrganizationId));
+        List<WipItemWkpPosEntity> existEntity = this.listWipItemWkpPosEntity(queryWipItemWkpPosVO);
 
         Set<String> postImportKeySet = wipItemWkpPosEntities.stream().map(WipItemWkpPosEntity::generateUniqueKey).collect(Collectors.toSet());
 
@@ -75,7 +84,7 @@ public class WipItemWkpPosService {
                 WipItemWkpPosEntity invalidEntity = new WipItemWkpPosEntity()
                         .setId(wipItemWkpPosEntity.getId())
                         .setEndDate(curDate);
-                EntityUtils.writeCurUserStdUpdInfoToEntity(invalidEntity);
+                EntityUtils.writeStdUpdInfoToEntity(invalidEntity, CurrentContextUtils.getOrDefaultUserId(CommonUserConstant.SCM_WIP));
                 invalidList.add(invalidEntity);
             }
         }
@@ -172,8 +181,5 @@ public class WipItemWkpPosService {
                 .collect(Collectors.toMap(SysOrgOrganizationVO::getEbsOrganizationCode, SysOrgOrganizationVO::getEbsOrganizationId));
     }
 
-    private <T, R>List<R> mapToList(List<T> list, Function<T, R> function) {
-        return list.stream().map(function).collect(Collectors.toList());
-    }
 
 }

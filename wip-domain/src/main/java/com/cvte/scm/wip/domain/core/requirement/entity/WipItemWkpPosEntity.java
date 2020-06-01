@@ -127,8 +127,6 @@ public class WipItemWkpPosEntity extends BaseModel {
 
     /**
      * 获取唯一索引键
-     *
-     * @return java.lang.String
      **/
     public String generateUniqueKey() {
         return this.getOrganizationId()
@@ -138,6 +136,17 @@ public class WipItemWkpPosEntity extends BaseModel {
                 + this.getItemCode()
                 + CommonConstant.COMMON_SEPARATOR
                 + this.getTechniqueAttr();
+    }
+
+    /**
+     * 获取聚合主键
+     **/
+    public String generateGroupKey() {
+        return this.getOrganizationId()
+                + CommonConstant.COMMON_SEPARATOR
+                + this.getProductModel()
+                + CommonConstant.COMMON_SEPARATOR
+                + this.getItemCode();
     }
 
 }

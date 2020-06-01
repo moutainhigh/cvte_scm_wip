@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
  **/
 @Slf4j
 @RestController
-@Api(tags = "投料单头接口")
+@Api(tags = "物料工艺属性基表接口")
 @RequestMapping("/admin/req/item/wkp")
 public class WipItemWkpPosController {
 
