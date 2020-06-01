@@ -1,14 +1,11 @@
 package com.cvte.scm.wip.domain.core.changebill.entity
 
-import com.cvte.scm.wip.domain.TestStarter
+import com.cvte.scm.wip.domain.BaseJunitTest
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillDetailRepository
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.ContextConfiguration
-import spock.lang.Specification
 
-@ContextConfiguration(classes = TestStarter.class)
-class ChangeBillDetailEntitySpec extends Specification {
+class ChangeBillDetailEntitySpec extends BaseJunitTest {
 
     @Autowired
     private ChangeBillDetailRepository changeBillDetailRepository;

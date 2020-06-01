@@ -70,7 +70,11 @@ public class ReqInsEntity implements Entity<String> {
     private List<ReqInsDetailEntity> detailList = Collections.emptyList();
 
     public ReqInsEntity getByKey(String insKey) {
-        return headerRepository.getByKey(insKey);
+        return headerRepository.selectByKey(insKey);
+    }
+
+    public List<ReqInsEntity> getByAimHeaderId(String aimHeaderId, List<String> statusList) {
+        return headerRepository.selectByAimHeaderId(aimHeaderId, statusList);
     }
 
     public List<ReqInsDetailEntity> getDetailById() {

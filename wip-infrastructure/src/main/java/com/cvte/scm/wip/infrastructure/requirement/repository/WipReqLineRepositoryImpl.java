@@ -1,15 +1,18 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLinesMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
 import lombok.SneakyThrows;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
@@ -76,6 +79,20 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
             lineEntityList.add(lineEntity);
         }
         return lineEntityList;
+    }
+
+    @Override
+    public List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO) {
+        if (StringUtils.isNotBlank(keyQueryVO.getLineId())) {
+            WipReqLineDO queryDO = new WipReqLineDO().setLineId(keyQueryVO.getLineId());
+            List<WipReqLineDO> lineDOList = wipReqLinesMapper.select(queryDO);
+            lineDOList.removeIf(line -> BillStatusEnum.valid(line.getLineStatus()));
+            return WipReqLineDO.batchBuildEntity(lineDOList);
+        }
+        WipReqLineEntity lineEntity = new WipReqLineEntity();
+        BeanUtils.copyProperties(keyQueryVO, lineEntity);
+        Example example = createCustomExample(lineEntity);
+        return selectByExample(example);
     }
 
     @Override

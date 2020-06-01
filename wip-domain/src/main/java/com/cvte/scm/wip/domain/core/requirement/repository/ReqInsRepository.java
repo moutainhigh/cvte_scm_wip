@@ -2,6 +2,8 @@ package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -15,6 +17,8 @@ public interface ReqInsRepository {
 
     void update(ReqInsEntity entity);
 
-    ReqInsEntity getByKey(String insKey);
+    ReqInsEntity selectByKey(String insKey);
+
+    List<ReqInsEntity> selectByAimHeaderId(String aimHeaderId, List<String> statusList);
 
 }
