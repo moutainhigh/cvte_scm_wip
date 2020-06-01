@@ -23,6 +23,7 @@
     <resultMap id="McTaskInfoView" type="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView">
         <result column="mc_task_no" property="mcTaskNo"/>
         <result column="mc_task_id" property="mcTaskId"/>
+        <result column="source_no" property="sourceNo" />
         <result column="status" property="status"/>
         <result column="client" property="client"/>
         <result column="mtr_ready_time" property="mtrReadyTime"/>
@@ -94,6 +95,7 @@
         , Soov.ebs_organization_code
         , Wmt.bu_name
         , Wmt.dept_name
+        , mc_req.source_no
         from wip_mc_task Wmt
         join wip_mc_wf Wmw on Wmw.mc_task_id = Wmt.mc_task_id and wmw.wf_id = wmt.mc_wf_id
         left join scm.sys_org_factory_v Sofv on Wmt.factory_id = Sofv.ebs_factory_id
@@ -126,6 +128,14 @@
             left join scm.sys_user Su on su.id = Wmw.crt_user
             where status = 'verify'
         ) pm_audit on pm_audit.rn = 1 and pm_audit.mc_task_id = Wmt.mc_task_id
+        -- 需求信息
+        left join wip_mc_req_to_task Wmrtt on Wmrtt.mc_task_id = Wmt.mc_task_id
+        left join (
+            select source_id
+                , source_no
+            from wip_mc_req
+            group by source_id, source_no
+        ) mc_req on mc_req.source_id = Wmrtt.mc_req_id
         where Wmt.mc_task_id = #{mcTaskId}
     </select>
 

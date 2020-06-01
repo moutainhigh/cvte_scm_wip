@@ -16,6 +16,8 @@ public class McTaskInfoView {
 
     private String mcTaskId;
 
+    private String sourceNo;
+
     private String client;
 
     private String status;
