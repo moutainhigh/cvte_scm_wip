@@ -159,7 +159,8 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
 
         wipMcTaskLineRepository.updateList(updateList);
 
-        List<String> mcTaskIds = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toList());
+        Set<String> mcTaskIdSet = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
+        List<String> mcTaskIds = new ArrayList<>(mcTaskIdSet);
 
         // 同步更新版本信息
         wipMcTaskVersionService.batchSync(mcTaskIds);

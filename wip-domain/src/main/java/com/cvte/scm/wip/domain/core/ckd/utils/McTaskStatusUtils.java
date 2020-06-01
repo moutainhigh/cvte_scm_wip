@@ -28,11 +28,11 @@ public class McTaskStatusUtils {
         STATUS_FLOW_MAP.put(McTaskStatusEnum.CONFIRM.getCode(), Arrays.asList(McTaskStatusEnum.FINISH.getCode(), McTaskStatusEnum.REJECT.getCode(), McTaskStatusEnum.CANCEL.getCode()));
         // 已完成 -> 已关闭
         STATUS_FLOW_MAP.put(McTaskStatusEnum.FINISH.getCode(), Arrays.asList(McTaskStatusEnum.CLOSE.getCode()));
-        // 已驳回 -> 已审批、变更中/取消中
-        STATUS_FLOW_MAP.put(McTaskStatusEnum.REJECT.getCode(), Arrays.asList(McTaskStatusEnum.VERIFY.getCode(), McTaskStatusEnum.CHANGE.getCode()));
+        // 已驳回 -> 已审批、变更中/取消中、已取消
+        STATUS_FLOW_MAP.put(McTaskStatusEnum.REJECT.getCode(), Arrays.asList(McTaskStatusEnum.VERIFY.getCode(), McTaskStatusEnum.CHANGE.getCode(), McTaskStatusEnum.CANCEL.getCode()));
 
-        // 变更中/取消中 -> 新建、已审批、工厂已确认、已驳回
-        STATUS_FLOW_MAP.put(McTaskStatusEnum.CHANGE.getCode(), Arrays.asList(McTaskStatusEnum.CREATE.getCode(), McTaskStatusEnum.VERIFY.getCode(), McTaskStatusEnum.REJECT.getCode(), McTaskStatusEnum.CANCEL.getCode()));
+        // 变更中/取消中 -> 新建、已审批、工厂已确认、已驳回、取消
+        STATUS_FLOW_MAP.put(McTaskStatusEnum.CHANGE.getCode(), Arrays.asList(McTaskStatusEnum.CREATE.getCode(), McTaskStatusEnum.VERIFY.getCode(), McTaskStatusEnum.CONFIRM.getCode(), McTaskStatusEnum.REJECT.getCode(), McTaskStatusEnum.CANCEL.getCode()));
 
     }
 
