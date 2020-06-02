@@ -60,7 +60,7 @@ public class WipMcTaskApiController {
     }
 
     @ApiOperation(value = "配料任务状态变更", notes = "配料任务状态变更")
-    @PatchMapping("/line/status")
+    @PutMapping("/line/status")
     public RestResponse updateStatusBySourceLindId(@RequestBody WipMcTaskUpdateStatusDTO wipMcTaskUpdateStatusDTO) {
         wipMcTaskService.updateStatusBySourceLine(wipMcTaskUpdateStatusDTO);
         return ResponseFactory.getOkResponse(null);
@@ -68,7 +68,7 @@ public class WipMcTaskApiController {
 
 
     @ApiOperation(value = "配料任务状态解除锁定")
-    @PatchMapping("/line/status/unlock")
+    @PutMapping("/line/status/unlock")
     public RestResponse unlockBySourceLineIds(@RequestBody WipMcTaskUnlockDTO wipMcTaskUnlockDTO) {
         wipMcWfService.unlockBySourceLineIds(wipMcTaskUnlockDTO);
         return ResponseFactory.getOkResponse(null);
