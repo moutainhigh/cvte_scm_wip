@@ -137,12 +137,17 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     }
 
     public void updateStatus(String taskId, String updateToStatus) {
+        updateStatus(taskId, updateToStatus, true);
+    }
+    public void updateStatus(String taskId, String updateToStatus, boolean validateUpdateTO) {
 
         McTaskStatusEnum updateToStatusEnum = EnumUtils.getByCode(updateToStatus, McTaskStatusEnum.class);
 
         McTaskInfoView mcTaskInfoView = getMcTaskInfoView(taskId);
 
-        wipMcTaskValidateService.validateUpdStatusTo(mcTaskInfoView.getStatus(), updateToStatus);
+        if (validateUpdateTO) {
+            wipMcTaskValidateService.validateUpdStatusTo(mcTaskInfoView.getStatus(), updateToStatus);
+        }
 
 
         // 已注册的特殊状态变更校验
@@ -164,15 +169,16 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
         repository.updateSelectiveById(wipMcTask);
 
-        if (!McTaskStatusEnum.CHANGE.equals(curStatusEnum)) {
-            wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
-                    taskId,
-                    updateToStatusEnum.getOptName()));
-        } else {
+        if (McTaskStatusEnum.CHANGE.equals(curStatusEnum) && !McTaskStatusEnum.CHANGE.equals(updateToStatusEnum)) {
             // crm取消变更时会回滚到之前的状态，这里记录的日志信息需要特殊处理下
             wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
                     taskId,
-                    "驳回/取消变更审核"));
+                    "解除锁定",
+                    String.format("%s -> %s", curStatusEnum.getValue(), updateToStatusEnum.getValue())));
+        } else {
+            wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                    taskId,
+                    updateToStatusEnum.getOptName()));
         }
 
 
@@ -492,6 +498,18 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         return buName;
     }
 
+    /**
+     * 1、调拨出库：物料仓（XX-01）---》在制仓（XX-257）
+     * 对应的目的仓库是XX-257
+     * 2、调拨入库：在制仓（XX-257）---》散料仓（XX-54）
+     * 对应的目的仓库是XX-54
+     *
+     * @param
+     * @param transactionTypeNameEnum
+     * @param wipMcTaskLineView
+     * @param lineDTO
+     * @return void
+     **/
     private void handlerDefaultValueOfInoutStockLineDTO(TransactionTypeNameEnum transactionTypeNameEnum,
                                                         WipMcTaskLineView wipMcTaskLineView,
                                                         EbsInoutStockDTO.LineDTO lineDTO) {
@@ -516,6 +534,14 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     }
 
+    /**
+     * 货位：仓库.工厂编码
+     *
+     * @param
+     * @param subInventory
+     * @param factoryCode
+     * @return java.lang.String
+     **/
     private String getLocatorCode(String subInventory, String factoryCode) {
         return String.format("%s.%s.", subInventory, factoryCode);
     }

@@ -189,7 +189,7 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         copyMcTaskIds.removeAll(validTaskIds);
 
         for (String cancelTaskId : copyMcTaskIds) {
-            wipMcTaskService.updateStatus(cancelTaskId, McTaskStatusEnum.CANCEL.getCode());
+            wipMcTaskService.updateStatus(cancelTaskId, McTaskStatusEnum.CANCEL.getCode(), false);
         }
         return copyMcTaskIds;
     }
