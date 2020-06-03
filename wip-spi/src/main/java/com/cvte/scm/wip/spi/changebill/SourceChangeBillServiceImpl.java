@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,8 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
             innerParamMap.put("organizationId", queryVO.getOrganizationId());
         }
         if (Objects.nonNull(queryVO.getLastUpdDate())) {
-            innerParamMap.put("lastUpdDate", queryVO.getLastUpdDate());
+            String lastUpdDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(queryVO.getLastUpdDate());
+            innerParamMap.put("lastUpdDate", lastUpdDate);
         }
         String innerParamStr = JSON.toJSONString(innerParamMap);
         Map<String, Object> outerParamMap = new HashMap<>();

@@ -38,7 +38,8 @@ public class ChangeBillEntityFactory implements DomainFactory<ChangeBillBuildVO,
                 .setMoId(vo.getMoId())
                 .setBillStatus(vo.getBillStatus())
                 .setEnableDate(vo.getEnableDate())
-                .setDisableDate(vo.getDisableDate());
+                .setDisableDate(vo.getDisableDate())
+                .setLastUpdDate(vo.getLastUpdDate());
         return entity;
     }
 

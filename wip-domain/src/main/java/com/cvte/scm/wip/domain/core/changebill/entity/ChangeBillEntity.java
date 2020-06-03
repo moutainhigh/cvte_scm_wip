@@ -71,6 +71,8 @@ public class ChangeBillEntity implements Entity<String> {
 
     private Long version;
 
+    private Date lastUpdDate;
+
     private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
     public ChangeBillEntity getByKey(String billKey) {

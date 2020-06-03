@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
   * 
@@ -33,6 +34,9 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
     public void insert(ChangeBillEntity entity) {
         WipCnBillDO billDO = WipCnBillDO.buildDO(entity);
         EntityUtils.writeStdCrtInfoToEntity(billDO, EntityUtils.getWipUserId());
+        if (Objects.nonNull(entity.getLastUpdDate())) {
+            billDO.setUpdTime(entity.getLastUpdDate());
+        }
         cnBillMapper.insertSelective(billDO);
     }
 
@@ -40,6 +44,9 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
     public void update(ChangeBillEntity entity) {
         WipCnBillDO billDO = WipCnBillDO.buildDO(entity);
         EntityUtils.writeStdUpdInfoToEntity(billDO, EntityUtils.getWipUserId());
+        if (Objects.nonNull(entity.getLastUpdDate())) {
+            billDO.setUpdTime(entity.getLastUpdDate());
+        }
         cnBillMapper.updateByPrimaryKeySelective(billDO);
     }
 

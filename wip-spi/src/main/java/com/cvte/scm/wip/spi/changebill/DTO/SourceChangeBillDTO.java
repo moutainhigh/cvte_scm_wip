@@ -89,7 +89,7 @@ public class SourceChangeBillDTO {
                 .setBillStatus(changeBillDTO.getBillStatus())
                 .setEnableDate(changeBillDTO.getEnableDate())
                 .setDisableDate(changeBillDTO.getDisableDate())
-                .setLastUpdateDate(changeBillDTO.getLastUpdDate());
+                .setLastUpdDate(changeBillDTO.getLastUpdDate());
         if (StringUtils.isBlank(billBuildVO.getBillStatus())) {
             billBuildVO.setBillStatus(StatusEnum.NORMAL.getCode());
         }

@@ -38,7 +38,7 @@ public class ChangeBillBuildVO implements VO {
 
     private Date disableDate;
 
-    private Date lastUpdateDate;
+    private Date lastUpdDate;
 
     private List<ChangeBillDetailBuildVO> detailVOList;
 
