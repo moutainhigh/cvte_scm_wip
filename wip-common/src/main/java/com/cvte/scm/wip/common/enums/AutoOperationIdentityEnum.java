@@ -13,7 +13,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum AutoOperationIdentityEnum implements Codeable {
-    WIP("SCM-WIP", "WIP自动变更");
+    WIP("SCM-WIP", "WIP自动变更"),
+    EBS("EBS", "EBS变更同步"),
     ;
     private String code, desc;
 }

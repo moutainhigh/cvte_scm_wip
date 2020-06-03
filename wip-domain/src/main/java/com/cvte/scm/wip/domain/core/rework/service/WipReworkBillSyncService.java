@@ -4,6 +4,7 @@ import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.AutoOperationIdentityEnum;
 import com.cvte.scm.wip.common.enums.error.ReworkBillErrEnum;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkBillHeaderEntity;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkBillLineEntity;
@@ -149,7 +150,7 @@ public class WipReworkBillSyncService {
                 .setRejectMtrDealType(ebsBillH.getReject_mtr_deal_type())
                 .setGoodMtrDealType(ebsBillH.getGood_mtr_deal_type())
                 .setUpdDate(ebsBillH.getLast_update_date())
-                .setUpdUser("EBS");
+                .setUpdUser(AutoOperationIdentityEnum.EBS.getCode());
     }
 
     /**

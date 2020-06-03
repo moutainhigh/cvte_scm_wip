@@ -5,6 +5,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.AutoOperationIdentityEnum;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.serial.SerialNoGenerationService;
@@ -330,9 +331,12 @@ public class WipReworkBillHeaderService {
     }
 
     private String getUserNameById(String userId) {
+        if (AutoOperationIdentityEnum.EBS.getCode().equals(userId)) {
+            return null;
+        }
         UserBaseEntity user = userService.getEnableUserInfo(userId);
         if (Objects.nonNull(user)) {
-            user.getName();
+            return user.getName();
         }
         return null;
     }
