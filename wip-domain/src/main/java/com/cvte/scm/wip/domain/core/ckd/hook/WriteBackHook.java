@@ -17,5 +17,5 @@ public interface WriteBackHook {
      **/
     List<McTaskDeliveringStockView> listMcTaskDeliveringStockView();
 
-    boolean needUpdateFinishToFinish();
+    boolean needUpdateFinishStatusToFinish();
 }

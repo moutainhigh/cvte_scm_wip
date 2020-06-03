@@ -150,8 +150,8 @@ public class WipMcInoutStockWriteBackService {
                 new WipMcTaskLineQuery().setTaskIds(new ArrayList<>(repWipMcTaskIds)).setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
 
         // 更新配料任务完成状态
-        if (writeBackHook.needUpdateFinishToFinish()) {
-            updateMcTaskFinishStatusToFinis(needUpdateMcTaskFinishStatusToFinish(wipMcTaskLineViews));
+        if (writeBackHook.needUpdateFinishStatusToFinish()) {
+            updateMcTaskFinishStatusToFinish(needUpdateMcTaskFinishStatusToFinish(wipMcTaskLineViews));
         }
 
 
@@ -177,7 +177,7 @@ public class WipMcInoutStockWriteBackService {
      * @param mcTaskIds
      * @return void
      **/
-    private void updateMcTaskFinishStatusToFinis(List<String> mcTaskIds) {
+    private void updateMcTaskFinishStatusToFinish(List<String> mcTaskIds) {
         if (CollectionUtils.isEmpty(mcTaskIds)) {
             return;
         }
@@ -188,7 +188,8 @@ public class WipMcInoutStockWriteBackService {
             wipMcTaskEntity.setMcTaskId(mcTaskId)
                     .setFinishStatus(McTaskFinishStatusEnums.FINISH.getCode())
                     .setFinishDate(new Date());
-            EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcTaskEntity);
+            EntityUtils.writeCurUserStdUpdInfoToEntity(wipMcTaskEntity);
+            updateList.add(wipMcTaskEntity);
         }
         wipMcTaskService.updateList(updateList);
     }

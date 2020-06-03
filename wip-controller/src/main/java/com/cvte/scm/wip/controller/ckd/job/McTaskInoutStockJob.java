@@ -46,7 +46,7 @@ public class McTaskInoutStockJob extends IJobHandler {
             }
 
             @Override
-            public boolean needUpdateFinishToFinish() {
+            public boolean needUpdateFinishStatusToFinish() {
                 return false;
             }
         });
@@ -60,7 +60,7 @@ public class McTaskInoutStockJob extends IJobHandler {
             }
 
             @Override
-            public boolean needUpdateFinishToFinish() {
+            public boolean needUpdateFinishStatusToFinish() {
                 return true;
             }
         });

@@ -139,6 +139,20 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     public void updateStatus(String taskId, String updateToStatus) {
         updateStatus(taskId, updateToStatus, true);
     }
+
+
+    /**
+     * 变更配料任务状态
+     *
+     * 目前会跳过生命周期状态转换的校验场景有：
+     *  1. 配料任务状态取消锁定。专题会转换到配料任务前一个非锁定的状态
+     *  2. 更新配料任务行信息，如果所有配料任务行都被失效的，会将配料任务作废
+     *
+     * @param taskId
+     * @param updateToStatus
+     * @param validateUpdateTO 仅控制是否做生命周期状态转换的校验，不控制注册在处理器中的特殊校验
+     * @return void
+     **/
     public void updateStatus(String taskId, String updateToStatus, boolean validateUpdateTO) {
 
         McTaskStatusEnum updateToStatusEnum = EnumUtils.getByCode(updateToStatus, McTaskStatusEnum.class);
