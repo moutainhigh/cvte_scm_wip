@@ -3,7 +3,6 @@ package com.cvte.scm.wip.spi.rework;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
-import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkMoEntity;
@@ -38,9 +37,6 @@ public class OcsRwkBillServiceImpl implements OcsRwkBillService {
 
     @Override
     public List<WipRwkAvailableQtyVO> getAvailableQty(WipRwkMoVO rwkMoDTO, List<WipReworkMoEntity> rwkMoList) {
-        if (StringUtils.isBlank(rwkMoDTO.getOcsOrderId())) {
-            return null;
-        }
         String token;
         try {
             token = accessTokenService.getAccessToken();

@@ -264,8 +264,11 @@ public class WipSubRuleAdaptService {
             adaptItems.removeAll(validAdaptItems);
             return type.getDesc() + adaptItems + "不存在";
         }
-        if (type == SubRuleScopeTypeEnum.PRODUCTION_LOT && wipSubRuleAdaptRepository.getPreparedLotNos(organizationId, validAdaptItems).size() > 0) {
-            return "批次号存在领料单";
+        if (type == SubRuleScopeTypeEnum.PRODUCTION_LOT) {
+            List<String> issuedLots = wipSubRuleAdaptRepository.getPreparedLotNos(organizationId, validAdaptItems);
+            if (ListUtil.notEmpty(issuedLots)) {
+                return String.format("批次号【%s】存在领料单", String.join(",", issuedLots));
+            }
         }
         return "";
     }
