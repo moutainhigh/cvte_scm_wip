@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
@@ -133,10 +134,12 @@ public class ReqInsEntity implements Entity<String> {
      * @author xueyuting
      */
     public ReqInsEntity completeInstruction(ReqInsBuildVO vo) {
-        ReqInsEntity existsIns = this.getByKey(vo.getInsHeaderId());
-        if (Objects.nonNull(existsIns) && !ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus())) {
-            log.info("指令(ID={})已执行,不可变更", vo.getInsHeaderId());
-            return null;
+        if (StringUtils.isNotBlank(vo.getInsHeaderId())) {
+            ReqInsEntity existsIns = this.getByKey(vo.getInsHeaderId());
+            if (Objects.nonNull(existsIns) && !ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus())) {
+                log.info("指令(ID={})已执行,不可变更", vo.getInsHeaderId());
+                return null;
+            }
         }
         if (ChangedTypeEnum.DELETE.getCode().equals(vo.getChangeType())) {
             return this.deleteCompleteReqIns(vo);

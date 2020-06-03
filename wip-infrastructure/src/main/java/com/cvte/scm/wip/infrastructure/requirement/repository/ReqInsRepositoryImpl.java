@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
@@ -45,6 +46,9 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
 
     @Override
     public ReqInsEntity selectByKey(String insKey) {
+        if (StringUtils.isBlank(insKey)) {
+            throw new ParamsIncorrectException("查询具体指令时主键不可为空");
+        }
         Example example = new Example(WipReqInsHeaderDO.class);
         example.createCriteria().andEqualTo("insHId", insKey);
         Example.Criteria sourceBillCriteria = example.createCriteria().andEqualTo("sourceCnBillId", insKey);
