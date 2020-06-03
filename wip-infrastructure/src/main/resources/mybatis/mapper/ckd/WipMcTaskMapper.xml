@@ -43,7 +43,7 @@
         <result column="versionDate" property="versionDate" />
         <result column="org_id" property="orgId"/>
         <result column="ebs_organization_code" property="ebsOrganizationCode"/>
-        <result column="mcFinishStatus" property="mcFinishStatus" />
+        <result column="mcFinishStatusCode" property="mcFinishStatusCode" />
         <result column="bu_name" property="buName" />
         <result column="dept_name" property="deptName" />
     </resultMap>
@@ -72,9 +72,7 @@
        select Wmt.mc_task_no
         , Wmt.mc_task_id
         , Wmw.status
-        , case Wmw.status
-        when 'finish' then '已完成'
-        else '未完成' end mcFinishStatus
+        , Wmt.finish_status mcFinishStatusCode
         , Wmt.client
         , Wmt.mtr_ready_time
         , sofv.factory_name
@@ -157,6 +155,7 @@
             , Wmis.header_no
             , Wmis.header_id
             , Wmis.mc_task_id
+            , Wmis.status header_status
             , Wmisl.*
             , row_number() OVER( partition by Wmis."type", Wmisl.mc_task_line_id order by Wmisl.crt_time desc) Rn
             from wip_mc_inout_stock Wmis
@@ -165,7 +164,7 @@
         where Wmtl.line_status = '110'
         and (
             -- 行数据中含有未过账数据 或 头数据含 非终止状态数据
-            Wmis.status not in  ('POSTED', 'CANCELLED')
+            Wmis.header_status not in  ('POSTED', 'CANCELLED')
             or Wmt.mc_task_id in (
                 select Wmis.mc_task_id
                 from wip_mc_inout_stock Wmis
@@ -196,6 +195,7 @@
             , Wmis.header_no
             , Wmis.header_id
             , Wmis.mc_task_id
+            , Wmis.status header_status
             , Wmisl.*
             , row_number() OVER( partition by Wmis."type", Wmisl.mc_task_line_id order by Wmisl.crt_time desc) Rn
             from wip_mc_inout_stock Wmis
@@ -204,7 +204,7 @@
         where Wmtl.line_status = '110'
         and (
             -- 行数据中含有未过账数据 或 头数据含 非终止状态数据
-            Wmis.status not in  ('POSTED', 'CANCELLED')
+            Wmis.header_status not in  ('POSTED', 'CANCELLED')
             or Wmt.mc_task_id in (
                 select Wmis.mc_task_id
                 from wip_mc_inout_stock Wmis

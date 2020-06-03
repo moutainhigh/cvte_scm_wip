@@ -19,6 +19,8 @@ import com.cvte.scm.wip.domain.core.ckd.entity.WipMcInoutStockLineEntity;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskEntity;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcWfEntity;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
+import com.cvte.scm.wip.domain.core.ckd.enums.McTaskFinishStatusEnums;
+import com.cvte.scm.wip.domain.core.ckd.enums.McTaskLineStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.hook.WriteBackHook;
 import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockVO;
@@ -142,9 +144,17 @@ public class WipMcInoutStockWriteBackService {
         wipMcInoutStockLineService.updateList(wipMcInoutStockLines);
 
 
+
         // 拉取所有更新了的配料任务行，并筛选出需要更新状态的配料任务id
-        List<WipMcTaskLineView> wipMcTaskLineViews =
-                wipMcTaskLineService.listWipMcTaskLineView(new WipMcTaskLineQuery().setTaskIds(new ArrayList<>(repWipMcTaskIds)));
+        List<WipMcTaskLineView> wipMcTaskLineViews = wipMcTaskLineService.listWipMcTaskLineView(
+                new WipMcTaskLineQuery().setTaskIds(new ArrayList<>(repWipMcTaskIds)).setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
+
+        // 更新配料任务完成状态
+        if (writeBackHook.needUpdateFinishToFinish()) {
+            updateMcTaskFinishStatusToFinis(needUpdateMcTaskFinishStatusToFinish(wipMcTaskLineViews));
+        }
+
+
         Set<String> needUpdateToFinishTaskIds = findNeedUpdateStatusToFinishTaskIds(repWipMcTaskIds, wipMcTaskLineViews);
         Set<String> needUpdateToCloseTaskIds = findNeedUpdateStatusToCancelTaskIds(repWipMcTaskIds, wipMcTaskLineViews);
 
@@ -161,6 +171,45 @@ public class WipMcInoutStockWriteBackService {
         }
     }
 
+    /**
+     * 更新配料任务完成状态至完成
+     *
+     * @param mcTaskIds
+     * @return void
+     **/
+    private void updateMcTaskFinishStatusToFinis(List<String> mcTaskIds) {
+        if (CollectionUtils.isEmpty(mcTaskIds)) {
+            return;
+        }
+
+        List<WipMcTaskEntity> updateList = new ArrayList<>();
+        for (String mcTaskId : mcTaskIds) {
+            WipMcTaskEntity wipMcTaskEntity = new WipMcTaskEntity();
+            wipMcTaskEntity.setMcTaskId(mcTaskId)
+                    .setFinishStatus(McTaskFinishStatusEnums.FINISH.getCode())
+                    .setFinishDate(new Date());
+            EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcTaskEntity);
+        }
+        wipMcTaskService.updateList(updateList);
+    }
+
+    /**
+     * 所有调拨出库完成时，更新配料任务头状态为完成
+     *
+     * @param wipMcTaskLineViews
+     * @return java.util.List<java.lang.String>
+     **/
+    private List<String> needUpdateMcTaskFinishStatusToFinish(List<WipMcTaskLineView> wipMcTaskLineViews) {
+        Set<String> allIds = wipMcTaskLineViews.stream().map(WipMcTaskLineView::getMcTaskId).collect(Collectors.toSet());
+
+        for (WipMcTaskLineView view : wipMcTaskLineViews) {
+            if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(view.getDeliveryInLineStatus())
+                || !EbsDeliveryStatusEnum.POSTED.getCode().equals(view.getDeliveryInStatus())) {
+                allIds.remove(view.getMcTaskId());
+            }
+        }
+        return new ArrayList<>(allIds);
+    }
     /**
      * 当前业务场景下：
      *  1. 调拨出库过账后才能调拨入库

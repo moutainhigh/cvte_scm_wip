@@ -291,6 +291,11 @@ public class WipMcInoutStockWriteBackServiceTest extends BaseMcTaskTest {
             return views;
         }
 
+        @Override
+        public boolean needUpdateFinishToFinish() {
+            return false;
+        }
+
     }
 
 }

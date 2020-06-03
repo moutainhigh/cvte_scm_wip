@@ -79,6 +79,7 @@
         , Out_View.qty delivery_out_qty
         , Out_View.post_qty delivery_out_post_qty
         , In_View.header_no delivery_in_no
+        , In_View.header_status delivery_in_status
         , In_View.inout_stock_line_id delivery_in_stock_line_id
         , In_View.line_no delivery_in_line_no
         , In_View.status delivery_in_line_status

@@ -199,6 +199,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         if (StringUtils.isNotBlank(mcTaskInfoView.getStatus())) {
             mcTaskInfoView.setStatusName(EnumUtils.getByCode(mcTaskInfoView.getStatus(), McTaskStatusEnum.class).getValue());
         }
+        if (StringUtils.isNotBlank(mcTaskInfoView.getMcFinishStatusCode())) {
+            mcTaskInfoView.setMcFinishStatus(EnumUtils.getByCode(mcTaskInfoView.getMcFinishStatusCode(), McTaskFinishStatusEnums.class).getValue());
+        }
 
         return mcTaskInfoView;
     }
@@ -614,7 +617,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setBuName(sysBuDeptDetailVO.getBuName())
                 .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
-                .setOrgId(getOrgIdByOrganizationId(firstMcReq.getOrganizationId()));
+                .setOrgId(getOrgIdByOrganizationId(firstMcReq.getOrganizationId()))
+                .setFinishStatus(McTaskFinishStatusEnums.UN_FINISH.getCode());
         EntityUtils.writeStdCrtInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
 
         // 设入审核状态
@@ -659,7 +663,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setBuName(sysBuDeptDetailVO.getBuName())
                 .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
-                .setOrgId(getOrgIdByOrganizationId(mcReq.getOrganizationId()));
+                .setOrgId(getOrgIdByOrganizationId(mcReq.getOrganizationId()))
+                .setFinishStatus(McTaskFinishStatusEnums.UN_FINISH.getCode());
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
 
         List<WipMcReqToTaskEntity> wipMcReqToTasks = wipMcReqToTaskService.selectList(new WipMcReqToTaskEntity()

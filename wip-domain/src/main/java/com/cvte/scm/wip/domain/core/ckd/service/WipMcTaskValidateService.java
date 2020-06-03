@@ -12,7 +12,6 @@ import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
 import com.cvte.scm.wip.domain.core.ckd.utils.McTaskStatusUtils;
-import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.EbsDeliveryStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,14 +103,13 @@ public class WipMcTaskValidateService {
                     }
                     break;
                 case IN:
-                    // 行数据调拨单不存在/已取消，且行出库单对应的调拨单行、头已过账才可创建
+                    // 行数据调拨单不存在/已取消，且行出库单对应的调拨单行已过账才可创建
                     if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
                             && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus())) {
                         throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
                     }
 
-                    if (!EbsDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutStatus())
-                        || !McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                    if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
                         throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
                     }
                     break;

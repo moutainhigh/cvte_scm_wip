@@ -87,6 +87,12 @@ public class WipMcTaskEntity extends BaseModel {
     @ApiModelProperty(value = "scm库存组织")
     private String orgId;
 
+    @Column(name = "finish_status")
+    private String finishStatus;
+
+    @Column(name = "finish_date")
+    private Date finishDate;
+
     /**
      * ${field.comment}
      */

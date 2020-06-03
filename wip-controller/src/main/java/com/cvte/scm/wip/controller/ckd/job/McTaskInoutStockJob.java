@@ -3,6 +3,8 @@ package com.cvte.scm.wip.controller.ckd.job;
 import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
+import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView;
+import com.cvte.scm.wip.domain.core.ckd.hook.WriteBackHook;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcInoutStockWriteBackService;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskService;
 import com.xxl.job.core.biz.model.ReturnT;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,17 +39,34 @@ public class McTaskInoutStockJob extends IJobHandler {
         CurrentContext.setCurrentOperatingUser(CurrentContextUtils.mockOperatingUser(CommonUserConstant.TIMING_TASK));
 
         // 回写调拨出库数据
-        writeBackService.writeBackInoutStock(() -> wipMcTaskService.listMcTaskDeliveringOutStockView());
+        writeBackService.writeBackInoutStock(new WriteBackHook() {
+            @Override
+            public List<McTaskDeliveringStockView> listMcTaskDeliveringStockView() {
+                return wipMcTaskService.listMcTaskDeliveringOutStockView();
+            }
+
+            @Override
+            public boolean needUpdateFinishToFinish() {
+                return false;
+            }
+        });
 
 
         // 回写调拨入库数据
-        writeBackService.writeBackInoutStock(() -> wipMcTaskService.listMcTaskDeliveringInStockView());
+        writeBackService.writeBackInoutStock(new WriteBackHook() {
+            @Override
+            public List<McTaskDeliveringStockView> listMcTaskDeliveringStockView() {
+                return wipMcTaskService.listMcTaskDeliveringInStockView();
+            }
+
+            @Override
+            public boolean needUpdateFinishToFinish() {
+                return true;
+            }
+        });
 
 
         return new ReturnT<>("调拨单数据回写已完成");
     }
-
-
-
 
 }
