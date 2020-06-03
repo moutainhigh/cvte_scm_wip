@@ -25,7 +25,7 @@ public class SubRuleExeLogVO {
 
     private String afterItemNo;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date crtTime;
 
     private String result;
