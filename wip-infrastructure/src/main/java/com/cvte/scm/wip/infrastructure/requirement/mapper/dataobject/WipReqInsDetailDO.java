@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -82,13 +83,13 @@ public class WipReqInsDetailDO extends BaseEntity {
      */
     @Column(name = "item_unit_qty")
     @ApiModelProperty(value = "单位用量")
-    private Double itemUnitQty;
+    private BigDecimal itemUnitQty;
     /**
      * 用量
      */
     @Column(name = "item_qty")
     @ApiModelProperty(value = "用量")
-    private Double itemQty;
+    private BigDecimal itemQty;
     /**
      * 位号
      */

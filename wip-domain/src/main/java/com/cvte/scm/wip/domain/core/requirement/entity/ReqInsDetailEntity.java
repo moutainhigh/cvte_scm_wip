@@ -1,13 +1,23 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsDetailEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository;
+import com.cvte.scm.wip.domain.core.requirement.repository.WipLotRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsDetailBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipLotVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +28,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -38,9 +49,13 @@ public class ReqInsDetailEntity implements Entity<String> {
     private ReqInsDetailEntityFactory detailEntityFactory;
 
     private ReqInsDetailRepository detailRepository;
+    private ScmItemService itemService;
+    private WipLotRepository wipLotRepository;
 
-    public ReqInsDetailEntity(ReqInsDetailRepository detailRepository) {
+    public ReqInsDetailEntity(ReqInsDetailRepository detailRepository, ScmItemService itemService, WipLotRepository wipLotRepository) {
         this.detailRepository = detailRepository;
+        this.itemService = itemService;
+        this.wipLotRepository = wipLotRepository;
     }
 
     @Override
@@ -85,6 +100,9 @@ public class ReqInsDetailEntity implements Entity<String> {
     private String invalidBy;
 
     private String invalidReason;
+
+    // 冗余目标投料单头ID
+    private String aimHeaderId;
 
     public List<ReqInsDetailEntity> getByInstructionId(String insHeaderId) {
         return detailRepository.getByInsId(insHeaderId);
@@ -186,6 +204,96 @@ public class ReqInsDetailEntity implements Entity<String> {
         Map<String, ReqInsDetailEntity> entityMap = new HashMap<>();
         billDetailEntityList.forEach(detailEntity -> entityMap.put(detailEntity.getSourceDetailId(), detailEntity));
         return entityMap;
+    }
+
+    public List<WipReqLineEntity> parseDetail(Map<String, List<WipReqLineEntity>> reqLineMap) {
+        InsOperationTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getOperationType(), InsOperationTypeEnum.class);
+        if (Objects.isNull(typeEnum)) {
+            throw new ParamsIncorrectException("投料指令变更类型异常");
+        }
+        switch (typeEnum) {
+            case ADD:
+                return parseAddType();
+            case DELETE:
+                return parseDeleteType(reqLineMap);
+            case REPLACE:
+                return parseReplaceType(reqLineMap);
+        }
+        return Collections.emptyList();
+    }
+
+    private WipReqLineEntity buildReqLine() {
+        WipReqLineEntity reqLine = new WipReqLineEntity();
+        reqLine.setHeaderId(this.getAimHeaderId())
+                .setOrganizationId(this.getOrganizationId())
+                .setWkpNo(this.getWkpNo())
+                .setLotNumber(this.getMoLotNo())
+                .setPosNo(this.getPosNo())
+                .setItemId(this.getItemIdNew())
+                .setItemNo(itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew()))
+                .setReqQty(this.getItemQty().intValue())
+                .setUnitQty(this.getItemUnitQty().doubleValue())
+                .setChangeType(ChangedTypeEnum.ADD.getCode());
+        return reqLine;
+    }
+
+    private List<WipReqLineEntity> parseAddType() {
+        List<WipReqLineEntity> resultList = new ArrayList<>();
+        if (StringUtils.isBlank(this.getMoLotNo())) {
+            List<WipLotVO> wipLotList = wipLotRepository.selectByHeaderId(this.getAimHeaderId());
+            if (ListUtil.empty(wipLotList)) {
+                throw new ServerException(ReqInsErrEnum.ADD_LOT_NULL.getCode(), ReqInsErrEnum.ADD_LOT_NULL.getDesc() + this.toString());
+            }
+            resultList.addAll(wipLotList.stream().map(lot -> this.buildReqLine().setLotNumber(lot.getLotNumber())).collect(Collectors.toList()));
+        } else {
+            resultList.add(this.buildReqLine());
+        }
+        return resultList;
+    }
+
+    private List<WipReqLineEntity> parseDeleteType(Map<String, List<WipReqLineEntity>> reqLineMap) {
+        List<WipReqLineEntity> reqLineList = reqLineMap.get(this.getInsDetailId());
+        reqLineList.forEach(line -> line.setChangeType(ChangedTypeEnum.DELETE.getCode()));
+        return reqLineMap.get(this.getInsDetailId());
+    }
+
+    private List<WipReqLineEntity> parseReplaceType(Map<String, List<WipReqLineEntity>> reqLineMap) {
+        if (StringUtils.isBlank(this.getItemIdNew())) {
+            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "替换后物料不可为空,指令:" + this.toString());
+        }
+        String afterItemNo = itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew());
+        List<WipReqLineEntity> reqLineList = reqLineMap.get(this.getInsDetailId());
+        reqLineList.forEach(line ->
+                line.setBeforeItemNo(line.getItemNo())
+                .setItemNo(afterItemNo)
+                .setChangeType(ChangedTypeEnum.REPLACE.getCode()));
+        return reqLineList;
+    }
+
+    @Override
+    public String toString() {
+        List<String> fieldPrintList = new ArrayList<>();
+        BiConsumer<String, String> addNonNull = (p, v) -> {
+            if (StringUtils.isNotBlank(v)) {
+                fieldPrintList.add(p + "=" + v);
+            }
+        };
+        addNonNull.accept("投料单头", this.getAimHeaderId());
+        addNonNull.accept("组织", this.getOrganizationId());
+        addNonNull.accept("批次", this.getMoLotNo());
+        addNonNull.accept("工序", this.getWkpNo());
+        addNonNull.accept("物料ID", this.getItemIdNew());
+        addNonNull.accept("位号", this.getPosNo());
+        addNonNull.accept("变更类型", this.getOperationTypeDesc());
+        return String.join(",", fieldPrintList);
+    }
+
+    public String getOperationTypeDesc() {
+        InsOperationTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getOperationType(), InsOperationTypeEnum.class);
+        if (Objects.isNull(typeEnum)) {
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), String.format("指令ID:%s变更类型为空或无法识别", this.getInsDetailId()));
+        }
+        return typeEnum.getDesc();
     }
 
     public static ReqInsDetailEntity get() {

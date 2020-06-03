@@ -240,4 +240,9 @@ public class TestConfiguration {
         return Mockito.mock(SubRuleExecuteLogService.class);
     }
 
+    @Bean
+    public WipLotRepository wipLotRepository() {
+        return Mockito.mock(WipLotRepository.class);
+    }
+
 }

@@ -5,10 +5,12 @@ import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
+import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +84,8 @@ public class ReqInsEntity implements Entity<String> {
             return this.detailList;
         }
         this.detailList = ReqInsDetailEntity.get().getByInstructionId(this.insHeaderId);
+        // 冗余目标投料单头ID
+        this.detailList.forEach(detail -> detail.setAimHeaderId(this.getAimHeaderId()));
         return this.detailList;
     }
 
@@ -136,6 +140,21 @@ public class ReqInsEntity implements Entity<String> {
         } else {
             return this.createCompleteReqIns(vo);
         }
+    }
+
+    public ReqInsEntity processSuccess() {
+        this.setStatus(ProcessingStatusEnum.SOLVED.getCode());
+        this.setConfirmedBy(EntityUtils.getWipUserId());
+        headerRepository.update(this);
+        return this;
+    }
+
+    public List<WipReqLineEntity> parse(Map<String, List<WipReqLineEntity>> reqLineMap) {
+        List<WipReqLineEntity> reqLineEntityList = new ArrayList<>();
+        for (ReqInsDetailEntity detailEntity : this.getDetailList()) {
+            reqLineEntityList.addAll(detailEntity.parseDetail(reqLineMap));
+        }
+        return reqLineEntityList;
     }
 
     public static ReqInsEntity get() {

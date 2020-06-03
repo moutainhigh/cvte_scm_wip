@@ -7,7 +7,6 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
-import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.*;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
@@ -27,9 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
-import javax.persistence.Column;
-import javax.persistence.Transient;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -436,6 +432,36 @@ public class WipReqLineService {
                 }
             }
         }
+        return "";
+    }
+
+    public String[] executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::validateAndGetExecuteData);
+        Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, getWipUserId());
+        Consumer<WipReqLineEntity> manipulate = line -> {
+            ChangedTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(line.getChangeType(), ChangedTypeEnum.class);
+            if (Objects.isNull(typeEnum)) {
+                throw new ParamsIncorrectException("更改类型不可为空");
+            }
+            switch (typeEnum) {
+                case ADD:
+                    addOne(line, eMode, cMode, false);
+                    break;
+                case DELETE:
+                    cancelledByLineIds(eMode, cMode, false, line.getLineId());
+                    break;
+                case REPLACE:
+                    replace(singletonList(line), eMode, cMode, false, userId);
+                    break;
+            }
+        };
+        ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)
+                .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
+        return change(parameters);
+    }
+
+    private String validateAndGetExecuteData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> changedData) {
+        changedData.add(wipReqLine);
         return "";
     }
 

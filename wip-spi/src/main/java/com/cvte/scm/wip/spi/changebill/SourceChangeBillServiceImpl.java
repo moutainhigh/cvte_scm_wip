@@ -49,6 +49,9 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
     @Override
     public List<ChangeBillBuildVO> querySourceChangeBill(ChangeBillQueryVO queryVO) {
         List<SourceChangeBillDTO> changeBillDTOList = requestEbsChangeBill(queryVO);
+        if (ListUtil.empty(changeBillDTOList)) {
+            return Collections.emptyList();
+        }
         return parseDtoToVo(changeBillDTOList);
     }
 

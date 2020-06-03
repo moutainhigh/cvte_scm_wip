@@ -1,8 +1,10 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
@@ -89,9 +91,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
             lineDOList.removeIf(line -> BillStatusEnum.valid(line.getLineStatus()));
             return WipReqLineDO.batchBuildEntity(lineDOList);
         }
-        WipReqLineEntity lineEntity = new WipReqLineEntity();
-        BeanUtils.copyProperties(keyQueryVO, lineEntity);
-        Example example = createCustomExample(lineEntity);
+        Example example = createCustomExample(keyQueryVO);
         return selectByExample(example);
     }
 
@@ -110,6 +110,28 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public void writeIncrementalData(List<String> wipEntityIdList, List<Integer> organizationIdList) {
         wipReqLinesMapper.writeIncrementalData(wipEntityIdList, organizationIdList);
+    }
+
+    private Example createCustomExample(WipReqLineKeyQueryVO keyQueryVO) {
+        if (StringUtils.isBlank(keyQueryVO.getHeaderId())) {
+            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "目标投料单头或组织不可为空,指令:" + keyQueryVO.toString());
+        }
+        Example example = new Example(WipReqLineDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        BiConsumer<String, String> equalOrNull = (p, v) -> criteria.andEqualTo(p, isNotEmpty(v) ? v : null);
+        equalOrNull.accept("headerId", keyQueryVO.getHeaderId());
+        equalOrNull.accept("organizationId", keyQueryVO.getOrganizationId());
+        equalOrNull.accept("lotNumber", keyQueryVO.getLotNumber());
+        equalOrNull.accept("wkpNo", keyQueryVO.getWkpNo());
+        equalOrNull.accept("itemId", keyQueryVO.getItemId());
+        equalOrNull.accept("itemNo", keyQueryVO.getItemNo());
+        equalOrNull.accept("posNo", keyQueryVO.getPosNo());
+        List<String> statusList = new ArrayList<>();
+        statusList.add(BillStatusEnum.DRAFT.getCode());
+        statusList.add(BillStatusEnum.CONFIRMED.getCode());
+        statusList.add(BillStatusEnum.PREPARED.getCode());
+        criteria.andIn("lineStatus", statusList);
+        return example;
     }
 
     @Override

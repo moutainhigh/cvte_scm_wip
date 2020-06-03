@@ -132,6 +132,9 @@ public class WipReqLineEntity {
     @Transient
     private String groupId;
 
+    @Transient
+    private String changeType;
+
     @Override
     public boolean equals(Object obj) {
         if (Objects.nonNull(obj) && obj instanceof WipReqLineEntity) {

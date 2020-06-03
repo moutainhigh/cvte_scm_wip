@@ -1,6 +1,8 @@
 package com.cvte.scm.wip.domain.core.requirement.valueobject;
 
+import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import lombok.Data;
@@ -39,9 +41,12 @@ public class WipReqLineKeyQueryVO {
 
     private String posNo;
 
-    public static WipReqLineKeyQueryVO build(String headerId, ReqInsDetailEntity entity) {
+    public static WipReqLineKeyQueryVO build(ReqInsDetailEntity entity) {
+        if (StringUtils.isBlank(entity.getMoLotNo()) && StringUtils.isBlank(entity.getWkpNo()) && StringUtils.isBlank(entity.getItemIdNew()) && StringUtils.isNotBlank(entity.getPosNo())) {
+            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + ",删除范围过大,指令:ID=" + entity.getInsDetailId());
+        }
         WipReqLineKeyQueryVO keyQueryVO = new WipReqLineKeyQueryVO();
-        keyQueryVO.setHeaderId(headerId)
+        keyQueryVO.setHeaderId(entity.getAimHeaderId())
                 .setOrganizationId(entity.getOrganizationId())
                 .setLotNumber(entity.getMoLotNo())
                 .setWkpNo(entity.getWkpNo())

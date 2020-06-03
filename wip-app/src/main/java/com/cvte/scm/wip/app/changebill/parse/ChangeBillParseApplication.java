@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.app.changebill.parse;
 
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -40,6 +42,10 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
         // 获取EBS更改单
         List<ChangeBillBuildVO> changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
 
+        if (ListUtil.empty(changeBillBuildVOList)) {
+            return "";
+        }
+
         for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
             // 生成更改单
             ChangeBillEntity billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
@@ -55,7 +61,7 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
             ReqInsEntity.get().completeInstruction(instructionBuildVO);
         }
 
-        return null;
+        return changeBillBuildVOList.stream().map(ChangeBillBuildVO::getBillNo).collect(Collectors.joining(","));
     }
 
 }

@@ -2,7 +2,6 @@ package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
-import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;

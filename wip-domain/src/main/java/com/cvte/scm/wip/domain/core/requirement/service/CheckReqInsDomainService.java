@@ -3,14 +3,14 @@ package com.cvte.scm.wip.domain.core.requirement.service;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
-import com.cvte.scm.wip.common.enums.error.ChangeBillErrEnum;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import org.springframework.stereotype.Service;
 
@@ -38,15 +38,24 @@ public class CheckReqInsDomainService implements DomainService {
      * @author xueyuting
      */
     public Map<String, List<WipReqLineEntity>> validAndGetLine(ReqInsEntity insEntity) {
+        if (!(ProcessingStatusEnum.PENDING.getCode().equals(insEntity.getStatus()) || ProcessingStatusEnum.EXCEPTION.getCode().equals(insEntity.getStatus()))) {
+            // 只有未执行和执行异常的指令可以执行
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + "只有未执行/异常状态的指令可以执行,指令:ID=" + insEntity.getInsHeaderId());
+        }
         Map<String, List<WipReqLineEntity>> reqLineMap = new HashMap<>();
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
-            WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(insEntity.getAimHeaderId(), detailEntity);
-            List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO);
-            if (!ChangedTypeEnum.ADD.getCode().equals(detailEntity.getInsStatus())) {
+            WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(detailEntity);
+            if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())) {
+                // 非新增, 获取指令的目标投料行
+                List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO);
                 if (ListUtil.empty(reqLineList)) {
-                    throw new ServerException(ChangeBillErrEnum.TARGET_LINE_INVALID.getCode(), ChangeBillErrEnum.TARGET_LINE_INVALID.getDesc() + keyQueryVO.toString());
+                    throw new ServerException(ReqInsErrEnum.TARGET_LINE_INVALID.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc() + detailEntity.toString());
                 }
                 reqLineMap.put(detailEntity.getInsDetailId(), reqLineList);
+            } else {
+                if (Objects.isNull(detailEntity.getItemQty())) {
+                    throw new ServerException(ReqInsErrEnum.ADD_VALID_QTY.getCode(), ReqInsErrEnum.ADD_VALID_QTY.getDesc() + detailEntity.toString());
+                }
             }
         }
         return reqLineMap;
@@ -63,15 +72,14 @@ public class CheckReqInsDomainService implements DomainService {
             reqLineMap = validAndGetLine(insEntity);
         }
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
-            if (ChangedTypeEnum.ADD.getCode().equals(detailEntity.getInsStatus())) {
+            if (InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())) {
                 // 新增类型无需校验
                 continue;
             }
-            WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(insEntity.getAimHeaderId(), detailEntity);
             List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
             for (WipReqLineEntity reqLine : reqLineList) {
                 if (BillStatusEnum.ISSUED.getCode().equals(reqLine.getLineStatus())) {
-                    throw new ServerException(ChangeBillErrEnum.TARGET_LINE_ISSUED.getCode(), ChangeBillErrEnum.TARGET_LINE_ISSUED.getDesc() + keyQueryVO.toString());
+                    throw new ServerException(ReqInsErrEnum.TARGET_LINE_ISSUED.getCode(), ReqInsErrEnum.TARGET_LINE_ISSUED.getDesc() + detailEntity.toString());
                 }
             }
         }
@@ -87,13 +95,12 @@ public class CheckReqInsDomainService implements DomainService {
             reqLineMap = validAndGetLine(insEntity);
         }
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
-            if (ChangedTypeEnum.REPLACE.getCode().equals(detailEntity.getOperationType()) && Objects.nonNull(detailEntity.getItemQty())) {
-                WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(insEntity.getAimHeaderId(), detailEntity);
+            if (InsOperationTypeEnum.REPLACE.getCode().equals(detailEntity.getOperationType()) && Objects.nonNull(detailEntity.getItemQty())) {
                 List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
                 long reqQty = reqLineList.stream().filter(line -> Objects.nonNull(line.getReqQty())).mapToLong(WipReqLineEntity::getReqQty).sum();
                 long replaceQty = detailEntity.getItemQty().longValue();
                 if (reqQty != replaceQty) {
-                    throw new ServerException(ChangeBillErrEnum.PART_MIX.getCode(), ChangeBillErrEnum.PART_MIX.getDesc() + keyQueryVO.toString());
+                    throw new ServerException(ReqInsErrEnum.PART_MIX.getCode(), ReqInsErrEnum.PART_MIX.getDesc() + detailEntity.toString());
                 }
             }
         }
@@ -107,9 +114,20 @@ public class CheckReqInsDomainService implements DomainService {
     public void checkPreInsExists(ReqInsEntity insEntity) {
         List<String> statusList = new ArrayList<>();
         statusList.add(ProcessingStatusEnum.PENDING.getCode());
-        List<ReqInsEntity> preInsEntity = insEntity.getByAimHeaderId(insEntity.getAimHeaderId(), statusList);
-        if (ListUtil.notEmpty(preInsEntity)) {
-            throw new ServerException(ChangeBillErrEnum.EXISTS_PRE_INS.getCode(), ChangeBillErrEnum.EXISTS_PRE_INS.getDesc() + insEntity.getAimReqLotNo());
+        List<ReqInsEntity> preInsList = insEntity.getByAimHeaderId(insEntity.getAimHeaderId(), statusList);
+        preInsList.removeIf(ins -> ins.getInsHeaderId().equals(insEntity.getInsHeaderId()));
+        if (ListUtil.notEmpty(preInsList)) {
+            boolean isEarliest = true;
+            for (ReqInsEntity preIns : preInsList) {
+                if (preIns.getEnableDate().before(insEntity.getEnableDate())) {
+                    isEarliest = false;
+                    break;
+                }
+            }
+            if (isEarliest) {
+                return;
+            }
+            throw new ServerException(ReqInsErrEnum.EXISTS_PRE_INS.getCode(), ReqInsErrEnum.EXISTS_PRE_INS.getDesc() + insEntity.getAimReqLotNo());
         }
     }
 
