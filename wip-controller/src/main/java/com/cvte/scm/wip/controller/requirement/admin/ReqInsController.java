@@ -3,12 +3,14 @@ package com.cvte.scm.wip.controller.requirement.admin;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.req.confirm.ReqInsConfirmApplication;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
+import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLinePageService;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import io.swagger.annotations.Api;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
   * 
@@ -39,6 +41,13 @@ public class ReqInsController {
     @PostMapping("/info")
     public RestResponse reqInsInfo(@RequestBody SysViewPageParamVO sysViewPageParam) {
         return new RestResponse().setData(wipReqLinePageService.reqInsInfo(sysViewPageParam));
+    }
+
+    @GetMapping("/count/{aimHeaderId}")
+    public RestResponse count(@PathVariable("aimHeaderId") String aimHeaderId) {
+        List<String> statusList = new ArrayList<>();
+        statusList.add(ProcessingStatusEnum.PENDING.getCode());
+        return new RestResponse().setData(ReqInsEntity.get().getByAimHeaderId(aimHeaderId, statusList).size());
     }
 
 }
