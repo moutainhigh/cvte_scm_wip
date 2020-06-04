@@ -9,6 +9,7 @@ import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsDetailEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository;
@@ -18,6 +19,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsDetailBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipLotVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -270,6 +272,19 @@ public class ReqInsDetailEntity implements Entity<String> {
         return reqLineList;
     }
 
+    public void processSuccess() {
+        this.setInsStatus(ProcessingStatusEnum.SOLVED.getCode());
+        this.setConfirmedBy(EntityUtils.getWipUserId());
+        this.setConfirmDate(new Date());
+        detailRepository.update(this);
+    }
+
+    public void batchProcessSuccess(List<ReqInsDetailEntity> insDetailList) {
+        for (ReqInsDetailEntity insDetail : insDetailList) {
+            insDetail.processSuccess();
+        }
+    }
+
     @Override
     public String toString() {
         List<String> fieldPrintList = new ArrayList<>();
@@ -288,7 +303,7 @@ public class ReqInsDetailEntity implements Entity<String> {
         return String.join(",", fieldPrintList);
     }
 
-    public String getOperationTypeDesc() {
+    private String getOperationTypeDesc() {
         InsOperationTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getOperationType(), InsOperationTypeEnum.class);
         if (Objects.isNull(typeEnum)) {
             throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), String.format("指令ID:%s变更类型为空或无法识别", this.getInsDetailId()));

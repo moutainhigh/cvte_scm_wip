@@ -225,7 +225,7 @@ public class ChangeBillEntity implements Entity<String> {
         ReqInsDetailBuildVO detailBuildVO = ReqInsDetailBuildVO.buildVO(billDetailEntity);
         detailBuildVO.setInsDetailId(UUIDUtils.get32UUID())
                 .setOperationType(billDetailEntity.getOperationType())
-                .setInsStatus(billDetailEntity.getStatus());
+                .setInsStatus(ProcessingStatusEnum.PENDING.getCode());
         return detailBuildVO;
     }
 

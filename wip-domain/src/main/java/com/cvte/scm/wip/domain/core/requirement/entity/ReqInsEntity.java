@@ -150,11 +150,11 @@ public class ReqInsEntity implements Entity<String> {
         }
     }
 
-    public ReqInsEntity processSuccess() {
+    public void processSuccess() {
         this.setStatus(ProcessingStatusEnum.SOLVED.getCode());
         this.setConfirmedBy(EntityUtils.getWipUserId());
         headerRepository.update(this);
-        return this;
+        ReqInsDetailEntity.get().batchProcessSuccess(this.getDetailList());
     }
 
     public List<WipReqLineEntity> parse(Map<String, List<WipReqLineEntity>> reqLineMap) {
