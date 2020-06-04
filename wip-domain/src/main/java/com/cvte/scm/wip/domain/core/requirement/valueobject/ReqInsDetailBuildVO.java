@@ -61,6 +61,7 @@ public class ReqInsDetailBuildVO implements VO {
                 .setItemIdNew(billDetailEntity.getItemIdNew())
                 .setWkpNo(billDetailEntity.getWkpNo())
                 .setItemQty(billDetailEntity.getItemQty())
+                .setItemUnitQty(billDetailEntity.getItemUnitQty())
                 .setEnableDate(billDetailEntity.getEnableDate())
                 .setDisableDate(billDetailEntity.getDisableDate());
         return detailBuildVO;

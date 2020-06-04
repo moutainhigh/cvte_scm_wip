@@ -7,6 +7,7 @@ import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillDetailBuildVO;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
 
@@ -75,6 +76,12 @@ public class SourceChangeBillDTO {
     @JSONField(name = "POS_NO")
     private String posNo;
 
+    @JSONField(name = "ITEM_UNIT_QTY")
+    private BigDecimal itemUnitQty;
+
+    @JSONField(name = "ITEM_QTY")
+    private BigDecimal itemQty;
+
     private Date detailEnableDate;
 
     private Date detailDisableDate;
@@ -109,7 +116,9 @@ public class SourceChangeBillDTO {
                 .setPosNo(changeBillDTO.getPosNo())
                 .setEnableDate(changeBillDTO.getDetailEnableDate())
                 .setDisableDate(changeBillDTO.getDetailDisableDate())
-                .setSourceLineId(changeBillDTO.getLineId());
+                .setSourceLineId(changeBillDTO.getLineId())
+                .setItemUnitQty(changeBillDTO.getItemUnitQty())
+                .setItemQty(changeBillDTO.getItemQty());
         if (StringUtils.isBlank(detailBuildVO.getStatus())) {
             detailBuildVO.setStatus(StatusEnum.NORMAL.getCode());
         }
