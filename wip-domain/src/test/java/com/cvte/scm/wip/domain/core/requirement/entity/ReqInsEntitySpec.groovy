@@ -10,6 +10,7 @@ import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepositor
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository
 import com.cvte.scm.wip.domain.core.requirement.repository.WipLotRepository
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipLotVO
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum
@@ -33,12 +34,52 @@ class ReqInsEntitySpec extends BaseJunitTest {
         ReqInsEntity insEntity = ReqInsEntity.get().setDetailList([
                 ReqInsDetailEntity.get().setOperationType(InsOperationTypeEnum.ADD.code)
         ])
-        when(wipLotRepository.selectByHeaderId(anyObject())).thenReturn(null)
+        when(wipLotRepository.selectByHeaderId(anyObject())).thenReturn([])
         when:
         insEntity.parse(null)
         then:
         ServerException se = thrown()
         se.status == ReqInsErrEnum.ADD_LOT_NULL.getCode()
+    }
+
+    def "新增工单批次"() {
+        given:
+        def aimReqLotNo = "lot1"
+        def lotNo1 = "lot1_1"
+        def lotNo2 = "lot1_2"
+        ReqInsEntity insEntity = ReqInsEntity.get().setDetailList([
+                ReqInsDetailEntity.get().setAimReqLotNo(aimReqLotNo).setMoLotNo(aimReqLotNo).setItemUnitQty(1.5).setOperationType(InsOperationTypeEnum.ADD.code)
+        ])
+        when(wipLotRepository.selectByHeaderId(anyObject())).thenReturn([
+                new WipLotVO(lotNumber: lotNo1, lotQuantity: 100),
+                new WipLotVO(lotNumber: lotNo2, lotQuantity: 150)
+        ])
+        when:
+        def reqLineList = insEntity.parse(null)
+        then:
+        reqLineList.size() == 2
+        and:
+        def line1 = reqLineList.get(0)
+        def line2 = reqLineList.get(1)
+        line1.lotNumber == lotNo1 && line1.reqQty == 150
+        line2.lotNumber == lotNo2 && line2.reqQty == 225
+    }
+
+    def "新增小批次"() {
+        given:
+        def aimReqLotNo = "lot1"
+        def lotNo1 = "lot1_1"
+        ReqInsEntity insEntity = ReqInsEntity.get().setAimReqLotNo(aimReqLotNo).setDetailList([
+                ReqInsDetailEntity.get().setAimReqLotNo(aimReqLotNo).setMoLotNo(lotNo1).setItemUnitQty(1.5).setOperationType(InsOperationTypeEnum.ADD.code)
+        ])
+        when(wipLotRepository.selectByHeaderId(anyObject())).thenReturn([
+                new WipLotVO(lotNumber: lotNo1, lotQuantity: 100)
+        ])
+        when:
+        def reqLineList = insEntity.parse(null)
+        then:
+        def reqLine = reqLineList[0]
+        reqLine.lotNumber == lotNo1 && reqLine.reqQty == 150
     }
 
     def "删除投料"() {

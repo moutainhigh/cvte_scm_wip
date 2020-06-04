@@ -20,7 +20,7 @@ public enum ReqInsErrEnum implements Codeable {
     PART_MIX("4001004", "不允许部分混料,指令:"),
     EXISTS_PRE_INS("4001005", "存在未执行的前置指令,批次:"),
     ADD_VALID_QTY("4001006", "新增投料行数量不可为空,指令:"),
-    ADD_LOT_NULL("4001007", "批次为空,指令:"),
+    ADD_LOT_NULL("4001007", "批次为空或不存在,指令:"),
     KEY_NULL("4001008", "指令缺失关键索引,"),
     ;
 

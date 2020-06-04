@@ -23,12 +23,11 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
-  * 
-  * @author  : xueyuting
-  * @since    : 2020/5/21 16:22
-  * @version : 1.0
-  * email   : xueyuting@cvte.com
-  */
+ * @author : xueyuting
+ * @version : 1.0
+ * email   : xueyuting@cvte.com
+ * @since : 2020/5/21 16:22
+ */
 @Slf4j
 @Data
 @Component
@@ -85,8 +84,9 @@ public class ReqInsEntity implements Entity<String> {
             return this.detailList;
         }
         this.detailList = ReqInsDetailEntity.get().getByInstructionId(this.insHeaderId);
-        // 冗余目标投料单头ID
-        this.detailList.forEach(detail -> detail.setAimHeaderId(this.getAimHeaderId()));
+        // 冗余目标投料单头ID和批次
+        this.detailList.forEach(detail -> detail.setAimHeaderId(this.getAimHeaderId())
+                .setAimReqLotNo(this.getAimReqLotNo()));
         return this.detailList;
     }
 
@@ -139,8 +139,9 @@ public class ReqInsEntity implements Entity<String> {
 
     /**
      * 生成投料单指令集及其所有指令
-     * @since 2020/5/23 10:40 上午
+     *
      * @author xueyuting
+     * @since 2020/5/23 10:40 上午
      */
     public ReqInsEntity completeInstruction(ReqInsBuildVO vo) {
         if (StringUtils.isNotBlank(vo.getInsHeaderId())) {

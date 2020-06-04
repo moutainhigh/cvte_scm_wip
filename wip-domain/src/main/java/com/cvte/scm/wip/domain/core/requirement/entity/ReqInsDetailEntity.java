@@ -106,6 +106,9 @@ public class ReqInsDetailEntity implements Entity<String> {
     // 冗余目标投料单头ID
     private String aimHeaderId;
 
+    // 冗余目标投料单批次
+    private String aimReqLotNo;
+
     public List<ReqInsDetailEntity> getByInstructionId(String insHeaderId) {
         return detailRepository.getByInsId(insHeaderId);
     }
@@ -226,31 +229,42 @@ public class ReqInsDetailEntity implements Entity<String> {
         return Collections.emptyList();
     }
 
-    private WipReqLineEntity buildReqLine() {
+    private WipReqLineEntity buildReqLine(WipLotVO wipLotVO) {
+        double unitQty = this.getItemUnitQty().doubleValue();
+        int reqQty = BigDecimal.valueOf(unitQty).multiply(wipLotVO.getLotQuantity()).intValue();
+
         WipReqLineEntity reqLine = new WipReqLineEntity();
         reqLine.setHeaderId(this.getAimHeaderId())
                 .setOrganizationId(this.getOrganizationId())
                 .setWkpNo(this.getWkpNo())
-                .setLotNumber(this.getMoLotNo())
                 .setPosNo(this.getPosNo())
                 .setItemId(this.getItemIdNew())
                 .setItemNo(itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew()))
-                .setReqQty(this.getItemQty().intValue())
-                .setUnitQty(this.getItemUnitQty().doubleValue())
+                .setUnitQty(unitQty)
+                .setReqQty(reqQty)
+                .setLotNumber(wipLotVO.getLotNumber())
                 .setChangeType(ChangedTypeEnum.ADD.getCode());
         return reqLine;
     }
 
     private List<WipReqLineEntity> parseAddType() {
         List<WipReqLineEntity> resultList = new ArrayList<>();
-        if (StringUtils.isBlank(this.getMoLotNo())) {
-            List<WipLotVO> wipLotList = wipLotRepository.selectByHeaderId(this.getAimHeaderId());
+        List<WipLotVO> wipLotList = wipLotRepository.selectByHeaderId(this.getAimHeaderId());
+        if (StringUtils.isBlank(this.getMoLotNo()) || this.getAimReqLotNo().equals(this.getMoLotNo())) {
+            // 小批次为空 或者 小批次=工单批次, 则新增所有批次
             if (ListUtil.empty(wipLotList)) {
                 throw new ServerException(ReqInsErrEnum.ADD_LOT_NULL.getCode(), ReqInsErrEnum.ADD_LOT_NULL.getDesc() + this.toString());
             }
-            resultList.addAll(wipLotList.stream().map(lot -> this.buildReqLine().setLotNumber(lot.getLotNumber())).collect(Collectors.toList()));
+            resultList.addAll(wipLotList.stream().map(this::buildReqLine).collect(Collectors.toList()));
         } else {
-            resultList.add(this.buildReqLine());
+            // 否则只生成小批次
+            List<WipLotVO> filterWipLotList = wipLotList.stream().filter(lot -> this.getMoLotNo().equals(lot.getLotNumber())).collect(Collectors.toList());
+            if (ListUtil.empty(filterWipLotList)) {
+                // 若小批次不存在, 报错
+                throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + this.toString());
+            }
+            // 只会筛选出一个有效的小批次
+            resultList.add(this.buildReqLine(filterWipLotList.get(0)));
         }
         return resultList;
     }
