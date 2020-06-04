@@ -7,7 +7,6 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
-import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.*;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
@@ -25,11 +24,9 @@ import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
-import javax.persistence.Column;
-import javax.persistence.Transient;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -58,6 +55,7 @@ import static java.util.stream.Collectors.toList;
   */
 @Slf4j
 @Service
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqLineService {
 
     private static final BiFunction<String, ChangedTypeEnum, String> logFormat = (errorMsg, type) ->

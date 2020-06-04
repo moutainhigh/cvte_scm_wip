@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-@Transactional
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqHeaderService {
 
     private WipReqHeaderRepository wipReqHeaderRepository;
