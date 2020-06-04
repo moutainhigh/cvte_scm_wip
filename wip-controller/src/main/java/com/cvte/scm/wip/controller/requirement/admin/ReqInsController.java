@@ -1,10 +1,12 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
-import com.cvte.scm.wip.app.req.confirm.ReqInsConfirmApplication;
+import com.cvte.scm.wip.app.req.ins.confirm.ReqInsConfirmApplication;
+import com.cvte.scm.wip.app.req.ins.invalid.ReqInsInvalidApplication;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLinePageService;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +28,12 @@ public class ReqInsController {
 
     private ReqInsConfirmApplication reqInsConfirmApplication;
     private WipReqLinePageService wipReqLinePageService;
+    private ReqInsInvalidApplication reqInsInvalidApplication;
 
-    public ReqInsController(ReqInsConfirmApplication reqInsConfirmApplication, WipReqLinePageService wipReqLinePageService) {
+    public ReqInsController(ReqInsConfirmApplication reqInsConfirmApplication, WipReqLinePageService wipReqLinePageService, ReqInsInvalidApplication reqInsInvalidApplication) {
         this.reqInsConfirmApplication = reqInsConfirmApplication;
         this.wipReqLinePageService = wipReqLinePageService;
+        this.reqInsInvalidApplication = reqInsInvalidApplication;
     }
 
     @PostMapping("/confirm")
@@ -48,6 +52,12 @@ public class ReqInsController {
         List<String> statusList = new ArrayList<>();
         statusList.add(ProcessingStatusEnum.PENDING.getCode());
         return new RestResponse().setData(ReqInsEntity.get().getByAimHeaderId(aimHeaderId, statusList).size());
+    }
+
+    @PostMapping("/invalid")
+    public RestResponse invalid(@RequestBody List<ReqInsBuildVO> voList) {
+        reqInsInvalidApplication.doAction(voList);
+        return new RestResponse();
     }
 
 }

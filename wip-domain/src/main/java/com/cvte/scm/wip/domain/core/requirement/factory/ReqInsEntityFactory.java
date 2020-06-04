@@ -24,7 +24,9 @@ public class ReqInsEntityFactory implements DomainFactory<ReqInsBuildVO, ReqInsE
                 .setAimHeaderId(vo.getAimHeaderId())
                 .setAimReqLotNo(vo.getAimReqLotNo())
                 .setEnableDate(vo.getEnableDate())
-                .setDisableDate(vo.getDisableDate());
+                .setDisableDate(vo.getDisableDate())
+                .setInvalidBy(vo.getInvalidBy())
+                .setInvalidReason(vo.getInvalidReason());
         return headerEntity;
     }
 

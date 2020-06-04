@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.app.req.confirm;
+package com.cvte.scm.wip.app.req.ins.confirm;
 
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.scm.wip.common.base.domain.Application;

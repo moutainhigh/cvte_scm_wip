@@ -122,9 +122,12 @@ public class ReqInsDetailEntity implements Entity<String> {
         return detailEntity;
     }
 
-    public void deleteInsDetail(ReqInsDetailEntity entity) {
-        entity.setInsStatus(StatusEnum.CLOSE.getCode());
-        detailRepository.update(entity);
+    public void deleteInsDetail() {
+        this.setInsStatus(StatusEnum.CLOSE.getCode());
+        if (StringUtils.isBlank(this.getInvalidBy())) {
+            this.setInvalidBy(EntityUtils.getWipUserId());
+        }
+        detailRepository.update(this);
     }
 
     public List<ReqInsDetailEntity> batchCreateDetail(List<ReqInsDetailBuildVO> voList) {
@@ -145,8 +148,7 @@ public class ReqInsDetailEntity implements Entity<String> {
 
     public void batchDeleteDetail(List<ReqInsDetailEntity> entityList) {
         for (ReqInsDetailEntity entity : entityList) {
-            entity.setInsStatus(StatusEnum.CLOSE.getCode());
-            this.deleteInsDetail(entity);
+            entity.deleteInsDetail();
         }
     }
 

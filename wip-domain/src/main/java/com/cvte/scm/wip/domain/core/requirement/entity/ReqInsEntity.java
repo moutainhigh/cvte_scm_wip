@@ -105,6 +105,14 @@ public class ReqInsEntity implements Entity<String> {
         return instructionEntity;
     }
 
+    public void invalidInstruction() {
+        this.setStatus(StatusEnum.CLOSE.getCode());
+        if (StringUtils.isBlank(this.getInvalidBy())) {
+            this.setInvalidBy(EntityUtils.getWipUserId());
+        }
+        headerRepository.update(this);
+    }
+
     public ReqInsEntity createCompleteReqIns(ReqInsBuildVO vo) {
         ReqInsEntity billEntity = this.createInstruction(vo);
         List<ReqInsDetailEntity> detailEntityList = ReqInsDetailEntity.get().batchCreateDetail(vo.getDetailList());
@@ -120,11 +128,12 @@ public class ReqInsEntity implements Entity<String> {
     }
 
     public ReqInsEntity deleteCompleteReqIns(ReqInsBuildVO vo) {
-        vo.setInsHeaderStatus(StatusEnum.CLOSE.getCode());
-        ReqInsEntity billEntity = this.updateInstruction(vo);
+        vo.setInvalidBy(EntityUtils.getWipUserId());
+        ReqInsEntity billEntity = headerEntityFactory.perfect(vo);
+        billEntity.invalidInstruction();
         List<ReqInsDetailEntity> detailEntityList = billEntity.getDetailById();
+        detailEntityList.forEach(detail -> detail.setInvalidReason(vo.getInvalidReason()).setInvalidBy(vo.getInvalidBy()));
         ReqInsDetailEntity.get().batchDeleteDetail(detailEntityList);
-        billEntity.setDetailList(detailEntityList);
         return billEntity;
     }
 

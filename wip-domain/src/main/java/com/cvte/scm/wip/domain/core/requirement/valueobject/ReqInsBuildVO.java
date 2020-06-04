@@ -36,6 +36,10 @@ public class ReqInsBuildVO implements VO {
 
     private String changeType;
 
+    private String invalidBy;
+
+    private String invalidReason;
+
     private List<ReqInsDetailBuildVO> detailList = Collections.emptyList();
 
     public static ReqInsBuildVO buildVO(ChangeBillEntity billEntity) {

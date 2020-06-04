@@ -2,12 +2,14 @@ package com.cvte.scm.wip.domain.core.requirement.entity
 
 import com.cvte.csb.core.exception.ServerException
 import com.cvte.scm.wip.common.enums.AutoOperationIdentityEnum
+import com.cvte.scm.wip.common.enums.StatusEnum
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum
 import com.cvte.scm.wip.domain.BaseJunitTest
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository
 import com.cvte.scm.wip.domain.core.requirement.repository.WipLotRepository
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum
@@ -79,6 +81,22 @@ class ReqInsEntitySpec extends BaseJunitTest {
         and:
         def detail = reqIns.detailList[0]
         detail.insStatus == ProcessingStatusEnum.SOLVED.code && detail.confirmedBy == AutoOperationIdentityEnum.WIP.code
+    }
+
+    def "作废指令"() {
+        given:
+        def reason = "test"
+        def vo = new ReqInsBuildVO(insHeaderId: "h1", invalidReason: reason)
+        def detailList = [ReqInsDetailEntity.get()]
+        when(detailRepository.getByInsId(anyObject())).thenReturn(detailList)
+        doNothing().when(detailRepository).update(anyObject())
+        when:
+        def ins = ReqInsEntity.get().deleteCompleteReqIns(vo)
+        then:
+        ins.status == StatusEnum.CLOSE.code && ins.invalidBy == AutoOperationIdentityEnum.WIP.code && ins.invalidReason == reason
+        and:
+        def detail = ins.detailList[0]
+        detail.insStatus == StatusEnum.CLOSE.code && detail.invalidBy == AutoOperationIdentityEnum.WIP.code && detail.invalidReason == reason
     }
 
 }
