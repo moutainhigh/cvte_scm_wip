@@ -1,8 +1,14 @@
 package com.cvte.scm.wip.domain.common.log.dto;
 
+import com.cvte.csb.base.commons.OperatingUser;
+import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.scm.wip.domain.common.log.entity.WipOperationLogEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.springframework.beans.BeanUtils;
+
+import java.util.Date;
 
 /**
  * @author zy
@@ -47,6 +53,16 @@ public class WipLogDTO {
         this.referenceId = referenceId;
         this.operation = operation;
         this.detail = detail;
+    }
+
+    public WipOperationLogEntity buildEntity(OperatingUser operatingUser) {
+        WipOperationLogEntity entity = new WipOperationLogEntity();
+        BeanUtils.copyProperties(this, entity);
+        entity.setId(UUIDUtils.getUUID())
+                .setCrtTime(new Date())
+                .setCrtName(operatingUser.getName())
+                .setCrtUser(operatingUser.getAccount());
+        return entity;
     }
 
 

@@ -4,12 +4,16 @@ import com.cvte.csb.base.commons.OperatingUser;
 import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
+import com.cvte.csb.core.exception.client.params.SourceNotFoundException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.base.WipBaseService;
+import com.cvte.scm.wip.domain.common.log.constant.LogModuleConstant;
+import com.cvte.scm.wip.domain.common.log.dto.WipLogDTO;
+import com.cvte.scm.wip.domain.common.log.service.WipOperationLogService;
 import com.cvte.scm.wip.domain.core.ckd.dto.WipMcTaskLineUpdateDTO;
 import com.cvte.scm.wip.domain.core.ckd.dto.WipMcTaskSaveDTO;
 import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskLineQuery;
@@ -20,6 +24,9 @@ import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskLineEntity;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskLineStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.repository.WipMcTaskLineRepository;
+import com.cvte.scm.wip.domain.core.scm.dto.query.MdItemQuery;
+import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
+import com.cvte.scm.wip.domain.core.scm.vo.MdItemVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,6 +61,12 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
 
     @Autowired
     private WipMcWfService wipMcWfService;
+
+    @Autowired
+    private ScmViewCommonService scmViewCommonService;
+
+    @Autowired
+    private WipOperationLogService wipOperationLogService;
 
     public List<WipMcTaskLineEntity> listWipMcTaskLine(WipMcTaskLineQuery query) {
         return wipMcTaskLineRepository.listWipMcTaskLine(query);
@@ -118,11 +131,13 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         CurrentContext.setCurrentOperatingUser(operatingUser);
 
         List<String> updateSourceLineIds = new ArrayList<>();
+        List<String> itemCodes = new ArrayList<>();
 
         List<WipMcTaskLineUpdateDTO.UpdateLine> updateLines = wipMcTaskLineUpdateDTO.getUpdateList();
         updateLines.forEach(el -> {
             el.validate();
             updateSourceLineIds.add(el.getSourceLineId());
+            itemCodes.add(el.getItemCode());
         });
 
         List<WipMcTaskView> wipMcTaskViews = wipMcTaskService.listWipMcTaskView(new WipMcTaskQuery().setSourceLineIds(updateSourceLineIds));
@@ -132,6 +147,7 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
                 listWipMcTaskLine(new WipMcTaskLineQuery().setSourceLineIds(updateSourceLineIds));
         Map<String, WipMcTaskLineEntity> wipMcTaskLineMap =
                 wipMcTaskLines.stream().collect(Collectors.toMap(WipMcTaskLineEntity::getSourceLineId, Function.identity()));
+        Map<String, MdItemVO> mdItemVOMap = generateCodeAndItemVoMap(itemCodes);
 
 
         Set<String> lineIdSet = new HashSet<>();
@@ -149,15 +165,22 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
                 throw new ParamsIncorrectException("销售订单行id出现重复：" + updateLine.getSourceLineId());
             }
 
+            if (!mdItemVOMap.containsKey(updateLine.getItemCode())) {
+                log.error("物料{}不存在", updateLine.getItemCode());
+                throw new SourceNotFoundException("获取物料信息错误：itemCode=" + updateLine.getItemCode());
+            }
+
             WipMcTaskLineEntity wipMcTaskLine = wipMcTaskLineMap.get(updateLine.getSourceLineId());
-            wipMcTaskLine.setMcQty(updateLine.getMcQty()).setLineStatus(updateLine.getLineStatus()).setItemId(updateLine.getItemId());
+            wipMcTaskLine.setMcQty(updateLine.getMcQty())
+                    .setLineStatus(updateLine.getLineStatus())
+                    .setItemId(mdItemVOMap.get(updateLine.getItemCode()).getInventoryItemId());
             EntityUtils.writeStdUpdInfoToEntity(wipMcTaskLine, wipMcTaskLineUpdateDTO.getOptUser());
             updateList.add(wipMcTaskLine);
 
             lineIdSet.add(updateLine.getSourceLineId());
         }
 
-        wipMcTaskLineRepository.updateList(updateList);
+        this.updateAndLogList(updateList);
 
         Set<String> mcTaskIdSet = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
         List<String> mcTaskIds = new ArrayList<>(mcTaskIdSet);
@@ -173,6 +196,26 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         wipMcWfService.batchRestorePreStatusIfCurStatusEqualsTo(mcTaskIds, McTaskStatusEnum.CHANGE);
     }
 
+    /**
+     * 更新配料任务行并记录日志
+     *
+     * @param updateList
+     * @return void
+     **/
+    public void updateAndLogList(List<WipMcTaskLineEntity> updateList) {
+        wipMcTaskLineRepository.updateList(updateList);
+
+        Set<String> mcTaskSet = updateList.stream().map(WipMcTaskLineEntity::getMcTaskId).collect(Collectors.toSet());
+        List<WipLogDTO> wipLogDTOList = new ArrayList<>();
+        mcTaskSet.forEach(el -> {
+            WipLogDTO wipLogDTO = new WipLogDTO();
+            wipLogDTO.setReferenceId(el)
+                    .setModule(LogModuleConstant.CKD)
+                    .setOperation("更新配料任务行");
+            wipLogDTOList.add(wipLogDTO);
+        });
+        wipOperationLogService.addLogs(wipLogDTOList, CurrentContext.getCurrentOperatingUser());
+    }
 
 
     /**
@@ -204,6 +247,21 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
                 throw new ParamsIncorrectException("订单行id【" + wipMcTaskLine.getSourceLineId() + "】已存在开立数据");
             }
         }
+    }
+
+
+    /**
+     *
+     *
+     * @param itemCodes
+     * @return java.util.Map<java.lang.String,com.cvte.scm.wip.domain.core.scm.vo.MdItemVO>
+     **/
+    private Map<String, MdItemVO> generateCodeAndItemVoMap(List<String> itemCodes) {
+        if (CollectionUtils.isEmpty(itemCodes)) {
+            return new HashMap<>();
+        }
+        List<MdItemVO> mdItemVOS = scmViewCommonService.listMdItemVO(new MdItemQuery().setItemCodes(itemCodes));
+        return mdItemVOS.stream().collect(Collectors.toMap(MdItemVO::getItemCode, Function.identity()));
     }
 
 }
