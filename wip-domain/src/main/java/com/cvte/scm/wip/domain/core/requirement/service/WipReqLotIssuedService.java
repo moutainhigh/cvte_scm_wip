@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqLotIssuedService {
 
     private WipReqLotIssuedRepository wipReqLotIssuedRepository;

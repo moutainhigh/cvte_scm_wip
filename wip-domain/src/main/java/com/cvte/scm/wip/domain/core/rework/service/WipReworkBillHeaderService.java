@@ -24,6 +24,7 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
   */
 @Slf4j
 @Service
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReworkBillHeaderService {
 
     private static final String SERIAL_CODE = "SCM_WIP_MO_REWORK_BILL_NO";
