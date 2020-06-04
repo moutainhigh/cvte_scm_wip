@@ -254,7 +254,7 @@ public class ReqInsDetailEntity implements Entity<String> {
     private List<WipReqLineEntity> parseDeleteType(Map<String, List<WipReqLineEntity>> reqLineMap) {
         List<WipReqLineEntity> reqLineList = reqLineMap.get(this.getInsDetailId());
         reqLineList.forEach(line -> line.setChangeType(ChangedTypeEnum.DELETE.getCode()));
-        return reqLineMap.get(this.getInsDetailId());
+        return reqLineList;
     }
 
     private List<WipReqLineEntity> parseReplaceType(Map<String, List<WipReqLineEntity>> reqLineMap) {

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -16,6 +17,9 @@ import java.util.Date;
 @Data
 @Accessors(chain = true)
 public class ReqInsInfoVO {
+
+    @ApiModelProperty("指令ID")
+    private String insDetailId;
 
     @ApiModelProperty("指令集ID")
     private String insHeaderId;
@@ -61,6 +65,12 @@ public class ReqInsInfoVO {
 
     @ApiModelProperty("位号")
     private String posNo;
+
+    @ApiModelProperty("用量")
+    private BigDecimal itemQty;
+
+    @ApiModelProperty("单位用量")
+    private BigDecimal itemUnitQty;
 
     @ApiModelProperty("改前物料ID")
     private String itemIdOld;
