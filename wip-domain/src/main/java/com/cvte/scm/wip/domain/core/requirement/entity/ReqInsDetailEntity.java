@@ -266,6 +266,10 @@ public class ReqInsDetailEntity implements Entity<String> {
             // 只会筛选出一个有效的小批次
             resultList.add(this.buildReqLine(filterWipLotList.get(0)));
         }
+        if (StringUtils.isBlank(this.getWkpNo())) {
+            // 如果工序为空, 则设置为默认工序10
+            resultList.forEach(line -> line.setWkpNo("10"));
+        }
         return resultList;
     }
 

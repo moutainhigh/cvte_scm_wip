@@ -25,6 +25,6 @@ public class WipLotRepositoryImpl implements WipLotRepository {
 
     @Override
     public List<WipLotVO> selectByHeaderId(String headerId) {
-        return wipLotMapper.selectByHeaderId(headerId);
+        return wipLotMapper.selectByHeaderId(Integer.valueOf(headerId));
     }
 }

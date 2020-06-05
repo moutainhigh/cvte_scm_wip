@@ -14,7 +14,7 @@
               ,lot_quantity
               ,to_char(factory_id) as factory_id
         from wip_lot_v
-        where to_char(wip_id) = #{headerId}
+        where wip_id = #{headerId}
     </select>
 
 </mapper>

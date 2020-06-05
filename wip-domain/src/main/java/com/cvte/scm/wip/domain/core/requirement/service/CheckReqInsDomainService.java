@@ -40,7 +40,7 @@ public class CheckReqInsDomainService implements DomainService {
     public Map<String, List<WipReqLineEntity>> validAndGetLine(ReqInsEntity insEntity) {
         if (!(ProcessingStatusEnum.PENDING.getCode().equals(insEntity.getStatus()) || ProcessingStatusEnum.EXCEPTION.getCode().equals(insEntity.getStatus()))) {
             // 只有未执行和执行异常的指令可以执行
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + "只有未执行/异常状态的指令可以执行,指令:ID=" + insEntity.getInsHeaderId());
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + "只有未执行或异常状态的指令可以执行,指令:ID=" + insEntity.getInsHeaderId());
         }
         Map<String, List<WipReqLineEntity>> reqLineMap = new HashMap<>();
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
@@ -53,7 +53,7 @@ public class CheckReqInsDomainService implements DomainService {
                 }
                 reqLineMap.put(detailEntity.getInsDetailId(), reqLineList);
             } else {
-                if (Objects.isNull(detailEntity.getItemQty())) {
+                if (Objects.isNull(detailEntity.getItemUnitQty())) {
                     throw new ServerException(ReqInsErrEnum.ADD_VALID_QTY.getCode(), ReqInsErrEnum.ADD_VALID_QTY.getDesc() + detailEntity.toString());
                 }
             }

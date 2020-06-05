@@ -13,6 +13,6 @@ import java.util.List;
  */
 public interface WipLotMapper extends CommonMapper<WipLotVO> {
 
-    List<WipLotVO> selectByHeaderId(String headerId);
+    List<WipLotVO> selectByHeaderId(Integer headerId);
 
 }

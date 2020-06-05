@@ -448,7 +448,7 @@ public class WipReqLineService {
                     addOne(line, eMode, cMode, false);
                     break;
                 case DELETE:
-                    cancelledByLineIds(eMode, cMode, false, line.getLineId());
+                    cancelledByConditions(singletonList(line), eMode, cMode, false, userId);
                     break;
                 case REPLACE:
                     replace(singletonList(line), eMode, cMode, false, userId);
