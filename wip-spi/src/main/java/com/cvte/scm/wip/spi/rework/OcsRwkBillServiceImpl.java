@@ -3,6 +3,7 @@ package com.cvte.scm.wip.spi.rework;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkMoEntity;
@@ -50,15 +51,13 @@ public class OcsRwkBillServiceImpl implements OcsRwkBillService {
 
             String priKey = generateOcsPriKey(rwkMo, rwkMo.getLotStatus());
 
-            lotStatusDTO.setOcs_order_id(rwkMoDTO.getOcsOrderId())
+            String ocsOrderId = rwkMoDTO.getOcsOrderId();
+            if (StringUtils.isBlank(ocsOrderId)) {
+                ocsOrderId = rwkMo.getOrderNumber();
+            }
+            lotStatusDTO.setOcs_order_id(ocsOrderId)
                     .setPri_key(priKey);
             availableQtyDTOList.add(lotStatusDTO);
-            // APPS.XXOCS_ITEM_LOTS_V4还会使用100这个值作为批次状态
-            WipRwkAvailableQtyVO antherStatusDTO = new WipRwkAvailableQtyVO();
-            priKey = generateOcsPriKey(rwkMo, "100");
-            antherStatusDTO.setOcs_order_id(rwkMoDTO.getOcsOrderId())
-                    .setPri_key(priKey);
-            availableQtyDTOList.add(antherStatusDTO);
         }
         String jsonParamStr = JSON.toJSONString(availableQtyDTOList);
         String url = ocsApiInfoConfiguration.getBaseUrl() + "/stockmm/available_qty";
