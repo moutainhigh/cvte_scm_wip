@@ -19,5 +19,5 @@ public interface WipReqHeaderMapper extends CommonMapper<WipReqHeaderDO> {
     List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList);
 
     /* 判断货位信息在投料单头下是否存在 */
-    boolean existLotNumber(@Param("headerId") String headerId, @Param("lotNumber") String lotNumber);
+    boolean existLotNumber(@Param("headerId") Integer headerId, @Param("lotNumber") String lotNumber);
 }

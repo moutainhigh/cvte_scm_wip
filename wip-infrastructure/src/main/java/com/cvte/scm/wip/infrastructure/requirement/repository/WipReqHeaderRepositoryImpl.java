@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
@@ -115,7 +116,10 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
     @Override
     public boolean existLotNumber(String headerId, String lotNumber) {
-        return wipReqHeaderMapper.existLotNumber(headerId, lotNumber);
+        if (!NumberUtil.isInteger(headerId)) {
+            return false;
+        }
+        return wipReqHeaderMapper.existLotNumber(Integer.parseInt(headerId), lotNumber);
     }
 
     private String validateIndex(WipReqHeaderEntity wipReqHeader) {

@@ -89,7 +89,7 @@
     <select id="existLotNumber" resultType="java.lang.Boolean">
         select count(*) > 0
         from wip_lot_v Wl
-        where cast(Wl.wip_id as VARCHAR) = #{headerId}
+        where Wl.wip_id = #{headerId}
         and Wl.lot_number = #{lotNumber}
     </select>
 </mapper>
