@@ -156,8 +156,9 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
             updateLine.validate();
 
             if (!wipMcTaskLineMap.containsKey(updateLine.getSourceLineId())) {
+                // 静默处理，CRM端不能知道是否开立了配料任务
                 log.error("修改的行数据未在配料任务中找到: lineId={}", updateLine.getSourceLineId());
-                throw new ParamsIncorrectException("修改的行数据未在配料任务中找到：" + updateLine.getSourceLineId());
+                continue;
             }
 
             if (lineIdSet.contains(updateLine.getSourceLineId())) {
@@ -225,6 +226,9 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
      * @return List
      **/
     public List<String> updateStatusToCancelIfAllLineCanceled(List<String> mcTaskIds) {
+        if (CollectionUtils.isEmpty(mcTaskIds)) {
+            return new ArrayList<>();
+        }
 
         List<String> copyMcTaskIds = new ArrayList<>(mcTaskIds);
 
