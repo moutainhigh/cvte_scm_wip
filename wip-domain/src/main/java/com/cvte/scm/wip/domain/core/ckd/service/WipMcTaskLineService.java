@@ -141,7 +141,11 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         });
 
         List<WipMcTaskView> wipMcTaskViews = wipMcTaskService.listWipMcTaskView(new WipMcTaskQuery().setSourceLineIds(updateSourceLineIds));
+        wipMcTaskViews = wipMcTaskViews.stream()
+                .filter(el -> !McTaskStatusEnum.CANCEL.getCode().equals(el.getStatus()))
+                .collect(Collectors.toList());
         wipMcTaskViews.forEach(el -> wipMcTaskValidateService.validateUpdOptOfCurStatus(el.getStatus()));
+        Set<String> mcTaskIdSet = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
 
         List<WipMcTaskLineEntity> wipMcTaskLines =
                 listWipMcTaskLine(new WipMcTaskLineQuery().setSourceLineIds(updateSourceLineIds));
@@ -155,7 +159,9 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         for (WipMcTaskLineUpdateDTO.UpdateLine updateLine : updateLines) {
             updateLine.validate();
 
-            if (!wipMcTaskLineMap.containsKey(updateLine.getSourceLineId())) {
+            WipMcTaskLineEntity wipMcTaskLine = wipMcTaskLineMap.get(updateLine.getSourceLineId());
+            if (!wipMcTaskLineMap.containsKey(updateLine.getSourceLineId())
+                || !mcTaskIdSet.contains(wipMcTaskLine.getMcTaskId())) {
                 // 静默处理，CRM端不能知道是否开立了配料任务
                 log.error("修改的行数据未在配料任务中找到: lineId={}", updateLine.getSourceLineId());
                 continue;
@@ -171,7 +177,7 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
                 throw new SourceNotFoundException("获取物料信息错误：itemCode=" + updateLine.getItemCode());
             }
 
-            WipMcTaskLineEntity wipMcTaskLine = wipMcTaskLineMap.get(updateLine.getSourceLineId());
+
             wipMcTaskLine.setMcQty(updateLine.getMcQty())
                     .setLineStatus(updateLine.getLineStatus())
                     .setItemId(mdItemVOMap.get(updateLine.getItemCode()).getInventoryItemId());
@@ -183,7 +189,6 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
 
         this.updateAndLogList(updateList);
 
-        Set<String> mcTaskIdSet = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
         List<String> mcTaskIds = new ArrayList<>(mcTaskIdSet);
 
         // 同步更新版本信息
@@ -245,9 +250,18 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         Set<String> lineIds = mcLines.stream().map(WipMcTaskSaveDTO.McLine::getSourceLineId).collect(Collectors.toSet());
         List<WipMcTaskLineEntity> wipMcTaskLines = listWipMcTaskLine(new WipMcTaskLineQuery().setSourceLineIds(new ArrayList<>(lineIds)));
 
+        Set<String> cancelledTaskIds = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(wipMcTaskLines)) {
+            List<WipMcTaskView> wipMcTaskViews = wipMcTaskService.listWipMcTaskView(
+                    new WipMcTaskQuery().setStatus(McTaskStatusEnum.CANCEL.getCode()).setTaskIds(
+                            wipMcTaskLines.stream().map(WipMcTaskLineEntity::getMcTaskId).collect(Collectors.toList())));
+            cancelledTaskIds = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
+        }
+
+
         for (WipMcTaskLineEntity wipMcTaskLine : wipMcTaskLines) {
 
-            if (lineIds.contains(wipMcTaskLine.getSourceLineId())) {
+            if (lineIds.contains(wipMcTaskLine.getSourceLineId()) && !cancelledTaskIds.contains(wipMcTaskLine.getMcTaskId())) {
                 throw new ParamsIncorrectException("订单行id【" + wipMcTaskLine.getSourceLineId() + "】已存在开立数据");
             }
         }

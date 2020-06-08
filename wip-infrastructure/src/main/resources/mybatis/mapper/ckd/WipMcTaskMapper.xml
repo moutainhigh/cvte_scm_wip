@@ -250,6 +250,9 @@
         join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
         join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
         where 1=1
+        <if test="status != null and status != ''">
+            and wmw.status = #{status}
+        </if>
         <if test="sourceLineIds != null and sourceLineIds.size() > 0">
             AND Wmtl.source_line_id in
             <foreach collection="sourceLineIds" item="item" index="index" open="(" close=")" separator=",">
