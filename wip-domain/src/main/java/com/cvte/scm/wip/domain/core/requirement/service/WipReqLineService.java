@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
@@ -379,7 +380,10 @@ public class WipReqLineService {
         } else if (isNotEmpty(errorMsg = validateIndex(wipReqLine))) {
             return format("抱歉，您替换后的数据有点小问题，{}", errorMsg);
         }
-        Example example = wipReqLineRepository.createCustomExample(wipReqLine.setItemNo(beforeItemNo).setItemId(null));
+        // 直接更新原投料行会导致 投料指令执行时 EBS接口表报 ITEM_ID为空异常
+        WipReqLineEntity queryEntity = new WipReqLineEntity();
+        BeanUtils.copyProperties(wipReqLine, queryEntity);
+        Example example = wipReqLineRepository.createCustomExample(queryEntity.setItemNo(beforeItemNo).setItemId(null));
         if (nonNull(example) && StringUtils.isNotEmpty(wipReqLine.getLineId())) {
             example.getOredCriteria().get(0).andEqualTo("lineId", wipReqLine.getLineId());
         }
@@ -395,7 +399,12 @@ public class WipReqLineService {
         if (CodeableEnumUtils.getCodeableEnumByCode(dbWipReqLine.getLineStatus(), BillStatusEnum.class) == BillStatusEnum.ISSUED) {
             return "替换失败，已领料的投料单无法执行替换操作。";
         }
-        replacedData.add(dbWipReqLine.setSourceCode(wipReqLine.getSourceCode()).setBeforeItemNo(beforeItemNo).setItemNo(afterItemNo));
+        dbWipReqLine.setSourceCode(wipReqLine.getSourceCode())
+                .setBeforeItemNo(beforeItemNo)
+                .setItemNo(afterItemNo)
+                // 投料指令执行时保证只调用一次存储过程
+                .setGroupId(wipReqLine.getGroupId());
+        replacedData.add(dbWipReqLine);
         return "";
     }
 
