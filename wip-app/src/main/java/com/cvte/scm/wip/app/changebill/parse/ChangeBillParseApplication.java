@@ -1,5 +1,7 @@
 package com.cvte.scm.wip.app.changebill.parse;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
@@ -45,6 +47,10 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
     @Transactional("pgTransactionManager")
     public String doAction(ChangeBillQueryVO queryVO) {
 
+        if (StringUtils.isBlank(queryVO.getOrganizationId())) {
+            throw new ParamsIncorrectException("组织ID不可为空");
+        }
+
         // 获取EBS更改单
         List<ChangeBillBuildVO> changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
 
@@ -66,7 +72,7 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
             // 生成投料单指令
             boolean insProcessed = checkReqInsDomainService.checkInsProcessed(instructionBuildVO);
             if (insProcessed) {
-                log.info( "{},指令ID={}", ReqInsErrEnum.INS_IMMUTABLE.getDesc(), instructionBuildVO.getInsHeaderId());
+                log.info("{},指令ID={}" , ReqInsErrEnum.INS_IMMUTABLE.getDesc(), instructionBuildVO.getInsHeaderId());
                 continue;
             }
             ReqInsEntity.get().completeInstruction(instructionBuildVO);

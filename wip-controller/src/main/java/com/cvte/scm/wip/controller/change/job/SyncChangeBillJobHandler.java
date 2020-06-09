@@ -2,6 +2,7 @@ package com.cvte.scm.wip.controller.change.job;
 
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.app.changebill.parse.ChangeBillParseApplication;
+import com.cvte.scm.wip.common.utils.DateUtils;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -10,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -50,9 +49,7 @@ public class SyncChangeBillJobHandler extends IJobHandler {
 
         Integer minutesBefore = (Integer)map.get(MINUTES_BEFORE);
         if (Objects.nonNull(minutesBefore)) {
-            LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(minutesBefore);
-            Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-            changeBillQueryVO.setLastUpdDate(date);
+            changeBillQueryVO.setLastUpdDate(DateUtils.getMinutesBeforeTime(LocalDateTime.now(), minutesBefore));
         }
 
         String billNos = changeBillParseApplication.doAction(changeBillQueryVO);
