@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.service;
 
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
@@ -8,6 +9,7 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum;
@@ -129,6 +131,19 @@ public class CheckReqInsDomainService implements DomainService {
             }
             throw new ServerException(ReqInsErrEnum.EXISTS_PRE_INS.getCode(), ReqInsErrEnum.EXISTS_PRE_INS.getDesc() + insEntity.getAimReqLotNo());
         }
+    }
+
+    /**
+     * 校验投料指令是否已执行
+     * @since 2020/6/9 8:23 下午
+     * @author xueyuting
+     */
+    public Boolean checkInsProcessed(ReqInsBuildVO vo) {
+        if (StringUtils.isNotBlank(vo.getInsHeaderId())) {
+            ReqInsEntity existsIns = ReqInsEntity.get().getByKey(vo.getInsHeaderId());
+            return Objects.nonNull(existsIns) && !ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus());
+        }
+        return false;
     }
 
 }

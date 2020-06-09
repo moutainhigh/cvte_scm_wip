@@ -1,7 +1,10 @@
 package com.cvte.scm.wip.app.req.ins.invalid;
 
+import com.cvte.csb.core.exception.ServerException;
 import com.cvte.scm.wip.common.base.domain.Application;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -22,16 +25,22 @@ public class ReqInsInvalidApplication implements Application<List<ReqInsBuildVO>
 
     private DataSourceTransactionManager pgTransactionManager;
     private TransactionTemplate transactionTemplate;
+    private CheckReqInsDomainService checkReqInsDomainService;
 
-    public ReqInsInvalidApplication(@Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager, TransactionTemplate transactionTemplate) {
+    public ReqInsInvalidApplication(@Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager, TransactionTemplate transactionTemplate, CheckReqInsDomainService checkReqInsDomainService) {
         this.pgTransactionManager = pgTransactionManager;
         this.transactionTemplate = transactionTemplate;
+        this.checkReqInsDomainService = checkReqInsDomainService;
     }
 
     @Override
     public String doAction(List<ReqInsBuildVO> voList) {
         for (ReqInsBuildVO vo : voList) {
             transactionTemplate.setTransactionManager(pgTransactionManager);
+            boolean isProcessed = checkReqInsDomainService.checkInsProcessed(vo);
+            if (isProcessed) {
+                throw new ServerException(ReqInsErrEnum.INS_IMMUTABLE.getCode(), ReqInsErrEnum.INS_IMMUTABLE.getDesc() + ",指令ID=" + vo.getInsHeaderId());
+            }
             transactionTemplate.execute(status -> {
                 ReqInsEntity.get().deleteCompleteReqIns(vo);
                 return null;

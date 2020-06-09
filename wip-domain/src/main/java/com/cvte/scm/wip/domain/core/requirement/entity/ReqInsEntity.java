@@ -147,13 +147,6 @@ public class ReqInsEntity implements Entity<String> {
      * @since 2020/5/23 10:40 上午
      */
     public ReqInsEntity completeInstruction(ReqInsBuildVO vo) {
-        if (StringUtils.isNotBlank(vo.getInsHeaderId())) {
-            ReqInsEntity existsIns = this.getByKey(vo.getInsHeaderId());
-            if (Objects.nonNull(existsIns) && !ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus())) {
-                log.info("指令(ID={})已执行,不可变更", vo.getInsHeaderId());
-                return null;
-            }
-        }
         if (ChangedTypeEnum.DELETE.getCode().equals(vo.getChangeType())) {
             return this.deleteCompleteReqIns(vo);
         } else if (ChangedTypeEnum.UPDATE.getCode().equals(vo.getChangeType())) {
