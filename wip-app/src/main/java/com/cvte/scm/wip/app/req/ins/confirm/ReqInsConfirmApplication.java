@@ -55,20 +55,32 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
             }
             insHeader.getDetailById();
 
-            Map<String, List<WipReqLineEntity>> reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
-            checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
-            checkReqInsDomainService.checkPartMix(insHeader, reqLineMap);
-            checkReqInsDomainService.checkPreInsExists(insHeader);
+            Map<String, List<WipReqLineEntity>> reqLineMap;
+            try {
+                reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
+                checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
+                checkReqInsDomainService.checkPartMix(insHeader, reqLineMap);
+                checkReqInsDomainService.checkPreInsExists(insHeader);
+            } catch (RuntimeException re) {
+                insHeader.processFailed("校验失败," + re.getMessage());
+                throw re;
+            }
 
             List<WipReqLineEntity> reqLineList = insHeader.parse(reqLineMap);
 
             transactionTemplate.setTransactionManager(pgTransactionManager);
-            transactionTemplate.execute(status -> {
-                wipReqLineService.executeByChangeBill(reqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+            try {
+                transactionTemplate.execute(status -> {
+                    wipReqLineService.executeByChangeBill(reqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
 
-                insHeader.processSuccess();
-                return null;
-            });
+                    insHeader.processSuccess();
+                    return null;
+                });
+            } catch (RuntimeException re) {
+                insHeader.processFailed("执行异常," + re.getMessage());
+                throw re;
+            }
+
         }
 
         return null;

@@ -288,6 +288,8 @@ public class ReqInsDetailEntity implements Entity<String> {
         reqLineList.forEach(line ->
                 line.setBeforeItemNo(line.getItemNo())
                 .setItemNo(afterItemNo)
+                        // TODO 设置ID
+//                .setItemId(this.getItemIdNew())
                 .setChangeType(ChangedTypeEnum.REPLACE.getCode()));
         return reqLineList;
     }
@@ -305,6 +307,17 @@ public class ReqInsDetailEntity implements Entity<String> {
         }
     }
 
+    public void processFailed() {
+        this.setInsStatus(ProcessingStatusEnum.EXCEPTION.getCode());
+        detailRepository.update(this);
+    }
+
+    public void batchProcessFailed(List<ReqInsDetailEntity> insDetailList) {
+        for (ReqInsDetailEntity insDetail : insDetailList) {
+            insDetail.processFailed();
+        }
+    }
+
     @Override
     public String toString() {
         List<String> fieldPrintList = new ArrayList<>();
@@ -313,11 +326,13 @@ public class ReqInsDetailEntity implements Entity<String> {
                 fieldPrintList.add(p + "=" + v);
             }
         };
-        addNonNull.accept("投料单头", this.getAimHeaderId());
-        addNonNull.accept("组织", this.getOrganizationId());
+        String itemNoNew = null;
+        if (StringUtils.isNotBlank(this.getItemIdNew())) {
+            itemNoNew = itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew());
+        }
         addNonNull.accept("批次", this.getMoLotNo());
         addNonNull.accept("工序", this.getWkpNo());
-        addNonNull.accept("物料ID", this.getItemIdNew());
+        addNonNull.accept("物料", itemNoNew);
         addNonNull.accept("位号", this.getPosNo());
         addNonNull.accept("变更类型", this.getOperationTypeDesc());
         return String.join(",", fieldPrintList);

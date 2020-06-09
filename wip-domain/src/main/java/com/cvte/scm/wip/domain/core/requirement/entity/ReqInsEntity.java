@@ -70,6 +70,8 @@ public class ReqInsEntity implements Entity<String> {
 
     private String invalidReason;
 
+    private String exceptionReason;
+
     private List<ReqInsDetailEntity> detailList = Collections.emptyList();
 
     public ReqInsEntity getByKey(String insKey) {
@@ -164,8 +166,18 @@ public class ReqInsEntity implements Entity<String> {
     public void processSuccess() {
         this.setStatus(ProcessingStatusEnum.SOLVED.getCode());
         this.setConfirmedBy(EntityUtils.getWipUserId());
+        if (StringUtils.isNotBlank(this.getExceptionReason())) {
+            this.setExceptionReason("");
+        }
         headerRepository.update(this);
         ReqInsDetailEntity.get().batchProcessSuccess(this.getDetailList());
+    }
+
+    public void processFailed(String errMsg) {
+        this.setStatus(ProcessingStatusEnum.EXCEPTION.getCode());
+        this.setExceptionReason(errMsg);
+        headerRepository.update(this);
+        ReqInsDetailEntity.get().batchProcessFailed(this.getDetailList());
     }
 
     public List<WipReqLineEntity> parse(Map<String, List<WipReqLineEntity>> reqLineMap) {
