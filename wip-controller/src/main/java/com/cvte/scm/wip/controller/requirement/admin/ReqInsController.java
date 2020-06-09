@@ -51,6 +51,7 @@ public class ReqInsController {
     public RestResponse count(@PathVariable("aimHeaderId") String aimHeaderId) {
         List<String> statusList = new ArrayList<>();
         statusList.add(ProcessingStatusEnum.PENDING.getCode());
+        statusList.add(ProcessingStatusEnum.EXCEPTION.getCode());
         return new RestResponse().setData(ReqInsEntity.get().getByAimHeaderId(aimHeaderId, statusList).size());
     }
 

@@ -116,6 +116,7 @@ public class CheckReqInsDomainService implements DomainService {
     public void checkPreInsExists(ReqInsEntity insEntity) {
         List<String> statusList = new ArrayList<>();
         statusList.add(ProcessingStatusEnum.PENDING.getCode());
+        statusList.add(ProcessingStatusEnum.EXCEPTION.getCode());
         List<ReqInsEntity> preInsList = insEntity.getByAimHeaderId(insEntity.getAimHeaderId(), statusList);
         preInsList.removeIf(ins -> ins.getInsHeaderId().equals(insEntity.getInsHeaderId()));
         if (ListUtil.notEmpty(preInsList)) {

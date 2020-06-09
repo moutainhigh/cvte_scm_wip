@@ -66,8 +66,8 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
     @Override
     public List<ReqInsEntity> selectByAimHeaderId(String aimHeaderId, List<String> statusList) {
         Example example = new Example(WipReqInsHeaderDO.class);
-        example.createCriteria().andEqualTo("aimHeaderId", aimHeaderId);
-        example.createCriteria().andIn("status", statusList);
+        Example.Criteria criteria = example.createCriteria().andEqualTo("aimHeaderId", aimHeaderId);
+        criteria.andIn("status", statusList);
         List<WipReqInsHeaderDO> headerDOList = insHMapper.selectByExample(example);
         return WipReqInsHeaderDO.batchBuildEntity(headerDOList);
     }
