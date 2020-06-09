@@ -28,4 +28,6 @@ public interface WipSubRuleItemRepository {
 
     List<SubItemValidateVO> getRepeatSubItemRuleIds(String ruleId, String organizationId, List<SubItemValidateVO> subItemNoList, List<String> scopeValueList, Collection<Object> ruleStatusCollection);
 
+    List<SubItemValidateVO> getItemsInReq(List<String> lotNoList, List<String> itemNoList, String organizationId);
+
 }

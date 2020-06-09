@@ -27,4 +27,9 @@ public interface WipSubRuleItemMapper extends CommonMapper<WipSubRuleItemDO> {
                                          @Param("subItemNoList") List<SubItemValidateVO> subItemNoList,
                                          @Param("scopeValueList") List<String> scopeValueList,
                                          @Param("ruleStatusCollection") Collection<Object> ruleStatusCollection);
+
+    /* 获取在指定批次的投料单中的指定物料 */
+    List<SubItemValidateVO> getItemsInReq(@Param("lotNoList") List<String> lotNoList,
+                                          @Param("itemNoList") List<String> itemNoList,
+                                          @Param("organizationId") Integer organizationId);
 }
