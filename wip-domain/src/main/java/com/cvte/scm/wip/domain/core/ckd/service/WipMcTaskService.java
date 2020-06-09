@@ -313,6 +313,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                         .setTaskLineIds(mcTaskLineIds)
                         .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
 
+        if (CollectionUtils.isEmpty(wipMcTaskLineViews)) {
+            throw new ParamsIncorrectException("请选择需要调拨的行");
+        }
         wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView, wipMcTaskLineViews);
 
         EbsInoutStockDTO ebsInoutStockDTO = generateEbsInoutStockDTO(transactionTypeNameEnum, inoutStockId, mcTaskInfoView, wipMcTaskLineViews);
@@ -472,6 +475,14 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         return repository.listValidTaskIds(mcTaskIds);
     }
 
+    public Boolean isSpecClient(String mcTaskId) {
+        if (StringUtils.isBlank(mcTaskId)) {
+            return false;
+        }
+
+        return repository.isSpecClient(mcTaskId);
+    }
+
     private EbsInoutStockDTO generateEbsInoutStockDTO(TransactionTypeNameEnum transactionTypeNameEnum,
                                                       String inoutStockId,
                                                       McTaskInfoView mcTaskInfoView,
@@ -505,14 +516,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setImportLnJson(lines)
                 .setDescription(mcTaskInfoView.getMcTaskNo());
         return ebsInoutStockDTO;
-    }
-
-    private String getInoutStockVuName(String buName) {
-        if (StringUtils.isNotBlank(buName)) {
-            String[] buNames = buName.split(WipMcTaskConstant.ORG_CODE_SEPARATOR);
-            buName = buNames.length > 1 ? buNames[1] : buName;
-        }
-        return buName;
     }
 
     /**
@@ -678,7 +681,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
                 .setOrgId(getOrgIdByOrganizationId(mcReq.getOrganizationId()))
-                .setFinishStatus(McTaskFinishStatusEnums.UN_FINISH.getCode());
+                .setFinishStatus(McTaskFinishStatusEnums.UN_FINISH.getCode())
+                .setClientId(mcReq.getClientId());
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
 
         List<WipMcReqToTaskEntity> wipMcReqToTasks = wipMcReqToTaskService.selectList(new WipMcReqToTaskEntity()

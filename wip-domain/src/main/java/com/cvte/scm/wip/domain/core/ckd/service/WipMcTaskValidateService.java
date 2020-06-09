@@ -3,9 +3,13 @@ package com.cvte.scm.wip.domain.core.ckd.service;
 import com.cvte.csb.core.exception.client.forbiddens.NoOperationRightException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
+import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
+import com.cvte.scm.wip.domain.common.attachment.service.WipAttachmentService;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
@@ -29,6 +33,9 @@ public class WipMcTaskValidateService {
 
     @Autowired
     private WipMcTaskService wipMcTaskService;
+
+    @Autowired
+    private WipAttachmentService wipAttachmentService;
 
     public void validateUpdStatusTo(String curStatus, String updStatusTo) {
 
@@ -96,6 +103,10 @@ public class WipMcTaskValidateService {
         for (WipMcTaskLineView wipMcTaskLineView : wipMcTaskLineViews) {
             switch (transactionTypeNameEnum) {
                 case OUT:
+                    // 对于部分客户的配料任务，需要上传唛头才允许创建调拨出库单
+                    if (wipMcTaskService.isSpecClient(mcTaskInfoView.getMcTaskId()) && !hasAttachment(mcTaskInfoView.getMcTaskId())) {
+                        throw new ParamsIncorrectException("需要销管上传唛头后，才能创建调拨单");
+                    }
                     // 行数据调拨单不存在/已取消，才可创建
                     if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
                             && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
@@ -118,6 +129,15 @@ public class WipMcTaskValidateService {
             }
         }
 
+    }
+
+    private boolean hasAttachment(String mcTaskId) {
+        if (StringUtils.isBlank(mcTaskId)) {
+            return false;
+        }
+
+        List<AttachmentVO> attachmentVOS = wipAttachmentService.listAttachmentView(new AttachmentQuery().setReferenceId(mcTaskId));
+        return CollectionUtils.isNotEmpty(attachmentVOS);
     }
 
 }

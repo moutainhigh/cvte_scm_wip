@@ -46,6 +46,10 @@
         <result column="mcFinishStatusCode" property="mcFinishStatusCode" />
         <result column="bu_name" property="buName" />
         <result column="dept_name" property="deptName" />
+        <result column="item_count" property="itemCount" />
+        <result column="attachment_upload_user" property="attachmentUploadUser" />
+        <result column="sales" property="sales"/>
+        <result column="client_id" property="clientId"/>
     </resultMap>
 
 
@@ -94,6 +98,10 @@
         , Wmt.bu_name
         , Wmt.dept_name
         , mc_req.source_no
+        , item_count.item_count
+		, Wa.crt_name attachment_upload_user
+		, mc_req.sales
+		, Wmt.client_id
         from wip_mc_task Wmt
         join wip_mc_wf Wmw on Wmw.mc_task_id = Wmt.mc_task_id and wmw.wf_id = wmt.mc_wf_id
         left join scm.sys_org_factory_v Sofv on Wmt.factory_id = Sofv.ebs_factory_id
@@ -128,12 +136,27 @@
         ) pm_audit on pm_audit.rn = 1 and pm_audit.mc_task_id = Wmt.mc_task_id
         -- 需求信息
         left join wip_mc_req_to_task Wmrtt on Wmrtt.mc_task_id = Wmt.mc_task_id
-        left join (
-            select source_id
-                , source_no
-            from wip_mc_req
-            group by source_id, source_no
-        ) mc_req on mc_req.source_id = Wmrtt.mc_req_id
+		left join (
+			select source_id
+				, source_no
+				, sales
+				,  row_number() OVER( partition by Wmr.source_id  order by Wmr.crt_time desc) Rn
+			from wip_mc_req Wmr
+		) mc_req on mc_req.source_id = Wmrtt.mc_req_id and mc_req.Rn = 1
+        -- 物料项数
+		left join (
+			select count(distinct wmtl.item_id) item_count,
+				wmtl.mc_task_id
+			from wip_mc_task_line Wmtl
+			where Wmtl.line_status = '110'
+			group by Wmtl.mc_task_id
+		) item_count on item_count.mc_task_id = wmt.mc_task_id
+		-- 附件上传信息
+		left join (
+			select *
+			 , row_number() OVER( partition by Wa.reference_id  order by Wa.crt_time desc) Rn
+			from wip_attachment Wa
+		) Wa on Wa.reference_id = Wmt.mc_task_id and Wa.Rn = 1
         where Wmt.mc_task_id = #{mcTaskId}
     </select>
 
@@ -285,5 +308,12 @@
         group by Wmt.mc_task_id
     </select>
 
+
+    <select id="isSpecClient" resultType="Boolean">
+        select count(1) > 0
+        from wip_mc_task Wmt
+        join wip_mc_spec_client Wmsc on Wmt.client_id = Wmsc.client_id
+        where Wmt.mc_task_id = #{mcTaskId}
+    </select>
 
 </mapper>

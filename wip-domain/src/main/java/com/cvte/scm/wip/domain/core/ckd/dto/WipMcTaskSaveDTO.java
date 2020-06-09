@@ -53,6 +53,10 @@ public class WipMcTaskSaveDTO extends MyBaseEntity {
         @ApiModelProperty(value = "客户")
         private String client;
 
+        @NotBlankNull(message = "客户id不能为空")
+        @ApiModelProperty(value = "客户id")
+        private String clientId;
+
         @NotNull(message = "齐套日期不能为空")
         @ApiModelProperty(value = "齐套日期")
         private Date mtrReadyTime;

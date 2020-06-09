@@ -20,6 +20,8 @@ public class McTaskInfoView {
 
     private String client;
 
+    private String clientId;
+
     private String status;
 
     private String statusName;
@@ -72,5 +74,15 @@ public class McTaskInfoView {
     private String orgId;
 
     private String ebsOrganizationCode;
+
+    @ApiModelProperty("物料项数")
+    private Integer itemCount;
+
+    @ApiModelProperty("附件上传人")
+    private String attachmentUploadUser;
+
+    @ApiModelProperty("销管")
+    private String sales;
+
 
 }

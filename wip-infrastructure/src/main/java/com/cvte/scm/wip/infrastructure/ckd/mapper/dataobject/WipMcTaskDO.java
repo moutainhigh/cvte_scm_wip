@@ -57,6 +57,10 @@ public class WipMcTaskDO extends BaseModel {
      */
     @ApiModelProperty(value = "客户")
     private String client;
+
+    @Column(name = "client_id")
+    @ApiModelProperty(value = "客户id")
+    private String clientId;
     /**
      * 齐套日期
      */

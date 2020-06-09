@@ -59,6 +59,9 @@ public class WipMcTaskEntity extends BaseModel {
      */
     @ApiModelProperty(value = "客户")
     private String client;
+
+    @ApiModelProperty(value = "客户")
+    private String clientId;
     /**
      * 齐套日期
      */
