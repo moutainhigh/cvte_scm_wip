@@ -153,9 +153,9 @@ public class WipReqInsHeaderDO extends BaseEntity {
     @ApiModelProperty(value = "${field.comment}")
     private String updHost;
 
-    @Column(name = "exception_reason")
+    @Column(name = "execute_result")
     @ApiModelProperty(value = "异常原因")
-    private String exceptionReason;
+    private String executeResult;
 
     public static ReqInsEntity buildEntity(WipReqInsHeaderDO headerDO) {
         ReqInsEntity headerEntity = ReqInsEntity.get();

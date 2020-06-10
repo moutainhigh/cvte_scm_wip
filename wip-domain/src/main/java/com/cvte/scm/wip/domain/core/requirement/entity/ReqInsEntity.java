@@ -1,6 +1,5 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
-import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
@@ -70,7 +69,7 @@ public class ReqInsEntity implements Entity<String> {
 
     private String invalidReason;
 
-    private String exceptionReason;
+    private String executeResult;
 
     private List<ReqInsDetailEntity> detailList = Collections.emptyList();
 
@@ -159,16 +158,14 @@ public class ReqInsEntity implements Entity<String> {
     public void processSuccess() {
         this.setStatus(ProcessingStatusEnum.SOLVED.getCode());
         this.setConfirmedBy(EntityUtils.getWipUserId());
-        if (StringUtils.isNotBlank(this.getExceptionReason())) {
-            this.setExceptionReason("");
-        }
+        this.setExecuteResult("成功");
         headerRepository.update(this);
         ReqInsDetailEntity.get().batchProcessSuccess(this.getDetailList());
     }
 
     public void processFailed(String errMsg) {
         this.setStatus(ProcessingStatusEnum.EXCEPTION.getCode());
-        this.setExceptionReason(errMsg);
+        this.setExecuteResult(errMsg);
         headerRepository.update(this);
         ReqInsDetailEntity.get().batchProcessFailed(this.getDetailList());
     }
