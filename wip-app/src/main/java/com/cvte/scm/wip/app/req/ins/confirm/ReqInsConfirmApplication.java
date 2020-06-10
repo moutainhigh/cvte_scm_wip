@@ -3,6 +3,7 @@ package com.cvte.scm.wip.app.req.ins.confirm;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
@@ -53,7 +54,8 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
             if (Objects.isNull(insHeader)) {
                 throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + String.format("ID为%s的指令不存在", insHeaderId));
             }
-            insHeader.getDetailById();
+            // 去掉已作废的明细
+            insHeader.getDetailById().removeIf(detail -> StatusEnum.CLOSE.getCode().equals(detail.getInsStatus()));
             insHeaderList.add(insHeader);
         }
         insHeaderList.sort((Comparator.comparing(ReqInsEntity::getEnableDate)));
