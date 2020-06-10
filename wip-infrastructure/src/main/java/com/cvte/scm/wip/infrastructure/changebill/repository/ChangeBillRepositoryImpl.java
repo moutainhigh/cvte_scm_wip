@@ -11,6 +11,7 @@ import com.cvte.scm.wip.infrastructure.changebill.mapper.dataobject.WipCnBillDO;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,6 +66,18 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
             throw new ParamsIncorrectException("更改单不惟一");
         }
         return WipCnBillDO.buildEntity(billDOList.get(0));
+    }
+
+    @Override
+    public List<ChangeBillEntity> getById(List<String> billIdList) {
+        Example example = new Example(WipCnBillDO.class);
+        example.createCriteria().andIn("billId", billIdList);
+        example.createCriteria().andNotEqualTo("billStatus", StatusEnum.CLOSE.getCode());
+        List<WipCnBillDO> billDOList = cnBillMapper.selectByExample(example);
+        if (ListUtil.empty(billDOList)) {
+            return Collections.emptyList();
+        }
+        return WipCnBillDO.batchBuildEntity(billDOList);
     }
 
 }

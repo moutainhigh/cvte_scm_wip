@@ -20,4 +20,6 @@ public interface ChangeBillRepository extends Repository {
 
     ChangeBillEntity getByKey(String billKey);
 
+    List<ChangeBillEntity> getById(List<String> billIdList);
+
 }

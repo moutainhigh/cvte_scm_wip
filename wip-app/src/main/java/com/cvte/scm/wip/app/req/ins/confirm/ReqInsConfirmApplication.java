@@ -16,9 +16,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
   * 
@@ -48,12 +46,18 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
     @Override
     public String doAction(String[] insHeaderIds) {
 
+        List<ReqInsEntity> insHeaderList = new ArrayList<>();
         for (String insHeaderId : insHeaderIds) {
             ReqInsEntity insHeader = ReqInsEntity.get().getByKey(insHeaderId);
             if (Objects.isNull(insHeader)) {
                 throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + String.format("ID为%s的指令不存在", insHeaderId));
             }
             insHeader.getDetailById();
+            insHeaderList.add(insHeader);
+        }
+        insHeaderList.sort((Comparator.comparing(ReqInsEntity::getEnableDate)));
+
+        for (ReqInsEntity insHeader : insHeaderList) {
 
             Map<String, List<WipReqLineEntity>> reqLineMap;
             try {

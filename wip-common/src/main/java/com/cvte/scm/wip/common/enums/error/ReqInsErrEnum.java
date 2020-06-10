@@ -18,7 +18,7 @@ public enum ReqInsErrEnum implements Codeable {
     TARGET_LINE_INVALID("4001002", "目标投料行不存在,指令:"),
     TARGET_LINE_ISSUED("4001003", "目标投料行已领料,指令:"),
     PART_MIX("4001004", "不允许部分混料,指令:"),
-    EXISTS_PRE_INS("4001005", "存在未执行的前置指令,批次:"),
+    EXISTS_PRE_INS("4001005", "存在未执行的前置更改单,更改单:"),
     ADD_VALID_QTY("4001006", "新增投料行单位用量不可为空,指令:"),
     ADD_LOT_NULL("4001007", "批次为空或不存在,指令:"),
     KEY_NULL("4001008", "指令缺失关键索引,"),

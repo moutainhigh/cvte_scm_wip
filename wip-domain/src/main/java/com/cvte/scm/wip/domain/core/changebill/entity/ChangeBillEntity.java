@@ -95,6 +95,10 @@ public class ChangeBillEntity implements Entity<String> {
         return this.billDetailList;
     }
 
+    public List<ChangeBillEntity> getById(List<String> billIdList) {
+        return changeBillRepository.getById(billIdList);
+    }
+
     public ChangeBillEntity buildChangeBill(ChangeBillBuildVO vo) {
         return changeBillEntityFactory.perfect(vo);
     }

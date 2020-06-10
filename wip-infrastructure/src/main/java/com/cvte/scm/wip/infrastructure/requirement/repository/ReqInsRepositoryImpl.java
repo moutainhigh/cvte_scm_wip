@@ -68,6 +68,7 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
         Example example = new Example(WipReqInsHeaderDO.class);
         Example.Criteria criteria = example.createCriteria().andEqualTo("aimHeaderId", aimHeaderId);
         criteria.andIn("status", statusList);
+        example.orderBy("enableDate").asc();
         List<WipReqInsHeaderDO> headerDOList = insHMapper.selectByExample(example);
         return WipReqInsHeaderDO.batchBuildEntity(headerDOList);
     }

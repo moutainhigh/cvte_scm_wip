@@ -5,6 +5,7 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
@@ -17,6 +18,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStat
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -117,20 +119,23 @@ public class CheckReqInsDomainService implements DomainService {
         List<String> statusList = new ArrayList<>();
         statusList.add(ProcessingStatusEnum.PENDING.getCode());
         statusList.add(ProcessingStatusEnum.EXCEPTION.getCode());
-        List<ReqInsEntity> preInsList = insEntity.getByAimHeaderId(insEntity.getAimHeaderId(), statusList);
-        preInsList.removeIf(ins -> ins.getInsHeaderId().equals(insEntity.getInsHeaderId()));
-        if (ListUtil.notEmpty(preInsList)) {
-            boolean isEarliest = true;
-            for (ReqInsEntity preIns : preInsList) {
-                if (preIns.getEnableDate().before(insEntity.getEnableDate())) {
-                    isEarliest = false;
-                    break;
+        List<ReqInsEntity> sameAimInsList = insEntity.getByAimHeaderId(insEntity.getAimHeaderId(), statusList);
+        sameAimInsList.removeIf(ins -> ins.getInsHeaderId().equals(insEntity.getInsHeaderId()));
+        List<ReqInsEntity> preInsList = new ArrayList<>();
+        if (ListUtil.notEmpty(sameAimInsList)) {
+            for (ReqInsEntity sameAimIns : sameAimInsList) {
+                if (sameAimIns.getEnableDate().before(insEntity.getEnableDate())) {
+                    preInsList.add(sameAimIns);
                 }
             }
-            if (isEarliest) {
+            if (ListUtil.empty(preInsList)) {
                 return;
             }
-            throw new ServerException(ReqInsErrEnum.EXISTS_PRE_INS.getCode(), ReqInsErrEnum.EXISTS_PRE_INS.getDesc() + insEntity.getAimReqLotNo());
+
+            List<String> cnBillIdList = preInsList.stream().map(ReqInsEntity::getSourceChangeBillId).collect(Collectors.toList());
+            List<ChangeBillEntity> changeBillList = ChangeBillEntity.get().getById(cnBillIdList);
+            List<String> billNoList = changeBillList.stream().map(ChangeBillEntity::getBillNo).collect(Collectors.toList());
+            throw new ServerException(ReqInsErrEnum.EXISTS_PRE_INS.getCode(), ReqInsErrEnum.EXISTS_PRE_INS.getDesc() + String.join(",", billNoList));
         }
     }
 
