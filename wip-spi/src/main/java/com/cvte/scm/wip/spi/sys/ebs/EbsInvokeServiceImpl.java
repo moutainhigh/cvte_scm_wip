@@ -46,6 +46,13 @@ public class EbsInvokeServiceImpl implements EbsInvokeService {
     private AccessTokenService accessTokenService;
 
 
+    /**
+     * 查询调拨单
+     * https://kb.cvte.com/pages/viewpage.action?pageId=131482997
+     *
+     * @param query
+     * @return java.util.List<com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockVO>
+     **/
     public List<EbsInoutStockVO> listEbsInoutStockView(EbsInoutStockQuery query) {
 
 
@@ -76,6 +83,14 @@ public class EbsInvokeServiceImpl implements EbsInvokeService {
 
     }
 
+    /**
+     * 创建调拨单
+     * https://kb.cvte.com/pages/viewpage.action?pageId=131483121
+     *
+     * @param
+     * @param ebsInoutStockDTO
+     * @return com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockResponse
+     **/
     public EbsInoutStockResponse inoutStockImport(EbsInoutStockDTO ebsInoutStockDTO) {
 
         JSONObject request = new JSONObject();

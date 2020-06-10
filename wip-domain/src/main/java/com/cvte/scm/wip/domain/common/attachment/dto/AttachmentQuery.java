@@ -17,5 +17,7 @@ public class AttachmentQuery {
 
     private String referenceId;
 
+    private String referenceType;
+    
     private List<String> crtUsers;
 }

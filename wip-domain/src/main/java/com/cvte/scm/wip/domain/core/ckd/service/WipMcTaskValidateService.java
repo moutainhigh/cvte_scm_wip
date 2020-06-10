@@ -7,6 +7,7 @@ import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
+import com.cvte.scm.wip.domain.common.attachment.constants.AttReferenceTypeConstant;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
 import com.cvte.scm.wip.domain.common.attachment.service.WipAttachmentService;
@@ -158,7 +159,7 @@ public class WipMcTaskValidateService {
         }
 
         List<AttachmentVO> attachmentVOS = wipAttachmentService.listAttachmentView(
-                new AttachmentQuery().setReferenceId(mcTaskId).setCrtUsers(userIds));
+                new AttachmentQuery().setReferenceId(mcTaskId).setReferenceType(AttReferenceTypeConstant.CKD).setCrtUsers(userIds));
         return CollectionUtils.isNotEmpty(attachmentVOS);
     }
 

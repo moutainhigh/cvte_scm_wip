@@ -25,6 +25,7 @@ public class AttachmentVO {
     @ApiModelProperty(value="实体ID")
     private String referenceId;
 
+    private String referenceType;
 
     @ApiModelProperty(value="文件名")
     private String fileName;

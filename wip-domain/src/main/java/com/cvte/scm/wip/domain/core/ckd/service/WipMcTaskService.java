@@ -15,6 +15,7 @@ import com.cvte.scm.wip.common.utils.EmptyObjectUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
 import com.cvte.scm.wip.common.utils.HostUtils;
+import com.cvte.scm.wip.domain.common.attachment.constants.AttReferenceTypeConstant;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentDTO;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
@@ -371,6 +372,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             return;
         }
 
+        attachmentSaveDTOList.forEach(el -> el.setReferenceType(AttReferenceTypeConstant.CKD));
         wipAttachmentService.saveBatch(attachmentSaveDTOList);
 
         String detail = attachmentSaveDTOList.stream().map(AttachmentDTO::getFileName).collect(Collectors.joining("；"));

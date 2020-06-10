@@ -25,6 +25,7 @@ public class WipAttachmentEntity extends BaseModel {
      */
     @ApiModelProperty(value = "实体id")
     private String referenceId;
+    private String referenceType;
     /**
      * 文件名
      */

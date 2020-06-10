@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.common.attachment.dto;
 
 import com.cvte.csb.sys.common.MyBaseEntity;
+import com.cvte.csb.validator.vtor.annotation.NotBlankNull;
 import io.swagger.annotations.ApiModelProperty;
 import jodd.vtor.constraint.NotNull;
 import lombok.Data;
@@ -34,5 +35,8 @@ public class AttachmentDTO extends MyBaseEntity {
 
     @ApiModelProperty(value="文件类型")
     private String contentType;
+
+    @NotBlankNull(message = "关联实体类型不能为空")
+    private String referenceType;
 
 }

@@ -29,6 +29,7 @@ public class WipAttachmentRepositoryImpl
         Example example = new Example(WipAttachmentDO.class);
         Example.Criteria criteria = example.createCriteria();
         criteria.andEqualTo("referenceId", attachmentQuery.getReferenceId())
+                .andEqualTo("referenceType", attachmentQuery.getReferenceType())
                 .andEqualTo("id", attachmentQuery.getId())
                 .andEqualTo("isDel", YesOrNoEnum.NO.getValue());
 
