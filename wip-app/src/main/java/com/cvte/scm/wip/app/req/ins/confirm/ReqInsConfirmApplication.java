@@ -65,7 +65,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 checkReqInsDomainService.checkPreInsExists(insHeader);
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
                 checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
-                checkReqInsDomainService.checkPartMix(insHeader, reqLineMap);
             } catch (RuntimeException re) {
                 if (!ProcessingStatusEnum.SOLVED.getCode().equals(insHeader.getStatus())) {
                     insHeader.processFailed("校验失败," + re.getMessage());

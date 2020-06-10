@@ -153,27 +153,34 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
         }
 
         String[] posNoArr = posNo.split(splitter);
-        BigDecimal itemQty = vo.getItemQty();
-        if (Objects.isNull(itemQty)) {
-            itemQty = BigDecimal.ZERO;
-        }
-        final BigDecimal originQty = itemQty;
         // 拆分后向上取整, 按顺序分配到位号上
-        BigDecimal splitQty = itemQty.divide(new BigDecimal(posNoArr.length), 0, RoundingMode.CEILING);
+        Map<String, BigDecimal> posItemQtyMap = splitQtyByPos(posNoArr, vo.getItemQty(), 0);
+        Map<String, BigDecimal> posUnitQtyMap = splitQtyByPos(posNoArr, vo.getItemUnitQty(), 8);
         for (String splitPosNo : posNoArr) {
-            BigDecimal allocateQty = itemQty.min(splitQty);
-            BigDecimal allocateUnitQty = allocateQty.divide(originQty, 6, RoundingMode.DOWN);
-
             ChangeBillDetailBuildVO splitDetailBuildVo = new ChangeBillDetailBuildVO();
             BeanUtils.copyProperties(vo, splitDetailBuildVo);
             splitDetailBuildVo.setPosNo(splitPosNo.trim())
-                    .setItemQty(allocateQty)
-                    .setItemUnitQty(allocateUnitQty);
+                    .setItemQty(posItemQtyMap.get(splitPosNo))
+                    .setItemUnitQty(posUnitQtyMap.get(splitPosNo));
 
             resultList.add(splitDetailBuildVo);
-            itemQty = itemQty.subtract(allocateQty);
         }
         return resultList;
+    }
+
+    private Map<String, BigDecimal> splitQtyByPos(String[] posNoArr, BigDecimal qty, Integer scale) {
+        Map<String, BigDecimal> posQtyMap = new HashMap<>();
+        if (Objects.isNull(qty)) {
+            qty = BigDecimal.ZERO;
+        }
+        // 拆分后向上取整, 按顺序分配到位号上
+        BigDecimal splitQty = qty.divide(new BigDecimal(posNoArr.length), scale, RoundingMode.CEILING);
+        for (String splitPosNo : posNoArr) {
+            BigDecimal allocateQty = qty.min(splitQty);
+            posQtyMap.put(splitPosNo, allocateQty);
+            qty = qty.subtract(allocateQty);
+        }
+        return posQtyMap;
     }
 
 }

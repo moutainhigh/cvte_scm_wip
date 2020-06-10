@@ -231,6 +231,7 @@ public class ReqInsDetailEntity implements Entity<String> {
 
     private WipReqLineEntity buildReqLine(WipLotVO wipLotVO) {
         double unitQty = this.getItemUnitQty().doubleValue();
+        // 用量根据单位用量 * 小批次用量 来算
         int reqQty = BigDecimal.valueOf(unitQty).multiply(wipLotVO.getLotQuantity()).intValue();
 
         WipReqLineEntity reqLine = new WipReqLineEntity();
@@ -288,8 +289,6 @@ public class ReqInsDetailEntity implements Entity<String> {
         reqLineList.forEach(line ->
                 line.setBeforeItemNo(line.getItemNo())
                 .setItemNo(afterItemNo)
-                        // TODO 设置ID
-//                .setItemId(this.getItemIdNew())
                 .setChangeType(ChangedTypeEnum.REPLACE.getCode()));
         return reqLineList;
     }
