@@ -90,4 +90,7 @@ public class ReqInsInfoVO {
     @ApiModelProperty("改后物料描述")
     private String itemSpecNew;
 
+    @ApiModelProperty("执行结果")
+    private String executeResult;
+
 }
