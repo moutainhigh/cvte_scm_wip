@@ -151,7 +151,7 @@ public class CheckReqInsDomainService implements DomainService {
         if (StringUtils.isNotBlank(vo.getInsHeaderId())) {
             ReqInsEntity existsIns = ReqInsEntity.get().getByKey(vo.getInsHeaderId());
             return Objects.nonNull(existsIns) &&
-                    (ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus())
+                    (ProcessingStatusEnum.SOLVED.getCode().equals(existsIns.getStatus())
                     || StatusEnum.CLOSE.getCode().equals(existsIns.getStatus()));
         }
         return false;
