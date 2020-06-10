@@ -57,10 +57,10 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
             Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
+                checkReqInsDomainService.checkPreInsExists(insHeader);
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
                 checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
                 checkReqInsDomainService.checkPartMix(insHeader, reqLineMap);
-                checkReqInsDomainService.checkPreInsExists(insHeader);
             } catch (RuntimeException re) {
                 insHeader.processFailed("校验失败," + re.getMessage());
                 throw re;
