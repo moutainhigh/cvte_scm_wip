@@ -230,6 +230,9 @@ public class ChangeBillEntity implements Entity<String> {
         detailBuildVO.setInsDetailId(UUIDUtils.get32UUID())
                 .setOperationType(billDetailEntity.getOperationType())
                 .setInsStatus(ProcessingStatusEnum.PENDING.getCode());
+        if (StatusEnum.CLOSE.getCode().equals(billDetailEntity.getStatus())) {
+            detailBuildVO.setInsStatus(StatusEnum.CLOSE.getCode());
+        }
         return detailBuildVO;
     }
 

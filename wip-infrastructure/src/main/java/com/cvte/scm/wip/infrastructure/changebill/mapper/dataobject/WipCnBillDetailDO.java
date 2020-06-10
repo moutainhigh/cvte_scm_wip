@@ -29,18 +29,18 @@ public class WipCnBillDetailDO extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 更改单ID
-     */
-    @Id
-    @Column(name = "bill_id")
-    @ApiModelProperty(value = "更改单ID")
-    private String billId;
-    /**
      * 更改明细ID
      */
+    @Id
     @Column(name = "detail_id")
     @ApiModelProperty(value = "更改明细ID")
     private String detailId;
+    /**
+     * 更改单ID
+     */
+    @Column(name = "bill_id")
+    @ApiModelProperty(value = "更改单ID")
+    private String billId;
     /**
      * 生产批次号
      */
