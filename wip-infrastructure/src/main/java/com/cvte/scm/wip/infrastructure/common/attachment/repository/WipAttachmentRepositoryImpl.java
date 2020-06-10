@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.common.attachment.repository;
 
 import com.cvte.csb.base.enums.YesOrNoEnum;
+import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
 import com.cvte.scm.wip.domain.common.attachment.entity.WipAttachmentEntity;
@@ -26,10 +27,15 @@ public class WipAttachmentRepositoryImpl
     public List<AttachmentVO> listAttachmentView(AttachmentQuery attachmentQuery) {
 
         Example example = new Example(WipAttachmentDO.class);
-        example.createCriteria()
-                .andEqualTo("referenceId", attachmentQuery.getReferenceId())
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("referenceId", attachmentQuery.getReferenceId())
                 .andEqualTo("id", attachmentQuery.getId())
                 .andEqualTo("isDel", YesOrNoEnum.NO.getValue());
+
+        if (CollectionUtils.isNotEmpty(attachmentQuery.getCrtUsers())) {
+            criteria.andIn("crtUser", attachmentQuery.getCrtUsers());
+        }
+
         example.orderBy("crtTime");
         List<WipAttachmentDO> attachmentList = mapper.selectByExample(example);
 

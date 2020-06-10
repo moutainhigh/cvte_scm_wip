@@ -10,6 +10,7 @@ import com.cvte.scm.wip.common.utils.EnumUtils;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
 import com.cvte.scm.wip.domain.common.attachment.service.WipAttachmentService;
+import com.cvte.scm.wip.domain.common.sys.user.repository.SysUserRepository;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
@@ -18,6 +19,7 @@ import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
 import com.cvte.scm.wip.domain.core.ckd.utils.McTaskStatusUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,11 +33,18 @@ import java.util.List;
 @Service
 public class WipMcTaskValidateService {
 
+    // 销管角色编码
+    @Value("${wip.role.code.sales:root_e59ab7f6e4931_fc9740bab360f}")
+    private String salesRoleCode;
+
     @Autowired
     private WipMcTaskService wipMcTaskService;
 
     @Autowired
     private WipAttachmentService wipAttachmentService;
+
+    @Autowired
+    private SysUserRepository sysUserRepository;
 
     public void validateUpdStatusTo(String curStatus, String updStatusTo) {
 
@@ -131,12 +140,25 @@ public class WipMcTaskValidateService {
 
     }
 
+
+    /**
+     * 判断是否有销管上传的唛头
+     *
+     * @param mcTaskId
+     * @return boolean
+     **/
     private boolean hasAttachment(String mcTaskId) {
         if (StringUtils.isBlank(mcTaskId)) {
             return false;
         }
 
-        List<AttachmentVO> attachmentVOS = wipAttachmentService.listAttachmentView(new AttachmentQuery().setReferenceId(mcTaskId));
+        List<String> userIds = sysUserRepository.listRoleUserIds(salesRoleCode);
+        if (CollectionUtils.isEmpty(userIds)) {
+            return false;
+        }
+
+        List<AttachmentVO> attachmentVOS = wipAttachmentService.listAttachmentView(
+                new AttachmentQuery().setReferenceId(mcTaskId).setCrtUsers(userIds));
         return CollectionUtils.isNotEmpty(attachmentVOS);
     }
 
