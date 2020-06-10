@@ -4,6 +4,7 @@ import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
@@ -44,7 +45,9 @@ public class CheckReqInsDomainService implements DomainService {
     public Map<String, List<WipReqLineEntity>> validAndGetLine(ReqInsEntity insEntity) {
         if (!(ProcessingStatusEnum.PENDING.getCode().equals(insEntity.getStatus()) || ProcessingStatusEnum.EXCEPTION.getCode().equals(insEntity.getStatus()))) {
             // 只有未执行和执行异常的指令可以执行
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + "只有未执行或异常状态的指令可以执行,指令:ID=" + insEntity.getInsHeaderId());
+            List<String> sourceCnBillNoList = new ArrayList<>();
+            sourceCnBillNoList.add(insEntity.getSourceChangeBillId());
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + "只有未执行或异常状态的指令可以执行,更改单:" + ChangeBillEntity.get().getById(sourceCnBillNoList).get(0).getBillNo());
         }
         Map<String, List<WipReqLineEntity>> reqLineMap = new HashMap<>();
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
@@ -147,7 +150,9 @@ public class CheckReqInsDomainService implements DomainService {
     public Boolean checkInsProcessed(ReqInsBuildVO vo) {
         if (StringUtils.isNotBlank(vo.getInsHeaderId())) {
             ReqInsEntity existsIns = ReqInsEntity.get().getByKey(vo.getInsHeaderId());
-            return Objects.nonNull(existsIns) && !ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus());
+            return Objects.nonNull(existsIns) &&
+                    (ProcessingStatusEnum.PENDING.getCode().equals(existsIns.getStatus())
+                    || StatusEnum.CLOSE.getCode().equals(existsIns.getStatus()));
         }
         return false;
     }
