@@ -3,10 +3,12 @@ package com.cvte.scm.wip.domain.core.requirement.entity;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.base.domain.DomainEventPublisher;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.domain.core.requirement.event.ReqInsProcessNotifyEvent;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
@@ -37,6 +39,9 @@ public class ReqInsEntity implements Entity<String> {
 
     @Resource
     private ReqInsEntityFactory headerEntityFactory;
+
+    @Resource
+    private DomainEventPublisher domainEventPublisher;
 
     private ReqInsRepository headerRepository;
 
@@ -168,6 +173,7 @@ public class ReqInsEntity implements Entity<String> {
         this.setExecuteResult(errMsg);
         headerRepository.update(this);
         ReqInsDetailEntity.get().batchProcessFailed(this.getDetailList());
+        this.notifyEntity();
     }
 
     public List<WipReqLineEntity> parse(Map<String, List<WipReqLineEntity>> reqLineMap) {
@@ -176,6 +182,10 @@ public class ReqInsEntity implements Entity<String> {
             reqLineEntityList.addAll(detailEntity.parseDetail(reqLineMap));
         }
         return reqLineEntityList;
+    }
+
+    public void notifyEntity() {
+        domainEventPublisher.publish(new ReqInsProcessNotifyEvent(this), false);
     }
 
     public static ReqInsEntity get() {
