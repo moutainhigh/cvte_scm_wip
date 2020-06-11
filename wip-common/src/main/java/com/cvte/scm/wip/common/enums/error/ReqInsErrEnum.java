@@ -22,7 +22,8 @@ public enum ReqInsErrEnum implements Codeable {
     ADD_VALID_QTY("4001006", "新增投料行单位用量不可为空,指令:"),
     ADD_LOT_NULL("4001007", "批次为空或不存在,指令:"),
     KEY_NULL("4001008", "指令缺失关键索引,"),
-    INS_IMMUTABLE("4001009", "已执行或作废的投料指令不允许变更")
+    INS_IMMUTABLE("4001009", "已执行或作废的投料指令不允许变更"),
+    WRITE_BACK_ERR("4001010", "回写EBS返工单时发生错误,"),
     ;
 
     private String code, desc;

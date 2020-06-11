@@ -42,7 +42,8 @@ public class ReqInsInvalidApplication implements Application<List<ReqInsBuildVO>
                 throw new ServerException(ReqInsErrEnum.INS_IMMUTABLE.getCode(), ReqInsErrEnum.INS_IMMUTABLE.getDesc() + ",指令ID=" + vo.getInsHeaderId());
             }
             transactionTemplate.execute(status -> {
-                ReqInsEntity.get().deleteCompleteReqIns(vo);
+                ReqInsEntity reqIns = ReqInsEntity.get().deleteCompleteReqIns(vo);
+                reqIns.notifyEntity();
                 return null;
             });
         }

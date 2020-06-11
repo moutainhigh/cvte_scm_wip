@@ -97,6 +97,10 @@ public class ReqInsEntity implements Entity<String> {
         return this.detailList;
     }
 
+    public void updateInstruction() {
+        headerRepository.update(this);
+    }
+
     public ReqInsEntity createInstruction(ReqInsBuildVO vo) {
         String newInstructionId = UUIDUtils.get32UUID();
         vo.setInsHeaderId(newInstructionId);
@@ -166,6 +170,7 @@ public class ReqInsEntity implements Entity<String> {
         this.setExecuteResult("成功");
         headerRepository.update(this);
         ReqInsDetailEntity.get().batchProcessSuccess(this.getDetailList());
+        this.notifyEntity();
     }
 
     public void processFailed(String errMsg) {
