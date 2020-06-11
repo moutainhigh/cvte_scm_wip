@@ -4,10 +4,12 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.toolkit.date.DateUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.base.domain.DomainEventPublisher;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.domain.core.changebill.event.ChangeBillParseErrorEvent;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
@@ -41,6 +43,9 @@ public class ChangeBillEntity implements Entity<String> {
 
     @Resource
     private DomainFactory<ChangeBillBuildVO, ChangeBillEntity> changeBillEntityFactory;
+
+    @Resource
+    private DomainEventPublisher domainEventPublisher;
 
     private ChangeBillRepository changeBillRepository;
 
@@ -255,6 +260,10 @@ public class ChangeBillEntity implements Entity<String> {
             }
         }
         return defaultTypeDetailParse(billDetailEntity);
+    }
+
+    public void notifyEntity(String errorMessage) {
+        domainEventPublisher.publish(new ChangeBillParseErrorEvent(this, errorMessage), false);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.app.changebill.parse;
 
+import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
@@ -20,10 +21,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
-  * 
+  *
   * @author  : xueyuting
   * @since    : 2020/5/21 17:11
   * @version : 1.0
@@ -44,7 +46,6 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
     }
 
     @Override
-    @Transactional("pgTransactionManager")
     public String doAction(ChangeBillQueryVO queryVO) {
 
         if (StringUtils.isBlank(queryVO.getOrganizationId())) {
@@ -59,26 +60,45 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
         }
 
         for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
-            // 生成更改单
-            ChangeBillEntity billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
-
-            // 获取目标投料单
-            WipReqHeaderEntity reqHeaderEntity = reqHeaderService.getBySourceId(billEntity.getMoId());
-            ChangeReqVO reqVO = ChangeReqVO.buildVO(reqHeaderEntity);
-
-            // 解析更改单
-            ReqInsBuildVO instructionBuildVO = billEntity.parseChangeBill(reqVO);
-
-            // 生成投料单指令
-            boolean insProcessed = checkReqInsDomainService.checkInsProcessed(instructionBuildVO);
-            if (insProcessed) {
-                log.info("{},指令ID={}" , ReqInsErrEnum.INS_IMMUTABLE.getDesc(), instructionBuildVO.getInsHeaderId());
-                continue;
+            ChangeBillEntity billEntity = null;
+            try {
+                // 生成更改单
+                billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
+                // 生成指令
+                this.parseChangeBill(billEntity);
+            } catch (RuntimeException re) {
+                if (Objects.isNull(billEntity)) {
+                    billEntity = ChangeBillEntity.get();
+                    billEntity.setBillId(changeBillBuildVO.getBillId())
+                            .setBillNo(changeBillBuildVO.getBillNo())
+                            .setMoId(changeBillBuildVO.getMoId());
+                }
+                billEntity.notifyEntity(re.getMessage());
             }
-            ReqInsEntity.get().completeInstruction(instructionBuildVO);
         }
 
         return changeBillBuildVOList.stream().map(ChangeBillBuildVO::getBillNo).collect(Collectors.joining(","));
+    }
+
+    @Transactional("pgTransactionManager")
+    void parseChangeBill(ChangeBillEntity billEntity) {
+        // 获取目标投料单
+        WipReqHeaderEntity reqHeaderEntity = reqHeaderService.getBySourceId(billEntity.getMoId());
+        if (Objects.isNull(reqHeaderEntity)) {
+            throw new ServerException(ReqInsErrEnum.TARGET_REQ_INVALID.getCode(), ReqInsErrEnum.TARGET_REQ_INVALID.getDesc());
+        }
+        ChangeReqVO reqVO = ChangeReqVO.buildVO(reqHeaderEntity);
+
+        // 解析更改单
+        ReqInsBuildVO instructionBuildVO = billEntity.parseChangeBill(reqVO);
+
+        // 校验对应指令是否已执行或作废
+        boolean insProcessed = checkReqInsDomainService.checkInsProcessed(instructionBuildVO);
+        if (insProcessed) {
+            throw new ServerException(ReqInsErrEnum.INS_IMMUTABLE.getCode(), String.format("%s,指令ID=%s", ReqInsErrEnum.INS_IMMUTABLE.getDesc(), instructionBuildVO.getInsHeaderId()));
+        }
+        // 生成投料单指令
+        ReqInsEntity.get().completeInstruction(instructionBuildVO);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.changebill.service;
 
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 
 /**
@@ -11,6 +12,6 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
   */
 public interface ChangeBillWriteBackService {
 
-    String writeBackToEbs(ReqInsEntity reqInsEntity);
+    String writeBackToEbs(ReqInsEntity reqInsEntity, ChangeBillEntity changeBillEntity);
 
 }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
@@ -60,6 +61,9 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
         }
         WipReqHeaderDO queryDO = new WipReqHeaderDO().setSourceId(sourceId);
         WipReqHeaderDO resultHeader = wipReqHeaderMapper.selectOne(queryDO);
+        if (Objects.isNull(resultHeader)) {
+            return null;
+        }
         return WipReqHeaderDO.buildEntity(resultHeader);
     }
 

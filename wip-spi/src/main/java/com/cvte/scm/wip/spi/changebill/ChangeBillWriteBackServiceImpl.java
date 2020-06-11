@@ -42,16 +42,12 @@ public class ChangeBillWriteBackServiceImpl implements ChangeBillWriteBackServic
     }
 
     @Override
-    public String writeBackToEbs(ReqInsEntity reqInsEntity) {
-        List<String> billNoList = new ArrayList<>();
-        billNoList.add(reqInsEntity.getSourceChangeBillId());
-        ChangeBillEntity changeBill = ChangeBillEntity.get().getById(billNoList).get(0);
-
+    public String writeBackToEbs(ReqInsEntity reqInsEntity, ChangeBillEntity changeBillEntity) {
         UserBaseEntity userEntity = userService.getEnableUserInfo(EntityUtils.getWipUserId());
 
         ChangeBillWriteBackDTO writeBackDTO = new ChangeBillWriteBackDTO();
-        writeBackDTO.setBillNo(changeBill.getBillNo())
-                .setBillType(changeBill.getBillType())
+        writeBackDTO.setBillNo(changeBillEntity.getBillNo())
+                .setBillType(changeBillEntity.getBillType())
                 .setExecuteCode(reqInsEntity.getStatus())
                 .setUserNo(userEntity.getAccount());
         String executeMessage;

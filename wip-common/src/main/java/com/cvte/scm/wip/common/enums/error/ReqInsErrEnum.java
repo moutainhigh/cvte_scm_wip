@@ -24,6 +24,7 @@ public enum ReqInsErrEnum implements Codeable {
     KEY_NULL("4001008", "指令缺失关键索引,"),
     INS_IMMUTABLE("4001009", "已执行或作废的投料指令不允许变更"),
     WRITE_BACK_ERR("4001010", "回写EBS返工单时发生错误,"),
+    TARGET_REQ_INVALID("4001011", "目标投料单不存在"),
     ;
 
     private String code, desc;
