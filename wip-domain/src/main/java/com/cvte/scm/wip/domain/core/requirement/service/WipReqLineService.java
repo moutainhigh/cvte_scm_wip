@@ -462,6 +462,9 @@ public class WipReqLineService {
                 case REPLACE:
                     replace(singletonList(line), eMode, cMode, false, userId);
                     break;
+                case UPDATE:
+                    update(singletonList(line), eMode, cMode, false, userId);
+                    break;
             }
         };
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)

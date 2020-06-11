@@ -17,6 +17,8 @@ public enum InsOperationTypeEnum implements Codeable {
     ADD("1", "添加"),
     DELETE("2", "删除"),
     REPLACE("3", "替换"),
+    REDUCE("4", "减少"),
+    INCREASE("5", "增加"),
     ;
 
     private String code, desc;
