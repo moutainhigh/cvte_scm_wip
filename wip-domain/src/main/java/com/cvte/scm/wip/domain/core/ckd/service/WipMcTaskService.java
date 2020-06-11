@@ -700,8 +700,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
 
         // 同步版本信息
-        List<WipMcTaskLineView> wipMcTaskLines = wipMcTaskLineService
-                .listWipMcTaskLineView(new WipMcTaskLineQuery().setTaskIds(Arrays.asList(mcReq.getMcTaskId())));
+        List<WipMcTaskLineEntity> wipMcTaskLineEntities = wipMcTaskLineService
+                .selectList(new WipMcTaskLineEntity().setMcTaskId(mcReq.getMcTaskId()));
+        List<WipMcTaskLineView> wipMcTaskLines = modelMapper.map(wipMcTaskLineEntities, new TypeToken<List<WipMcTaskLineView>>(){}.getType());
         wipMcTaskVersionService.sync(wipMcTask.getMcTaskId(), true, wipMcTaskLines);
 
         WipMcTaskDetailView wipMcTaskDetailView = modelMapper.map(wipMcTask, WipMcTaskDetailView.class);

@@ -35,7 +35,7 @@ import java.util.List;
 public class WipMcTaskValidateService {
 
     // 销管角色编码
-    @Value("${wip.role.code.sales:root_e59ab7f6e4931_fc9740bab360f}")
+    @Value("${wip.role.code.sales}")
     private String salesRoleCode;
 
     @Autowired

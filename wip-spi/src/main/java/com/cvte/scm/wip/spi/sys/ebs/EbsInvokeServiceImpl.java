@@ -33,13 +33,13 @@ import java.util.stream.Collectors;
 public class EbsInvokeServiceImpl implements EbsInvokeService {
 
 
-    @Value("${ebs.csbp.host:https://itapitest.gz.cvte.cn/csbp}")
+    @Value("${ebs.csbp.host}")
     private String host;
 
-    @Value("${ebs.csbp.stock.inout.import.url:/inv/inoutstock/inoutStockImport}")
+    @Value("${ebs.csbp.stock.inout.import.url}")
     private String inoutStockImportUrl;
 
-    @Value("${ebs.csbp.stock.inout.query.url:/inv/inoutstock/inoutStock}")
+    @Value("${ebs.csbp.stock.inout.query.url}")
     private String inoutStockQueryUtl;
 
     @Autowired
