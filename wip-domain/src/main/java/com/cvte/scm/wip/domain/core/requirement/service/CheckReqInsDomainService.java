@@ -52,8 +52,9 @@ public class CheckReqInsDomainService implements DomainService {
         Map<String, List<WipReqLineEntity>> reqLineMap = new HashMap<>();
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
             WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(detailEntity);
-            if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())) {
-                // 非新增, 获取指令的目标投料行
+            if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())
+                    && !InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
+                // 非新增或增加(因为增加对象不存在时新增), 获取指令的目标投料行
                 List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO);
                 if (ListUtil.empty(reqLineList)) {
                     throw new ServerException(ReqInsErrEnum.TARGET_LINE_INVALID.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc() + detailEntity.toString());
@@ -79,8 +80,9 @@ public class CheckReqInsDomainService implements DomainService {
             reqLineMap = validAndGetLine(insEntity);
         }
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
-            if (InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())) {
-                // 新增类型无需校验
+            if (InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())
+            || InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
+                // 新增或增加类型无需校验
                 continue;
             }
             List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
