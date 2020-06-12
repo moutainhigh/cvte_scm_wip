@@ -14,8 +14,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum InsOperationTypeEnum implements Codeable {
-    ADD("1", "添加"),
-    DELETE("2", "删除"),
+    DELETE("1", "删除"),
+    ADD("2", "新增"),
     REPLACE("3", "替换"),
     REDUCE("4", "减少"),
     INCREASE("5", "增加"),
