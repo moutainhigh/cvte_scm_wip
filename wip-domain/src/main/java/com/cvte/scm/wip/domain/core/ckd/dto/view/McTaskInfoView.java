@@ -84,5 +84,7 @@ public class McTaskInfoView {
     @ApiModelProperty("销管")
     private String sales;
 
+    private Date planDeliveryTime;
+
 
 }

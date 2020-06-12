@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.controller.ckd.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.web.rest.ResponseFactory;
 import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentDTO;
 import com.cvte.scm.wip.domain.core.ckd.dto.WipMcTaskUpdateStatusDTO;
@@ -52,6 +53,10 @@ public class WipMcTaskController {
     @GetMapping("/{mcTaskId}")
     public RestResponse getMcTaskInfoView(@PathVariable String mcTaskId) {
         return ResponseFactory.getOkResponse(wipMcTaskService.getMcTaskInfoView(mcTaskId));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(UUIDUtils.getUUID());
     }
 
 

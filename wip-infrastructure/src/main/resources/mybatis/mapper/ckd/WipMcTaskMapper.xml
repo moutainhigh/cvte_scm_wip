@@ -50,6 +50,7 @@
         <result column="attachment_upload_user" property="attachmentUploadUser" />
         <result column="sales" property="sales"/>
         <result column="client_id" property="clientId"/>
+        <result column="plan_delivery_time" property="planDeliveryTime" />
     </resultMap>
 
 
@@ -102,6 +103,7 @@
 		, Wa.crt_name attachment_upload_user
 		, mc_req.sales
 		, Wmt.client_id
+		, Pdt.plan_delivery_time
         from wip_mc_task Wmt
         join wip_mc_wf Wmw on Wmw.mc_task_id = Wmt.mc_task_id and wmw.wf_id = wmt.mc_wf_id
         left join scm.sys_org_factory_v Sofv on Wmt.factory_id = Sofv.ebs_factory_id
@@ -157,6 +159,15 @@
 			 , row_number() OVER( partition by Wa.reference_id  order by Wa.crt_time desc) Rn
 			from wip_attachment Wa
 		) Wa on Wa.reference_id = Wmt.mc_task_id and Wa.Rn = 1
+        -- 计划发货日期
+		left join (
+			select Wmr.plan_delivery_time
+				, Wmtl.mc_task_id
+				, row_number() OVER(partition by Wmtl.mc_task_id  order by Wmr.plan_delivery_time) Rn
+			from wip_mc_task_line Wmtl
+			join wip_mc_req Wmr on Wmtl.source_line_id = Wmr.source_line_id
+		        where Wmtl.line_status = '110'
+		) Pdt on Pdt.mc_task_id = Wmt.mc_task_id and Pdt.rn = 1
         where Wmt.mc_task_id = #{mcTaskId}
     </select>
 
