@@ -26,7 +26,7 @@ import java.util.List;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Service
+@Service(value = "wipRoleService")
 public class RoleServiceImpl implements RoleService {
 
     private SysRoleApiClient sysRoleApiClient;

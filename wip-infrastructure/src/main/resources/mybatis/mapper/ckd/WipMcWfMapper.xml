@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcWfMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcWfDO">
+        <result column="wf_id" property="wfId"/>
+        <result column="mc_task_id" property="mcTaskId"/>
+        <result column="status" property="status"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="crt_user" property="crtUser"/>
+    </resultMap>
+</mapper>

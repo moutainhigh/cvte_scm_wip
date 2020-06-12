@@ -34,4 +34,12 @@ public class CurrentContextUtils {
         user.setId(userId);
         return user;
     }
+
+    public static OperatingUser mockOperatingUser(String mockUser) {
+        OperatingUser user = new OperatingUser();
+        user.setName(mockUser);
+        user.setId(mockUser);
+        user.setAccount(mockUser);
+        return user;
+    }
 }

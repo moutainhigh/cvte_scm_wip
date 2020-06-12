@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcInoutStockMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcInoutStockDO">
+        <result column="inout_stock_id" property="inoutStockId"/>
+        <result column="type" property="type"/>
+        <result column="mc_task_id" property="mcTaskId"/>
+        <result column="header_id" property="headerId"/>
+        <result column="header_no" property="headerNo"/>
+        <result column="status" property="status"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_host" property="crtHost"/>
+        <result column="upd_time" property="updTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_host" property="updHost"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+    </resultMap>
+</mapper>
