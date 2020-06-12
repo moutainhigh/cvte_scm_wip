@@ -1,0 +1,44 @@
+spring:
+  application:
+      name: scm-demo
+  aop:
+    proxy-target-class: true
+  sleuth:
+    sampler:
+      percentage: 1
+  messages:
+    basename: i18n/messages
+
+# 为了传递会话，指定hystrix在调用线程上执行
+hystrix:
+  shareSecurityContext: true
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE
+          thread:
+            timeoutInMilliseconds: 3000
+
+csb:
+  mybatis:
+    basePackage: com.cvte.scm.xxxx.**.core.mapper
+    xmlLocation: classpath*:mapper/oracle/*.xml
+  swagger:
+    basePackage: com.cvte.scm.demo
+    description: Demo 接口
+    version: 1.0
+  redis:
+    app_prefix: SCM-DEMO
+
+#设置打印日志
+logging:
+  level:
+    tk.mybatis: DEBUG
+    com.cvte.csb: DEBUG
+    org.springframework.core: INFO
+    com.cvte.scm.demo: INFO
+    com.cvte.scm.demo.**.core.mapper: DEBUG
+    com.xxl: ERROR
+    config: classpath:logback-spring.xml
+

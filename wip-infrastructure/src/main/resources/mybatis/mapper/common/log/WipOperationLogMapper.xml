@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.log.mapper.WipOperationLogMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.common.log.mapper.dataobject.WipOperationLogDO">
+        <result column="id" property="id"/>
+        <result column="module" property="module"/>
+        <result column="reference_id" property="referenceId"/>
+        <result column="operation" property="operation"/>
+        <result column="detail" property="detail"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_name" property="crtName"/>
+        <result column="crt_time" property="crtTime"/>
+    </resultMap>
+</mapper>

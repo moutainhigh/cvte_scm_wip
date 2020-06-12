@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcReqToTaskMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcReqToTaskDO">
+        <result column="id" property="id"/>
+        <result column="mc_req_id" property="mcReqId"/>
+        <result column="mc_task_id" property="mcTaskId"/>
+    </resultMap>
+</mapper>

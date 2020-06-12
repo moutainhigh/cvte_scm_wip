@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.attachment.mapper.WipAttachmentMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.common.attachment.mapper.dataobject.WipAttachmentDO">
+        <result column="id" property="id"/>
+        <result column="reference_id" property="referenceId"/>
+        <result column="file_name" property="fileName"/>
+        <result column="content_type" property="contentType"/>
+        <result column="att_path_id" property="attPathId"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_host" property="crtHost"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_host" property="updHost"/>
+        <result column="upd_time" property="updTime"/>
+        <result column="is_del" property="isDel"/>
+    </resultMap>
+</mapper>

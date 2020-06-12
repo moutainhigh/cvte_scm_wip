@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Service
+@Service(value = "wipMultiOrgSwitchService")
 public class MultiOrgSwitchServiceImpl implements MultiOrgSwitchService {
 
     private MultiOrgSwitchApiClient multiOrgSwitchApiClient;
