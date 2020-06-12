@@ -248,13 +248,13 @@ public class WipSubRuleAdaptService {
         Stream<String> validStream;
         switch (type) {
             case DEVELOPMENT_MODEL:
-                validStream = detailStream.map(WipSubRuleLotDetailVO::getProductModel).filter(adaptItems::contains);
+                validStream = detailStream.map(WipSubRuleLotDetailVO::getProductModel).filter(adaptItems::contains).distinct();
                 break;
             case PRODUCTION_LOT:
-                validStream = detailStream.map(WipSubRuleLotDetailVO::getSourceLotNo).filter(adaptItems::contains);
+                validStream = detailStream.map(WipSubRuleLotDetailVO::getSourceLotNo).filter(adaptItems::contains).distinct();
                 break;
             case BOM:
-                validStream = detailStream.map(WipSubRuleLotDetailVO::getProductNo).filter(adaptItems::contains);
+                validStream = detailStream.map(WipSubRuleLotDetailVO::getProductNo).filter(adaptItems::contains).distinct();
                 break;
             default:
                 return "";
