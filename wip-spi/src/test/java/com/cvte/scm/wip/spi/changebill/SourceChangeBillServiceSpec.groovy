@@ -59,4 +59,21 @@ class SourceChangeBillServiceSpec extends Specification {
         "two" == two.posNo && two.itemQty == new BigDecimal(7) && two.itemUnitQty == unitQty
     }
 
+    def  "单位用量是无理数"() {
+        def unitQtyStr = "0.9900990099009900990099009900990099009901"
+        def posNoList = ["RB818", "RB819", "RB820"]
+        given: "三个位号, 用量为3000, 单位用量为" + unitQtyStr
+        ChangeBillDetailBuildVO multiPosNo = new ChangeBillDetailBuildVO(posNo: "RB818,RB819,RB820", itemQty: new BigDecimal(3000), itemUnitQty: new BigDecimal(unitQtyStr));
+        when:
+        List<ChangeBillDetailBuildVO> multiList = sourceChangeBillService.splitBillDetailByPos(multiPosNo, splitter);
+        then:
+        multiList.size() == 3
+        ChangeBillDetailBuildVO one = multiList.get(0)
+        ChangeBillDetailBuildVO two = multiList.get(1)
+        ChangeBillDetailBuildVO three = multiList.get(2)
+        posNoList[0] == one.posNo && one.itemQty == new BigDecimal(1000) && one.itemUnitQty == new BigDecimal("0.33003301")
+        posNoList[1] == two.posNo && two.itemQty == new BigDecimal(1000) && two.itemUnitQty == new BigDecimal("0.33003301")
+        posNoList[2] == three.posNo && three.itemQty == new BigDecimal(1000) && three.itemUnitQty == new BigDecimal("0.33003298")
+    }
+
 }

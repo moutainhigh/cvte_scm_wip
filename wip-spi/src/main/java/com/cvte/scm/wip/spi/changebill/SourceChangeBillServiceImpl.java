@@ -174,9 +174,10 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
             qty = BigDecimal.ZERO;
         }
         // 拆分后向上取整, 按顺序分配到位号上
-        BigDecimal splitQty = qty.divide(new BigDecimal(posNoArr.length), scale, RoundingMode.CEILING);
+        BigDecimal splitQty = qty.divide(new BigDecimal(posNoArr.length), scale, RoundingMode.UP);
         for (String splitPosNo : posNoArr) {
             BigDecimal allocateQty = qty.min(splitQty);
+            allocateQty = allocateQty.setScale(scale, RoundingMode.DOWN);
             posQtyMap.put(splitPosNo, allocateQty);
             qty = qty.subtract(allocateQty);
         }

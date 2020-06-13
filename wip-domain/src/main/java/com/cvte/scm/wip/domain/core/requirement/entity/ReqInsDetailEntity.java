@@ -240,10 +240,6 @@ public class ReqInsDetailEntity implements Entity<String> {
     }
 
     private WipReqLineEntity buildReqLine(WipLotVO wipLotVO) {
-        double unitQty = this.getItemUnitQty().doubleValue();
-        // 用量根据单位用量 * 小批次用量 来算
-        int reqQty = BigDecimal.valueOf(unitQty).multiply(wipLotVO.getLotQuantity()).intValue();
-
         WipReqLineEntity reqLine = new WipReqLineEntity();
         reqLine.setHeaderId(this.getAimHeaderId())
                 .setOrganizationId(this.getOrganizationId())
@@ -251,8 +247,8 @@ public class ReqInsDetailEntity implements Entity<String> {
                 .setPosNo(this.getPosNo())
                 .setItemId(this.getItemIdNew())
                 .setItemNo(itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew()))
-                .setUnitQty(unitQty)
-                .setReqQty(reqQty)
+                .setUnitQty(0.0)
+                .setReqQty(0)
                 .setLotNumber(wipLotVO.getLotNumber())
                 .setChangeType(ChangedTypeEnum.ADD.getCode());
         return reqLine;
@@ -280,7 +276,7 @@ public class ReqInsDetailEntity implements Entity<String> {
             // 如果工序为空, 则设置为默认工序10
             resultList.forEach(line -> line.setWkpNo("10"));
         }
-        return resultList;
+        return this.allocateQty(resultList, wipLotMap, this.getItemUnitQty());
     }
 
     private List<WipReqLineEntity> parseDeleteType(List<WipReqLineEntity> reqLineList) {
@@ -301,7 +297,7 @@ public class ReqInsDetailEntity implements Entity<String> {
     }
 
     private List<WipReqLineEntity> parseReduceType(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap) {
-        return this.parseUpdateType(reqLineList, wipLotMap, this.getItemUnitQty());
+        return this.allocateQty(reqLineList, wipLotMap, this.getItemUnitQty().negate());
     }
 
     @VisibleForTesting
@@ -310,29 +306,53 @@ public class ReqInsDetailEntity implements Entity<String> {
             // 如果投料行为空, 则新增
             return parseAddType(wipLotMap);
         }
-        return this.parseUpdateType(reqLineList, wipLotMap, this.getItemUnitQty().negate());
+        return this.allocateQty(reqLineList, wipLotMap, this.getItemUnitQty());
     }
 
+    /**
+     * 将批次数量分配到投料行上, 单位用量可为负, 为负时扣减数量
+     * @since 2020/6/13 10:54 上午
+     * @author xueyuting
+     * @param reqLineList 投料行
+     * @param wipLotMap 工单批次
+     * @param updateUnitQty 单位用量
+     */
     @VisibleForTesting
-    List<WipReqLineEntity> parseUpdateType(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap, BigDecimal updateUnitQty) {
+    List<WipReqLineEntity> allocateQty(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap, BigDecimal updateUnitQty) {
         List<WipReqLineEntity> resultList = new ArrayList<>();
+
+        // 小批次数量之和(工单数量) * 单位用量, 以这个数量为总量来分配
+        BigDecimal remainLotQty = wipLotMap.values().stream().map(WipLotVO::getLotQuantity)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .multiply(updateUnitQty)
+                .setScale(1, RoundingMode.FLOOR)
+                .setScale(0, RoundingMode.CEILING);
+
         Map<String, List<WipReqLineEntity>> lotGroupLineMap = reqLineList.stream().collect(Collectors.groupingBy(WipReqLineEntity::getLotNumber));
-        for (Map.Entry<String, List<WipReqLineEntity>> lotGroupLineEntry : lotGroupLineMap.entrySet()) {
+        Iterator<Map.Entry<String, List<WipReqLineEntity>>> lotGroupLineMapIterator = lotGroupLineMap.entrySet().iterator();
+        while (lotGroupLineMapIterator.hasNext()) {
+            Map.Entry<String, List<WipReqLineEntity>> lotGroupLineEntry = lotGroupLineMapIterator.next();
             String lotNumber = lotGroupLineEntry.getKey();
             WipLotVO wipLot = wipLotMap.get(lotNumber);
             if (Objects.isNull(wipLot)) {
                 // 小批次不存在, 报错
                 throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + this.toString());
             }
-            // 更新数量可为负
-            BigDecimal updateQty = updateUnitQty.multiply(wipLot.getLotQuantity());
+            BigDecimal updateQty = updateUnitQty.multiply(wipLot.getLotQuantity()).setScale(1, RoundingMode.DOWN).setScale(0, RoundingMode.UP);
+            if (!lotGroupLineMapIterator.hasNext()) {
+                updateQty = remainLotQty;
+            }
+            // 工单数量扣减已分配到该小批次上的数量
+            remainLotQty = remainLotQty.subtract(updateQty);
+
             List<WipReqLineEntity> lotGroupLineList = lotGroupLineEntry.getValue();
-            // 分配策略: 将分配数量均匀加/减到批次对应的投料行上, 若出现小数, 向接近0的方向取整
-            BigDecimal allocateQty = updateQty.divide(new BigDecimal(lotGroupLineList.size()), 0, RoundingMode.DOWN);
-            for (int index = 0; index < lotGroupLineList.size(); index++) {
-                WipReqLineEntity lotGroupLine = lotGroupLineList.get(index);
+            // 分配策略: 将分配数量均匀加/减到批次对应的投料行上, 若出现小数, 向上取整
+            BigDecimal allocateQty = updateQty.divide(new BigDecimal(lotGroupLineList.size()), 0, RoundingMode.UP);
+            Iterator<WipReqLineEntity> lotGroupLineIterator = lotGroupLineList.iterator();
+            while (lotGroupLineIterator.hasNext()) {
+                WipReqLineEntity lotGroupLine = lotGroupLineIterator.next();
                 // 计算更新后的需求数量
-                if (index == lotGroupLineList.size() - 1) {
+                if (!lotGroupLineIterator.hasNext()) {
                     // 把剩余的数量都分配到最后一个行上
                     allocateQty = updateQty;
                 }
@@ -350,20 +370,24 @@ public class ReqInsDetailEntity implements Entity<String> {
                 }
                 lotGroupLine.setReqQty(resultQty);
 
-                // 单位用量 = 更新后需求数量 / 工单批次数量, 非最后一个, 向靠近0的方向取整
-                RoundingMode roundingMode = RoundingMode.DOWN;
-                if (index == lotGroupLineList.size() - 1) {
+                // 单位用量 = 更新后需求数量 / 工单批次数量, 非最后一个, 向接近0的方向取整
+                RoundingMode roundingMode = RoundingMode.UP;
+                if (!lotGroupLineIterator.hasNext()) {
                     // 最后一行 向远离0的方向取整
-                    roundingMode = RoundingMode.UP;
+                    roundingMode = RoundingMode.DOWN;
                 }
                 lotGroupLine.setUnitQty(new BigDecimal(resultQty).divide(wipLot.getLotQuantity(), 6, roundingMode).doubleValue());
-                // 扣减剩余分配数量
+                // 小批次数量扣减已分配到位号的数量
                 updateQty = updateQty.subtract(realAllocateQty);
             }
             resultList.addAll(lotGroupLineList);
         }
-        // 变更类型为"更新"
-        resultList.forEach(line -> line.setChangeType(ChangedTypeEnum.UPDATE.getCode()));
+        for (WipReqLineEntity line : resultList) {
+            if (StringUtils.isBlank(line.getChangeType())) {
+                // 变更类型为"更新"
+                line.setChangeType(ChangedTypeEnum.UPDATE.getCode());
+            }
+        }
         return resultList;
     }
 

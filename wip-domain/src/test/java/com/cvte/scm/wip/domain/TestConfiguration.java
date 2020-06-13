@@ -1,6 +1,9 @@
 package com.cvte.scm.wip.domain;
 
 import com.cvte.csb.wfp.api.sdk.service.IWorkflowExtendedService;
+import com.cvte.scm.wip.common.base.domain.DomainEventPublisher;
+import com.cvte.scm.wip.common.base.domain.EventListener;
+import com.cvte.scm.wip.common.event.SimpleEventBus;
 import com.cvte.scm.wip.domain.common.bu.repository.*;
 import com.cvte.scm.wip.domain.common.health.repository.HealthRepository;
 import com.cvte.scm.wip.domain.common.serial.SerialNoGenerationService;
@@ -243,6 +246,11 @@ public class TestConfiguration {
     @Bean
     public WipLotRepository wipLotRepository() {
         return Mockito.mock(WipLotRepository.class);
+    }
+
+    @Bean
+    public EventListener eventListener() {
+        return Mockito.mock(EventListener.class);
     }
 
 }
