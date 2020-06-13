@@ -206,17 +206,19 @@ public class WipReqLineService {
             return "删除的数据为空；";
         }
         Example example = wipReqLineRepository.createExample();
-        example.createCriteria().andIn("lineId", Arrays.asList(lineIds))
-                .andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED_PREPARED_ISSUED, BillStatusEnum.class));
-        cancelledData.addAll(wipReqLineRepository.selectByExample(example));
-        Set<String> cancelLineIdSet = cancelledData.stream().map(WipReqLineEntity::getLineId).collect(Collectors.toSet());
-        String[] invalidLineIds = Arrays.stream(lineIds).filter(id -> !cancelLineIdSet.contains(id)).toArray(String[]::new);
-        if (invalidLineIds.length > 0) {
-            log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；", Arrays.toString(invalidLineIds)), ChangedTypeEnum.DELETE));
-            return "删除失败，请您刷新页面后再执行删除操作；";
-        }
-        if (cancelledData.stream().anyMatch(el -> BillStatusEnum.ISSUED.getCode().equals(el.getLineStatus()))) {
-            return "不能删除已领料的投料单行，请检查；";
+        example.createCriteria().andIn("lineId", Arrays.asList(lineIds));
+        List<WipReqLineEntity> wipReqLineEntities = wipReqLineRepository.selectByExample(example);
+        List<WipReqLineEntity> cancelList = wipReqLineEntities.stream().filter(WipReqLineEntity::canCancel).collect(toList());
+        cancelledData.addAll(cancelList);
+        if (cancelList.size() != wipReqLineEntities.size()) {
+            List<WipReqLineEntity> invalidLineStatusList = wipReqLineEntities.stream()
+                    .filter(el -> !el.canCancel())
+                    .collect(Collectors.toList());
+            log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；",
+                    invalidLineStatusList.stream().map(WipReqLineEntity::getLineId).collect(Collectors.joining(","))), ChangedTypeEnum.DELETE));
+            BillStatusEnum billStatusEnum = CodeableEnumUtils.getCodeableEnumByCode(invalidLineStatusList.get(0).getLineStatus(), BillStatusEnum.class);
+
+            return billStatusEnum.getDesc() + "的投料行不允许删除；";
         }
         return "";
     }
