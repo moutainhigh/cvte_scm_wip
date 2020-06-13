@@ -40,6 +40,12 @@ public class ChangeBillBuildVO implements VO {
 
     private Date lastUpdDate;
 
+    private String changeContent;
+    
+    private String remarks;
+
+    private String pcRemarks;
+
     private List<ChangeBillDetailBuildVO> detailVOList;
 
 }

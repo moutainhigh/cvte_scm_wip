@@ -78,6 +78,12 @@ public class ChangeBillEntity implements Entity<String> {
 
     private Date lastUpdDate;
 
+    private String changeContent;
+
+    private String remarks;
+
+    private String pcRemarks;
+
     private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
     public ChangeBillEntity getByKey(String billKey) {
