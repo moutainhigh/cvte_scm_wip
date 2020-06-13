@@ -7,6 +7,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.*;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
@@ -445,12 +446,13 @@ public class WipReqLineService {
     }
 
     public String[] executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+        wipReqLineList = sortLineByChangeType(wipReqLineList);
         Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::validateAndGetExecuteData);
         Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, getWipUserId());
         Consumer<WipReqLineEntity> manipulate = line -> {
             ChangedTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(line.getChangeType(), ChangedTypeEnum.class);
             if (Objects.isNull(typeEnum)) {
-                throw new ParamsIncorrectException("更改类型不可为空");
+                throw new ParamsIncorrectException("更改类型不存在或为空");
             }
             switch (typeEnum) {
                 case ADD:
@@ -465,11 +467,29 @@ public class WipReqLineService {
                 case UPDATE:
                     update(singletonList(line), eMode, cMode, false, userId);
                     break;
+                default:
+                    throw new ParamsIncorrectException("不支持的投料行变更类型:" + typeEnum.getDesc());
             }
         };
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
         return change(parameters);
+    }
+
+    private List<WipReqLineEntity> sortLineByChangeType(List<WipReqLineEntity> reqLineEntityList) {
+        List<WipReqLineEntity> sortedList = new ArrayList<>();
+        Map<String, List<WipReqLineEntity>> groupedLineMap = reqLineEntityList.stream().collect(Collectors.groupingBy(WipReqLineEntity::getChangeType));
+        Consumer<String> addGroupedLine = changeType -> {
+            List<WipReqLineEntity> groupedLine = groupedLineMap.get(changeType);
+            if (ListUtil.notEmpty(groupedLine)) {
+                sortedList.addAll(groupedLine);
+            }
+        };
+        addGroupedLine.accept(ChangedTypeEnum.DELETE.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.ADD.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.REPLACE.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.UPDATE.getCode());
+        return sortedList;
     }
 
     private String validateAndGetExecuteData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> changedData) {
