@@ -64,17 +64,30 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
             Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
+                checkReqInsDomainService.checkInsProcessed(insHeader);
                 checkReqInsDomainService.checkPreInsExists(insHeader);
-                reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
-                checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
             } catch (RuntimeException re) {
-                if (!ProcessingStatusEnum.SOLVED.getCode().equals(insHeader.getStatus())) {
-                    insHeader.processFailed("校验失败," + re.getMessage());
-                }
+                insHeader.processFailed("校验失败," + re.getMessage());
                 throw re;
             }
 
-            List<WipReqLineEntity> reqLineList = insHeader.parse(reqLineMap);
+            try {
+                reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
+                checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
+            } catch (RuntimeException re) {
+                String headerErrMsg = insHeader.groupDetailExecuteResult();
+                insHeader.processFailed("校验失败," + headerErrMsg);
+                throw re;
+            }
+
+            List<WipReqLineEntity> reqLineList;
+            try {
+                reqLineList = insHeader.parse(reqLineMap);
+            } catch (RuntimeException re) {
+                String headerErrMsg = insHeader.groupDetailExecuteResult();
+                insHeader.processFailed("解析失败," + headerErrMsg);
+                throw re;
+            }
 
             transactionTemplate.setTransactionManager(pgTransactionManager);
             try {

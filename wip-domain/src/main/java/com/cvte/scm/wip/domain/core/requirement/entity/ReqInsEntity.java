@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
@@ -7,6 +8,7 @@ import com.cvte.scm.wip.common.base.domain.DomainEventPublisher;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.event.ReqInsProcessNotifyEvent;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsEntityFactory;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author : xueyuting
@@ -183,10 +186,34 @@ public class ReqInsEntity implements Entity<String> {
 
     public List<WipReqLineEntity> parse(Map<String, List<WipReqLineEntity>> reqLineMap) {
         List<WipReqLineEntity> reqLineEntityList = new ArrayList<>();
+        boolean parseFailed = false;
         for (ReqInsDetailEntity detailEntity : this.getDetailList()) {
-            reqLineEntityList.addAll(detailEntity.parseDetail(reqLineMap));
+            try {
+                reqLineEntityList.addAll(detailEntity.parseDetail(reqLineMap));
+            } catch (RuntimeException se) {
+                parseFailed = true;
+                detailEntity.setExecuteResult(se.getMessage());
+            }
+        }
+        if (parseFailed) {
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), "解析失败");
         }
         return reqLineEntityList;
+    }
+
+    public String groupDetailExecuteResult() {
+        Map<String, String> resultMap = this.detailList.stream()
+                .filter(detail -> StringUtils.isNotBlank(detail.getExecuteResult()))
+                .collect(Collectors.groupingBy(ReqInsDetailEntity::getExecuteResult, Collectors.mapping(ReqInsDetailEntity::getInsDetailId, Collectors.joining(","))));
+        if (resultMap == null || resultMap.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> resultEntry : resultMap.entrySet()) {
+            sb.append(resultEntry.getKey()).append(", id:").append(resultEntry.getValue()).append(";");
+        }
+        return sb.toString();
     }
 
     public void notifyEntity() {

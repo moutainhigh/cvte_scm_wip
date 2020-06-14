@@ -39,7 +39,7 @@ class ReqInsEntitySpec extends BaseJunitTest {
         insEntity.parse(null)
         then:
         ServerException se = thrown()
-        se.status == ReqInsErrEnum.ADD_LOT_NULL.getCode()
+        se.status == ReqInsErrEnum.INVALID_INS.getCode()
     }
 
     def "新增工单批次"() {

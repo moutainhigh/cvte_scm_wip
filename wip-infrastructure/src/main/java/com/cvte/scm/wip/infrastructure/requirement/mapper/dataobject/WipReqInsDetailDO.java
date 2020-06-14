@@ -205,6 +205,12 @@ public class WipReqInsDetailDO extends BaseEntity {
     @Column(name = "upd_host")
     @ApiModelProperty(value = "${field.comment}")
     private String updHost;
+    /**
+     * 执行结果
+     */
+    @Column(name = "execute_result")
+    @ApiModelProperty(value = "执行结果")
+    private String executeResult;
 
     public static ReqInsDetailEntity buildEntity(WipReqInsDetailDO detailDO) {
         ReqInsDetailEntity detailEntity = ReqInsDetailEntity.get();

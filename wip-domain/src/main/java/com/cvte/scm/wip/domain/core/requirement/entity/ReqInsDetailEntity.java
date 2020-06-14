@@ -105,6 +105,8 @@ public class ReqInsDetailEntity implements Entity<String> {
 
     private String invalidReason;
 
+    private String executeResult;
+
     // 冗余目标投料单头ID
     private String aimHeaderId;
 
@@ -395,6 +397,7 @@ public class ReqInsDetailEntity implements Entity<String> {
         this.setInsStatus(ProcessingStatusEnum.SOLVED.getCode());
         this.setConfirmedBy(EntityUtils.getWipUserId());
         this.setConfirmDate(new Date());
+        this.setExecuteResult("成功");
         detailRepository.update(this);
     }
 
