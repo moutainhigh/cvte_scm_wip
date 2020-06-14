@@ -52,28 +52,33 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
             throw new ParamsIncorrectException("组织ID不可为空");
         }
 
-        // 获取EBS更改单
-        List<ChangeBillBuildVO> changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
+        List<ChangeBillBuildVO> changeBillBuildVOList;
 
-        if (ListUtil.empty(changeBillBuildVOList)) {
-            return "";
-        }
+        // 接口和定时任务可能同时调用, 为避免并发引起的数据问题, 按业务组织加锁。 intern将字符串写入常量池, 保证每次拿到的是业务组织的同一个内存对象
+        synchronized (queryVO.getOrganizationId().intern()) {
+            // 获取EBS更改单
+            changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
 
-        for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
-            ChangeBillEntity billEntity = null;
-            try {
-                // 生成更改单
-                billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
-                // 生成指令
-                this.parseChangeBill(billEntity);
-            } catch (RuntimeException re) {
-                if (Objects.isNull(billEntity)) {
-                    billEntity = ChangeBillEntity.get();
-                    billEntity.setBillId(changeBillBuildVO.getBillId())
-                            .setBillNo(changeBillBuildVO.getBillNo())
-                            .setMoId(changeBillBuildVO.getMoId());
+            if (ListUtil.empty(changeBillBuildVOList)) {
+                return "";
+            }
+
+            for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
+                ChangeBillEntity billEntity = null;
+                try {
+                    // 生成更改单
+                    billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
+                    // 生成指令
+                    this.parseChangeBill(billEntity);
+                } catch (RuntimeException re) {
+                    if (Objects.isNull(billEntity)) {
+                        billEntity = ChangeBillEntity.get();
+                        billEntity.setBillId(changeBillBuildVO.getBillId())
+                                .setBillNo(changeBillBuildVO.getBillNo())
+                                .setMoId(changeBillBuildVO.getMoId());
+                    }
+                    billEntity.notifyEntity(re.getMessage());
                 }
-                billEntity.notifyEntity(re.getMessage());
             }
         }
 
