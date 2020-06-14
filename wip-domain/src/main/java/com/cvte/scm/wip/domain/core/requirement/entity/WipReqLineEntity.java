@@ -131,8 +131,17 @@ public class WipReqLineEntity {
     @Transient
     private String groupId;
 
+    // 变更类型
     @Transient
     private String changeType;
+
+    // 指令ID
+    @Transient
+    private String insDetailId;
+
+    // 变更结果
+    @Transient
+    private String executeResult;
 
     @Override
     public boolean equals(Object obj) {

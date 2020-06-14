@@ -189,7 +189,9 @@ public class ReqInsEntity implements Entity<String> {
         boolean parseFailed = false;
         for (ReqInsDetailEntity detailEntity : this.getDetailList()) {
             try {
-                reqLineEntityList.addAll(detailEntity.parseDetail(reqLineMap));
+                List<WipReqLineEntity> detailLineList = detailEntity.parseDetail(reqLineMap);
+                detailLineList.forEach(line -> line.setInsDetailId(detailEntity.getInsDetailId()));
+                reqLineEntityList.addAll(detailLineList);
             } catch (RuntimeException se) {
                 parseFailed = true;
                 detailEntity.setExecuteResult(se.getMessage());
@@ -202,6 +204,7 @@ public class ReqInsEntity implements Entity<String> {
     }
 
     public String groupDetailExecuteResult() {
+        // 以 执行结果为key 将ID用","聚合
         Map<String, String> resultMap = this.detailList.stream()
                 .filter(detail -> StringUtils.isNotBlank(detail.getExecuteResult()))
                 .collect(Collectors.groupingBy(ReqInsDetailEntity::getExecuteResult, Collectors.mapping(ReqInsDetailEntity::getInsDetailId, Collectors.joining(","))));

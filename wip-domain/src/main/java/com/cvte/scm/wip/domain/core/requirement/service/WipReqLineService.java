@@ -272,13 +272,25 @@ public class WipReqLineService {
         changedLines = changedLines.stream().distinct().collect(toList());
         ChangedTypeEnum type = parameters.type;
         String groupId = UUIDUtils.getUUID();
+
         List<XxwipMoInterfaceEntity> moInterfaceList = new ArrayList<>();
         XxwipMoInterfaceEntity moInterface;
+        boolean changeFailed = false;
+        List<String> errMsgList = new ArrayList<>();
         for (WipReqLineEntity afterLine : changedLines) {
             afterLine.setGroupId(ofNullable(afterLine.getGroupId()).orElse(groupId));
             WipReqLineEntity beforeLine = ofNullable(wipReqLineRepository.selectById(afterLine.getLineId())).orElse(afterLine);
             parameters.complete.accept(afterLine);
-            parameters.manipulate.accept(afterLine);
+            try {
+                parameters.manipulate.accept(afterLine);
+            } catch (RuntimeException re) {
+                changeFailed = true;
+                if (!errMsgList.contains(re.getMessage())) {
+                    errMsgList.add(re.getMessage());
+                }
+                afterLine.setExecuteResult(re.getMessage());
+                continue;
+            }
             if (nonNull(moInterface = createXxwipMoInterface(afterLine, type.getCode()))) {
                 moInterfaceList.add(moInterface);
             }
@@ -286,6 +298,9 @@ public class WipReqLineService {
                 wipReqLogService.addWipReqLog(beforeLine, afterLine, type);
                 log.info("投料单行表{}成功：行ID = {}; ", type.getDesc(), afterLine.getLineId());
             }
+        }
+        if (changeFailed) {
+            throw new ParamsIncorrectException(type.getDesc() + "失败:" + String.join(",", errMsgList));
         }
         writeChangedDataToEBS(moInterfaceList, groupId);
         return errorMessages;
@@ -445,7 +460,7 @@ public class WipReqLineService {
         return "";
     }
 
-    public String[] executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+    public void executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
         wipReqLineList = sortLineByChangeType(wipReqLineList);
         Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::validateAndGetExecuteData);
         Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, getWipUserId());
@@ -473,7 +488,7 @@ public class WipReqLineService {
         };
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
-        return change(parameters);
+        change(parameters);
     }
 
     private List<WipReqLineEntity> sortLineByChangeType(List<WipReqLineEntity> reqLineEntityList) {
