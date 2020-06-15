@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipLotMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.domain.core.requirement.valueobject.WipLotVO">
+        <result column="wip_id" property="wipId" />
+        <result column="lot_number" property="lotNumber" />
+        <result column="lot_quantity" property="lotQuantity" />
+        <result column="factory_id" property="factoryId" />
+    </resultMap>
+
+    <select id="selectByHeaderId" resultMap="BaseResultMap">
+        select to_char(wip_id) as wip_id
+              ,lot_number
+              ,lot_quantity
+              ,to_char(factory_id) as factory_id
+        from wip_lot_v
+        where wip_id = #{headerId}
+    </select>
+
+</mapper>

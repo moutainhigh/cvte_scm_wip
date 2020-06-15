@@ -1,11 +1,12 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
@@ -50,6 +52,19 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
     @Override
     public String getSourceId(String headerId) {
         return wipReqHeaderMapper.getSourceId(headerId);
+    }
+
+    @Override
+    public WipReqHeaderEntity getBySourceId(String sourceId) {
+        if (StringUtils.isBlank(sourceId)) {
+            throw new ParamsIncorrectException("来源工单ID不可为空");
+        }
+        WipReqHeaderDO queryDO = new WipReqHeaderDO().setSourceId(sourceId);
+        WipReqHeaderDO resultHeader = wipReqHeaderMapper.selectOne(queryDO);
+        if (Objects.isNull(resultHeader)) {
+            return null;
+        }
+        return WipReqHeaderDO.buildEntity(resultHeader);
     }
 
     @Override

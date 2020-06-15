@@ -48,7 +48,6 @@ public class WipReqLineEntity {
 
     @ApiModelProperty(value = "单位用量")
     @DecimalMin(value = "0.0", message = "单位用量必须大于等于零")
-    @Digits(integer = 10, fraction = 6, message = "单位用量只能保留6位小数")
     private Double unitQty;
 
     @ApiModelProperty(value = "需求数量")
@@ -131,6 +130,18 @@ public class WipReqLineEntity {
 
     @Transient
     private String groupId;
+
+    // 变更类型
+    @Transient
+    private String changeType;
+
+    // 指令ID
+    @Transient
+    private String insDetailId;
+
+    // 变更结果
+    @Transient
+    private String executeResult;
 
     @Override
     public boolean equals(Object obj) {

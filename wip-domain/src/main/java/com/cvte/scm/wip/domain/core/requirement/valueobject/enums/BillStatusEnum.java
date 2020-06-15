@@ -22,4 +22,9 @@ public enum BillStatusEnum implements Codeable {
     CANCELLED("50", "已取消");
 
     private String code, desc;
+
+    public static Boolean valid(String status) {
+        return !CLOSED.getCode().equals(status) && !CANCELLED.getCode().equals(status);
+    }
+
 }

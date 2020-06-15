@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public interface WipReqLineRepository {
     List<WipReqLineEntity> selectList(WipReqLineEntity queryEntity);
 
     List<WipReqLineEntity> selectByExample(Example example);
+
+    List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO);
 
     void insertSelective(WipReqLineEntity lineEntity);
 
