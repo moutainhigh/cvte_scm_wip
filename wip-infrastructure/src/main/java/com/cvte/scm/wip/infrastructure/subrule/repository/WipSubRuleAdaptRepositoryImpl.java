@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.infrastructure.subrule.repository;
 
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.subrule.entity.WipSubRuleAdaptEntity;
 import com.cvte.scm.wip.domain.core.subrule.repository.WipSubRuleAdaptRepository;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.EntryVO;

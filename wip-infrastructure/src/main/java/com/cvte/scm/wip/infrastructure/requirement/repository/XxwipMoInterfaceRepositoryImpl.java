@@ -1,6 +1,6 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.XxwipMoInterfaceRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.XxwipMoInterfaceDO;

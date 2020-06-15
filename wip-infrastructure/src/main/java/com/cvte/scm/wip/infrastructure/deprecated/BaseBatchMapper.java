@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.domain.common.deprecated;
+package com.cvte.scm.wip.infrastructure.deprecated;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import lombok.Data;

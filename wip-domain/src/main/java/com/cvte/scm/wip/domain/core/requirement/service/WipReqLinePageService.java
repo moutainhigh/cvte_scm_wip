@@ -8,6 +8,7 @@ import com.cvte.scm.wip.domain.common.view.service.ViewService;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsInfoVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import org.springframework.beans.BeanUtils;
@@ -17,6 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.cvte.csb.toolkit.StringUtils.isNotEmpty;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -100,7 +102,7 @@ public class WipReqLinePageService {
         finalPageResult.setTotal((long) parentTotalCount);
         finalPageResult.setPageSize(originPageSize);
         finalPageResult.setPageNum(originPageNum);
-        finalPageResult.setPages((int) (finalPageResult.getTotal() / finalPageResult.getPageSize() + (finalPageResult.getTotal() % finalPageResult.getPageSize() > 0 ? 1 : 0)));
+        finalPageResult.setPages(calculatePageNum(finalPageResult.getTotal(), finalPageResult.getPageSize()).intValue());
         return finalPageResult;
     }
 
@@ -121,6 +123,44 @@ public class WipReqLinePageService {
 
     private String generateGroupKey(WipReqLineVO wipReqLineVO) {
         return wipReqLineVO.getLotNumber() + "_" + wipReqLineVO.getItemNo() + "_" + wipReqLineVO.getWkpNo();
+    }
+
+    private Long calculatePageNum(Long total, Integer pageSize) {
+        return (total / pageSize + (total % pageSize > 0 ? 1 : 0));
+    }
+
+    public PageResultEntity reqInsInfo(SysViewPageParamVO pageParam) {
+        int originPageSize = pageParam.getPageSize();
+        int originPageNum = pageParam.getPageNum();
+        pageParam.setPageSize(MAX_PAGE_SIZE);
+        pageParam.setPageNum(0);
+
+        PageResultEntity feignPageResult = viewService.getViewPageDataByViewPageParam(pageParam);
+        List<ReqInsInfoVO> insDetailList = JSON.parseArray(JSON.toJSONString(feignPageResult.getList()), ReqInsInfoVO.class);
+
+        Map<String, List<ReqInsInfoVO>> insDetailMap = insDetailList.stream().collect(groupingBy(ReqInsInfoVO::getBillNo, LinkedHashMap::new, toList()));
+
+        int billTotalCount = insDetailMap.size();
+        int startIndex = originPageNum * originPageSize;
+        int endIndex = Math.min((startIndex + originPageSize), billTotalCount) - 1;
+
+        List<ReqInsInfoVO> resultInsInfoList = new ArrayList<>();
+        int loopCount = 0;
+        for (Map.Entry<String, List<ReqInsInfoVO>> insDetailEntry : insDetailMap.entrySet()) {
+            if (loopCount >= startIndex && loopCount <= endIndex) {
+                List<ReqInsInfoVO> groupInsInfoList = insDetailEntry.getValue();
+                groupInsInfoList.get(0).setHeadFlag(1);
+                resultInsInfoList.addAll(groupInsInfoList);
+            }
+            loopCount++;
+        }
+
+        feignPageResult.setList(resultInsInfoList);
+        feignPageResult.setTotal((long)billTotalCount);
+        feignPageResult.setPageSize(originPageSize);
+        feignPageResult.setPageNum(originPageNum);
+        feignPageResult.setPages(calculatePageNum(feignPageResult.getTotal(), feignPageResult.getPageSize()).intValue());
+        return feignPageResult;
     }
 
 }

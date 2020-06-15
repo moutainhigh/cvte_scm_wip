@@ -7,8 +7,12 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
-import com.cvte.scm.wip.common.utils.*;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.CurrentContextUtils;
+import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.common.utils.ValidateUtils;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
@@ -23,6 +27,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
@@ -126,6 +131,8 @@ public class WipReqLineService {
             return "添加失败，您填写的组织或物料编码错误，请您修改无误后再添加；";
         } else if (StringUtils.isEmpty(wipReqHeaderRepository.getSourceId(wipReqLine.getHeaderId()))) {
             return "添加失败，您填写的投料单头ID错误，请您修改无误后再添加；";
+        } else if (!wipReqHeaderRepository.existLotNumber(wipReqLine.getHeaderId(), wipReqLine.getLotNumber())) {
+            return "添加失败，您填写的批次号错误，请您修改无误后再添加；";
         }
         addedData.add(wipReqLine.setItemId(itemId));
         return "";
@@ -200,14 +207,19 @@ public class WipReqLineService {
             return "删除的数据为空；";
         }
         Example example = wipReqLineRepository.createExample();
-        example.createCriteria().andIn("lineId", Arrays.asList(lineIds))
-                .andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED_PREPARED_ISSUED, BillStatusEnum.class));
-        cancelledData.addAll(wipReqLineRepository.selectByExample(example));
-        Set<String> cancelLineIdSet = cancelledData.stream().map(WipReqLineEntity::getLineId).collect(Collectors.toSet());
-        String[] invalidLineIds = Arrays.stream(lineIds).filter(id -> !cancelLineIdSet.contains(id)).toArray(String[]::new);
-        if (invalidLineIds.length > 0) {
-            log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；", Arrays.toString(invalidLineIds)), ChangedTypeEnum.DELETE));
-            return "删除失败，请您刷新页面后再执行删除操作；";
+        example.createCriteria().andIn("lineId", Arrays.asList(lineIds));
+        List<WipReqLineEntity> wipReqLineEntities = wipReqLineRepository.selectByExample(example);
+        List<WipReqLineEntity> cancelList = wipReqLineEntities.stream().filter(WipReqLineEntity::canCancel).collect(toList());
+        cancelledData.addAll(cancelList);
+        if (cancelList.size() != wipReqLineEntities.size()) {
+            List<WipReqLineEntity> invalidLineStatusList = wipReqLineEntities.stream()
+                    .filter(el -> !el.canCancel())
+                    .collect(Collectors.toList());
+            log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；",
+                    invalidLineStatusList.stream().map(WipReqLineEntity::getLineId).collect(Collectors.joining(","))), ChangedTypeEnum.DELETE));
+            BillStatusEnum billStatusEnum = CodeableEnumUtils.getCodeableEnumByCode(invalidLineStatusList.get(0).getLineStatus(), BillStatusEnum.class);
+
+            return billStatusEnum.getDesc() + "的投料行不允许删除；";
         }
         return "";
     }
@@ -272,13 +284,25 @@ public class WipReqLineService {
         changedLines = changedLines.stream().distinct().collect(toList());
         ChangedTypeEnum type = parameters.type;
         String groupId = UUIDUtils.getUUID();
+
         List<XxwipMoInterfaceEntity> moInterfaceList = new ArrayList<>();
         XxwipMoInterfaceEntity moInterface;
+        boolean changeFailed = false;
+        List<String> errMsgList = new ArrayList<>();
         for (WipReqLineEntity afterLine : changedLines) {
             afterLine.setGroupId(ofNullable(afterLine.getGroupId()).orElse(groupId));
             WipReqLineEntity beforeLine = ofNullable(wipReqLineRepository.selectById(afterLine.getLineId())).orElse(afterLine);
             parameters.complete.accept(afterLine);
-            parameters.manipulate.accept(afterLine);
+            try {
+                parameters.manipulate.accept(afterLine);
+            } catch (RuntimeException re) {
+                changeFailed = true;
+                if (!errMsgList.contains(re.getMessage())) {
+                    errMsgList.add(re.getMessage());
+                }
+                afterLine.setExecuteResult(re.getMessage());
+                continue;
+            }
             if (nonNull(moInterface = createXxwipMoInterface(afterLine, type.getCode()))) {
                 moInterfaceList.add(moInterface);
             }
@@ -286,6 +310,9 @@ public class WipReqLineService {
                 wipReqLogService.addWipReqLog(beforeLine, afterLine, type);
                 log.info("投料单行表{}成功：行ID = {}; ", type.getDesc(), afterLine.getLineId());
             }
+        }
+        if (changeFailed) {
+            throw new ParamsIncorrectException(type.getDesc() + "失败:" + String.join(",", errMsgList));
         }
         writeChangedDataToEBS(moInterfaceList, groupId);
         return errorMessages;
@@ -381,7 +408,10 @@ public class WipReqLineService {
         } else if (isNotEmpty(errorMsg = validateIndex(wipReqLine))) {
             return format("抱歉，您替换后的数据有点小问题，{}", errorMsg);
         }
-        Example example = wipReqLineRepository.createCustomExample(wipReqLine.setItemNo(beforeItemNo).setItemId(null));
+        // 直接更新原投料行会导致 投料指令执行时 EBS接口表报 ITEM_ID为空异常
+        WipReqLineEntity queryEntity = new WipReqLineEntity();
+        BeanUtils.copyProperties(wipReqLine, queryEntity);
+        Example example = wipReqLineRepository.createCustomExample(queryEntity.setItemNo(beforeItemNo).setItemId(null));
         if (nonNull(example) && StringUtils.isNotEmpty(wipReqLine.getLineId())) {
             example.getOredCriteria().get(0).andEqualTo("lineId", wipReqLine.getLineId());
         }
@@ -397,7 +427,12 @@ public class WipReqLineService {
         if (CodeableEnumUtils.getCodeableEnumByCode(dbWipReqLine.getLineStatus(), BillStatusEnum.class) == BillStatusEnum.ISSUED) {
             return "替换失败，已领料的投料单无法执行替换操作。";
         }
-        replacedData.add(dbWipReqLine.setSourceCode(wipReqLine.getSourceCode()).setBeforeItemNo(beforeItemNo).setItemNo(afterItemNo));
+        dbWipReqLine.setSourceCode(wipReqLine.getSourceCode())
+                .setBeforeItemNo(beforeItemNo)
+                .setItemNo(afterItemNo)
+                // 投料指令执行时保证只调用一次存储过程
+                .setGroupId(wipReqLine.getGroupId());
+        replacedData.add(dbWipReqLine);
         return "";
     }
 
@@ -434,6 +469,58 @@ public class WipReqLineService {
                 }
             }
         }
+        return "";
+    }
+
+    public void executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+        wipReqLineList = sortLineByChangeType(wipReqLineList);
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::validateAndGetExecuteData);
+        Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, getWipUserId());
+        Consumer<WipReqLineEntity> manipulate = line -> {
+            ChangedTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(line.getChangeType(), ChangedTypeEnum.class);
+            if (Objects.isNull(typeEnum)) {
+                throw new ParamsIncorrectException("更改类型不存在或为空");
+            }
+            switch (typeEnum) {
+                case ADD:
+                    addOne(line, eMode, cMode, false);
+                    break;
+                case DELETE:
+                    cancelledByConditions(singletonList(line), eMode, cMode, false, userId);
+                    break;
+                case REPLACE:
+                    replace(singletonList(line), eMode, cMode, false, userId);
+                    break;
+                case UPDATE:
+                    update(singletonList(line), eMode, cMode, false, userId);
+                    break;
+                default:
+                    throw new ParamsIncorrectException("不支持的投料行变更类型:" + typeEnum.getDesc());
+            }
+        };
+        ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)
+                .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
+        change(parameters);
+    }
+
+    private List<WipReqLineEntity> sortLineByChangeType(List<WipReqLineEntity> reqLineEntityList) {
+        List<WipReqLineEntity> sortedList = new ArrayList<>();
+        Map<String, List<WipReqLineEntity>> groupedLineMap = reqLineEntityList.stream().collect(Collectors.groupingBy(WipReqLineEntity::getChangeType));
+        Consumer<String> addGroupedLine = changeType -> {
+            List<WipReqLineEntity> groupedLine = groupedLineMap.get(changeType);
+            if (ListUtil.notEmpty(groupedLine)) {
+                sortedList.addAll(groupedLine);
+            }
+        };
+        addGroupedLine.accept(ChangedTypeEnum.DELETE.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.ADD.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.REPLACE.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.UPDATE.getCode());
+        return sortedList;
+    }
+
+    private String validateAndGetExecuteData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> changedData) {
+        changedData.add(wipReqLine);
         return "";
     }
 
