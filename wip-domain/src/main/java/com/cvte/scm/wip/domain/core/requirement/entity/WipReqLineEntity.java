@@ -1,15 +1,18 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
 
+import com.cvte.csb.toolkit.ObjectUtils;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.*;
+import javax.persistence.Transient;
 import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Digits;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
@@ -143,6 +146,11 @@ public class WipReqLineEntity {
     @Transient
     private String executeResult;
 
+    public boolean canCancel() {
+        BillStatusEnum billStatusEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getLineStatus(), BillStatusEnum.class);
+        return ObjectUtils.isNotNull(billStatusEnum)
+                && Arrays.asList(BillStatusEnum.DRAFT, BillStatusEnum.CONFIRMED, BillStatusEnum.PREPARED).contains(billStatusEnum);
+    }
     @Override
     public boolean equals(Object obj) {
         if (Objects.nonNull(obj) && obj instanceof WipReqLineEntity) {

@@ -9,7 +9,10 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
-import com.cvte.scm.wip.common.utils.*;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.CurrentContextUtils;
+import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.common.utils.ValidateUtils;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
@@ -128,6 +131,8 @@ public class WipReqLineService {
             return "添加失败，您填写的组织或物料编码错误，请您修改无误后再添加；";
         } else if (StringUtils.isEmpty(wipReqHeaderRepository.getSourceId(wipReqLine.getHeaderId()))) {
             return "添加失败，您填写的投料单头ID错误，请您修改无误后再添加；";
+        } else if (!wipReqHeaderRepository.existLotNumber(wipReqLine.getHeaderId(), wipReqLine.getLotNumber())) {
+            return "添加失败，您填写的批次号错误，请您修改无误后再添加；";
         }
         addedData.add(wipReqLine.setItemId(itemId));
         return "";
@@ -202,14 +207,19 @@ public class WipReqLineService {
             return "删除的数据为空；";
         }
         Example example = wipReqLineRepository.createExample();
-        example.createCriteria().andIn("lineId", Arrays.asList(lineIds))
-                .andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(DRAFT_CONFIRMED_PREPARED_ISSUED, BillStatusEnum.class));
-        cancelledData.addAll(wipReqLineRepository.selectByExample(example));
-        Set<String> cancelLineIdSet = cancelledData.stream().map(WipReqLineEntity::getLineId).collect(Collectors.toSet());
-        String[] invalidLineIds = Arrays.stream(lineIds).filter(id -> !cancelLineIdSet.contains(id)).toArray(String[]::new);
-        if (invalidLineIds.length > 0) {
-            log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；", Arrays.toString(invalidLineIds)), ChangedTypeEnum.DELETE));
-            return "删除失败，请您刷新页面后再执行删除操作；";
+        example.createCriteria().andIn("lineId", Arrays.asList(lineIds));
+        List<WipReqLineEntity> wipReqLineEntities = wipReqLineRepository.selectByExample(example);
+        List<WipReqLineEntity> cancelList = wipReqLineEntities.stream().filter(WipReqLineEntity::canCancel).collect(toList());
+        cancelledData.addAll(cancelList);
+        if (cancelList.size() != wipReqLineEntities.size()) {
+            List<WipReqLineEntity> invalidLineStatusList = wipReqLineEntities.stream()
+                    .filter(el -> !el.canCancel())
+                    .collect(Collectors.toList());
+            log.error(logFormat.apply(format("待删除的数据中，存在无效的投料单行ID，行ID = {}；",
+                    invalidLineStatusList.stream().map(WipReqLineEntity::getLineId).collect(Collectors.joining(","))), ChangedTypeEnum.DELETE));
+            BillStatusEnum billStatusEnum = CodeableEnumUtils.getCodeableEnumByCode(invalidLineStatusList.get(0).getLineStatus(), BillStatusEnum.class);
+
+            return billStatusEnum.getDesc() + "的投料行不允许删除；";
         }
         return "";
     }
