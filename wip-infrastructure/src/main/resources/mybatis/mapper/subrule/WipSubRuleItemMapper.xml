@@ -81,4 +81,19 @@
         group by sr.rule_no
     </select>
 
+    <select id="getItemsInReq" resultType="com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO">
+        select lot_number as adaptItem,
+               item_no as beforeItemNo
+        from wip_req_source_v
+        where organization_id = #{organizationId} and
+        <foreach collection="lotNoList" item="lotNo" open="(" separator="or" close=")">
+            (lot_number = #{lotNo} and item_no in
+            <foreach collection="itemNoList" item="itemNo" open="(" separator="," close=")">
+                #{itemNo}
+            </foreach>
+            )
+        </foreach>
+        group by lot_number, item_no
+    </select>
+
 </mapper>

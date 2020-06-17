@@ -67,4 +67,9 @@ public class WipSubRuleItemRepositoryImpl implements WipSubRuleItemRepository {
         return ruleItemMapper.getRepeatSubItemRuleIds(ruleId, organizationId, subItemNoList, scopeValueList, ruleStatusCollection);
     }
 
+    @Override
+    public List<SubItemValidateVO> getItemsInReq(List<String> lotNoList, List<String> itemNoList, String organizationId) {
+        return ruleItemMapper.getItemsInReq(lotNoList, itemNoList, Integer.valueOf(organizationId));
+    }
+
 }
