@@ -19,6 +19,8 @@ import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleScopeTypeEnum;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleStatusEnum;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,15 +76,15 @@ public class WipSubRuleItemService {
         }
         /* 成套替代时，不同组合可能存在相同替代前后的物料组合，故成套替代字段为 "是" 时，不校验替换物料的重复性。 */
         if (CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntity.getIfCouple(), BooleanEnum.class) == BooleanEnum.NO) {
-            List<SubItemValidateVO> itemValidateList = validateSubItemNo(subItemNoList, wipSubRuleEntity.getScopeMap(), ruleId, organizationId);
-            if (ListUtil.notEmpty(itemValidateList)) {
-                String scopeTypeName = CodeableEnumUtils.getCodeableEnumByCode(wipSubRuleEntity.getScopeMap().keySet().stream().distinct().collect(Collectors.toList()).get(0), SubRuleScopeTypeEnum.class).getDesc();
-                StringBuilder errMsgBuilder = new StringBuilder();
-                for (SubItemValidateVO validateVO : itemValidateList) {
-                    errMsgBuilder.append(String.format("【%s%s已存在 有效规则%s】", scopeTypeName, validateVO.getAdaptItem(), validateVO.getRuleNo()));
-                }
-                return errMsgBuilder.toString();
+            String errMsg = validateDuplicateItem(subItemNoList, wipSubRuleEntity.getScopeMap(), ruleId, organizationId);
+            if (StringUtils.isNotBlank(errMsg)) {
+                return errMsg;
             }
+        }
+        // 校验物料是否在批次对应的投料单中, 有不存在的则报错
+        String errMsg = validateItemReq(subItemNoList, wipSubRuleEntity.getScopeMap(), organizationId);
+        if (StringUtils.isNotBlank(errMsg)) {
+            return errMsg;
         }
         List<WipSubRuleItemEntity> insertionData = new LinkedList<>();
         List<String> deletionData = new LinkedList<>();
@@ -153,7 +155,7 @@ public class WipSubRuleItemService {
     /**
      * 校验替换物料的重复性，只校验状态为 审核中、生效中 的规则。
      */
-    private List<SubItemValidateVO> validateSubItemNo(List<String[]> subItemNosList, Map<String, Map<String, String>> scopeMap, String ruleId, String organizationId) {
+    private String validateDuplicateItem(List<String[]> subItemNosList, Map<String, Map<String, String>> scopeMap, String ruleId, String organizationId) {
         List<String> scopeValueList = new ArrayList<>();
         for (Map<String, String> scope : scopeMap.values()) {
             for (String dimValue : scope.values()) {
@@ -169,7 +171,49 @@ public class WipSubRuleItemService {
 
         final int REVIEW_EFFECTIVE = 6;
         List<Object> ruleStatusList = CodeableEnumUtils.getCodesByOrdinalFlag(REVIEW_EFFECTIVE, SubRuleStatusEnum.class);
-        return wipSubRuleItemRepository.getRepeatSubItemRuleIds(ruleId, organizationId, subItemValidateDTOList, scopeValueList, ruleStatusList);
+        List<SubItemValidateVO> itemValidateList = wipSubRuleItemRepository.getRepeatSubItemRuleIds(ruleId, organizationId, subItemValidateDTOList, scopeValueList, ruleStatusList);
+
+        if (ListUtil.notEmpty(itemValidateList)) {
+            String scopeTypeName = CodeableEnumUtils.getCodeableEnumByCode(scopeMap.keySet().stream().distinct().collect(Collectors.toList()).get(0), SubRuleScopeTypeEnum.class).getDesc();
+            StringBuilder errMsgBuilder = new StringBuilder();
+            for (SubItemValidateVO validateVO : itemValidateList) {
+                errMsgBuilder.append(String.format("【%s%s已存在 有效规则%s】", scopeTypeName, validateVO.getAdaptItem(), validateVO.getRuleNo()));
+            }
+            return errMsgBuilder.toString();
+        }
+        return "";
+    }
+
+    /**
+     * 校验物料是否在批次对应的投料单中
+     * @since 2020/6/9 9:13 上午
+     * @author xueyuting
+     */
+    @VisibleForTesting
+    protected String validateItemReq(List<String[]> subItemNosList, Map<String, Map<String, String>> scopeMap, String organizationId) {
+        for (Map.Entry<String, Map<String, String>> scopeEntry : scopeMap.entrySet()) {
+            String scope = scopeEntry.getKey();
+            if (SubRuleScopeTypeEnum.PRODUCTION_LOT.getCode().equals(scope)) {
+                // 拿出所有批次
+                List<String> lotNoList = new ArrayList<>();
+                scopeEntry.getValue().values().stream().distinct().forEach(scopeValue -> lotNoList.addAll(Arrays.asList(scopeValue.split(";"))));
+                // 拿出所有替换前物料
+                List<String> beforeItemNoList = subItemNosList.stream().map(nos -> nos[0]).collect(toList());
+                // 获取有效(替换前物料在批次对应的投料单中)的列表
+                List<SubItemValidateVO> validItemList = wipSubRuleItemRepository.getItemsInReq(lotNoList, beforeItemNoList, organizationId);
+
+                List<SubItemValidateVO> originItemList = new ArrayList<>();
+                lotNoList.forEach(lotNo -> beforeItemNoList.forEach(itemNo -> originItemList.add(new SubItemValidateVO().setAdaptItem(lotNo).setBeforeItemNo(itemNo))));
+                // 原始和有效取差集, 结果不为空则报错
+                List<SubItemValidateVO> subtractResult = (List<SubItemValidateVO>)CollectionUtils.subtract(originItemList, validItemList);
+                if (ListUtil.notEmpty(subtractResult)) {
+                    StringBuilder errMsgBuilder = new StringBuilder();
+                    subtractResult.forEach(vo -> errMsgBuilder.append(String.format("【%s批次中不存在物料%s】", vo.getAdaptItem(), vo.getBeforeItemNo())));
+                    return errMsgBuilder.toString();
+                }
+            }
+        }
+        return "";
     }
 
     /**
