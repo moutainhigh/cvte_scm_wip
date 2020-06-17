@@ -132,15 +132,16 @@ public class ChangeBillDetailEntity implements Entity<String>{
         // 查询数据库现有明细
         List<ChangeBillDetailEntity> dbDetailEntityList = getByBillId(vo.getBillId());
         List<ChangeBillDetailBuildVO> detailVoList = vo.getDetailVOList();
-        List<String> buildSourceIdList = detailVoList.stream().map(ChangeBillDetailBuildVO::getSourceLineId).collect(Collectors.toList());
+        // 原始修改项按位号拆分后, 其 来源行Id 相同, 需要加上 位号 作为对比查询时的唯一键
+        List<String> detailVoKeyList = detailVoList.stream().map(detailVo -> detailVo.getSourceLineId() + detailVo.getPosNo()).collect(Collectors.toList());
         if (ListUtil.notEmpty(dbDetailEntityList)) {
             // 可更新列表
             List<ChangeBillDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
-            Map<String, ChangeBillDetailEntity> detailEntityMap = toMapBySourceLine(dbDetailEntityList);
+            Map<String, ChangeBillDetailEntity> detailEntityMap = toMapByChangeDetailKey(dbDetailEntityList);
             Iterator<ChangeBillDetailBuildVO> iterator = updateVoList.iterator();
             while (iterator.hasNext()) {
                 ChangeBillDetailBuildVO updateVo = iterator.next();
-                ChangeBillDetailEntity detailEntity = detailEntityMap.get(updateVo.getSourceLineId());
+                ChangeBillDetailEntity detailEntity = detailEntityMap.get(updateVo.getSourceLineId() + updateVo.getPosNo());
                 if (Objects.nonNull(detailEntity)) {
                     // 将ID设置为数据库的才可更新
                     updateVo.setDetailId(detailEntity.getDetailId());
@@ -154,7 +155,7 @@ public class ChangeBillDetailEntity implements Entity<String>{
             }
 
             // 数据库存在但是vo列表不存在, 则删除
-            dbDetailEntityList.removeIf(detailEntity -> buildSourceIdList.contains(detailEntity.getSourceLineId()));
+            dbDetailEntityList.removeIf(detailEntity -> detailVoKeyList.contains(detailEntity.getSourceLineId() + detailEntity.getPosNo()));
             if (ListUtil.notEmpty(dbDetailEntityList) && needDelete) {
                 this.batchDeleteDetail(dbDetailEntityList);
                 resultDetailEntityList.addAll(dbDetailEntityList);
@@ -173,9 +174,9 @@ public class ChangeBillDetailEntity implements Entity<String>{
         return resultDetailEntityList;
     }
 
-    private Map<String, ChangeBillDetailEntity> toMapBySourceLine(List<ChangeBillDetailEntity> billDetailEntityList) {
+    private Map<String, ChangeBillDetailEntity> toMapByChangeDetailKey(List<ChangeBillDetailEntity> billDetailEntityList) {
         Map<String, ChangeBillDetailEntity> entityMap = new HashMap<>();
-        billDetailEntityList.forEach(detailEntity -> entityMap.put(detailEntity.getSourceLineId(), detailEntity));
+        billDetailEntityList.forEach(detailEntity -> entityMap.put(detailEntity.getSourceLineId() + detailEntity.getPosNo(), detailEntity));
         return entityMap;
     }
 
