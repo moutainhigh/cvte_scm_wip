@@ -147,19 +147,18 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
     List<ChangeBillDetailBuildVO> splitBillDetailByPos(ChangeBillDetailBuildVO vo, String splitter) {
         List<ChangeBillDetailBuildVO> resultList = new ArrayList<>();
         String posNo = vo.getPosNo();
-        if (StringUtils.isBlank(posNo) || !posNo.contains(splitter)) {
-            resultList.add(vo);
-            return resultList;
+        if (StringUtils.isBlank(posNo)) {
+            posNo = "";
         }
 
-        String[] posNoArr = posNo.split(splitter);
+        List<String> posNoList = Arrays.asList(posNo.split(splitter));
         // 拆分后向上取整, 按顺序分配到位号上
-        Map<String, BigDecimal> posItemQtyMap = splitQtyByPos(posNoArr, vo.getItemQty(), 0);
-        Map<String, BigDecimal> posUnitQtyMap = splitQtyByPos(posNoArr, vo.getItemUnitQty(), 8);
-        for (String splitPosNo : posNoArr) {
+        Map<String, BigDecimal> posItemQtyMap = splitQtyByPos(posNoList, vo.getItemQty(), 0);
+        Map<String, BigDecimal> posUnitQtyMap = splitQtyByPos(posNoList, vo.getItemUnitQty(), 8);
+        for (String splitPosNo : posNoList) {
             ChangeBillDetailBuildVO splitDetailBuildVo = new ChangeBillDetailBuildVO();
             BeanUtils.copyProperties(vo, splitDetailBuildVo);
-            splitDetailBuildVo.setPosNo(splitPosNo.trim())
+            splitDetailBuildVo.setPosNo(StringUtils.isBlank(splitPosNo) ? null : splitPosNo.trim())
                     .setItemQty(posItemQtyMap.get(splitPosNo))
                     .setItemUnitQty(posUnitQtyMap.get(splitPosNo));
 
@@ -168,18 +167,27 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
         return resultList;
     }
 
-    private Map<String, BigDecimal> splitQtyByPos(String[] posNoArr, BigDecimal qty, Integer scale) {
+    private Map<String, BigDecimal> splitQtyByPos(List<String> posNoList, BigDecimal totalQty, Integer scale) {
         Map<String, BigDecimal> posQtyMap = new HashMap<>();
-        if (Objects.isNull(qty)) {
-            qty = BigDecimal.ZERO;
+        if (Objects.isNull(totalQty)) {
+            posNoList.forEach(posNo -> posQtyMap.put(posNo, null));
+            return posQtyMap;
         }
-        // 拆分后向上取整, 按顺序分配到位号上
-        BigDecimal splitQty = qty.divide(new BigDecimal(posNoArr.length), scale, RoundingMode.UP);
-        for (String splitPosNo : posNoArr) {
-            BigDecimal allocateQty = qty.min(splitQty);
-            allocateQty = allocateQty.setScale(scale, RoundingMode.DOWN);
+        // 取整用于分配的数量
+        BigDecimal remainQty = totalQty.setScale(scale + 1, RoundingMode.DOWN).setScale(scale, RoundingMode.UP);
+        // 拆分后向下取整, 按顺序分配到位号上
+        // 向下取整的原因: 3个位号用量为4, 若向上取整, 则前两个位号为2, 最后一个位号用量为0, 不合理
+        BigDecimal splitQty = remainQty.divide(new BigDecimal(posNoList.size()), scale, RoundingMode.DOWN);
+        Iterator<String> iterator = posNoList.iterator();
+        while (iterator.hasNext()) {
+            String splitPosNo = iterator.next();
+            BigDecimal allocateQty = splitQty;
+            if (!iterator.hasNext()) {
+                // 最后一个时分配剩余数量
+                allocateQty = remainQty;
+            }
             posQtyMap.put(splitPosNo, allocateQty);
-            qty = qty.subtract(allocateQty);
+            remainQty = remainQty.subtract(allocateQty);
         }
         return posQtyMap;
     }
