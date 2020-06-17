@@ -32,10 +32,12 @@ public class UpdateChangeBillEntity extends ChangeBillEntity {
     public ReqInsBuildVO parseChangeBill(ChangeReqVO reqHeaderVO) {
         ReqInsBuildVO insBuildVO = super.parseChangeBill(reqHeaderVO);
         ReqInsEntity insEntity = ReqInsEntity.get().getByKey(this.getBillId());
-        if (Objects.nonNull(insEntity)) {
-            insBuildVO.setInsHeaderId(insEntity.getInsHeaderId());
-            insBuildVO.getDetailList().forEach(detailBuildVO -> detailBuildVO.setInsHeaderId(insEntity.getInsHeaderId()));
+        if (Objects.isNull(insEntity)) {
+            // 更改单存在但是指令不存在的场景: 更改单作用于未发放的投料单, 同步更改单后 创建指令之前会校验投料单是否存在, 而系统只会同步已发放的投料单, 所以更改单创建成功, 投料指令创建失败
+            return insBuildVO;
         }
+        insBuildVO.setInsHeaderId(insEntity.getInsHeaderId());
+        insBuildVO.getDetailList().forEach(detailBuildVO -> detailBuildVO.setInsHeaderId(insEntity.getInsHeaderId()));
         insBuildVO.setChangeType(ChangedTypeEnum.UPDATE.getCode());
         if (StatusEnum.CLOSE.getCode().equals(this.getBillStatus())) {
             insBuildVO.setChangeType(ChangedTypeEnum.DELETE.getCode());
