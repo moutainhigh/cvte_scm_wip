@@ -340,6 +340,8 @@ public class ReqInsDetailEntity implements Entity<String> {
                 // 小批次不存在, 报错
                 throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + this.toString());
             }
+            // 向上取整的原因: 分配数量可以是负数, 如果向下取整, 可能出现前几个小批次刚好没扣完, 而分配到最后一个数量又过剩, 不合理
+            // 如: 3个小批次, 用量各为334, 分配总量1001, -333.37向下取整为-333, 最后一个-335, 结果是1,1,0;而向上取整的结果是0,0,1
             BigDecimal updateQty = updateUnitQty.multiply(wipLot.getLotQuantity()).setScale(1, RoundingMode.DOWN).setScale(0, RoundingMode.UP);
             if (!lotGroupLineMapIterator.hasNext()) {
                 updateQty = remainLotQty;
