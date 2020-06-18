@@ -84,6 +84,10 @@ public class ChangeBillEntity implements Entity<String> {
 
     private String pcRemarks;
 
+    private String motLotNo;
+
+    private String sourceNo;
+
     private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
     public ChangeBillEntity getByKey(String billKey) {
