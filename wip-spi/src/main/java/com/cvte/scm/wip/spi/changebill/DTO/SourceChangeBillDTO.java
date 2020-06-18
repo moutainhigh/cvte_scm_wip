@@ -108,7 +108,9 @@ public class SourceChangeBillDTO {
                 .setLastUpdDate(changeBillDTO.getLastUpdDate())
                 .setChangeContent(changeBillDTO.getChangeContent())
                 .setRemarks(changeBillDTO.getRemarks())
-                .setPcRemarks(changeBillDTO.getRemarks());
+                .setPcRemarks(changeBillDTO.getRemarks())
+                .setMotLotNo(changeBillDTO.getMoLotNo())
+                .setSourceNo(changeBillDTO.getBillSourceNo());
         if (StringUtils.isBlank(billBuildVO.getBillStatus())) {
             billBuildVO.setBillStatus(StatusEnum.NORMAL.getCode());
         }

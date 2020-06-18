@@ -22,4 +22,6 @@ public interface ChangeBillRepository extends Repository {
 
     List<ChangeBillEntity> getById(List<String> billIdList);
 
+    ChangeBillEntity getByReqInsHeaderId(String reqInsHeaderId);
+
 }
