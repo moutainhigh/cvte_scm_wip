@@ -5,6 +5,7 @@ import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.base.domain.EventListener;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
+import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillWriteBackService;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.enums.ChangeBillOptTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
@@ -30,10 +31,12 @@ import java.util.List;
 @Component
 public class ReqInsProcessNotifyListener implements EventListener<ReqInsProcessNotifyEvent> {
 
+    private ChangeBillRepository changeBillRepository;
     private ChangeBillWriteBackService changeBillWriteBackService;
     private WipCnBillErrorLogMapper wipCnBillErrorLogMapper;
 
-    public ReqInsProcessNotifyListener(ChangeBillWriteBackService changeBillWriteBackService, WipCnBillErrorLogMapper wipCnBillErrorLogMapper) {
+    public ReqInsProcessNotifyListener(ChangeBillRepository changeBillRepository, ChangeBillWriteBackService changeBillWriteBackService, WipCnBillErrorLogMapper wipCnBillErrorLogMapper) {
+        this.changeBillRepository = changeBillRepository;
         this.changeBillWriteBackService = changeBillWriteBackService;
         this.wipCnBillErrorLogMapper = wipCnBillErrorLogMapper;
     }
@@ -42,9 +45,7 @@ public class ReqInsProcessNotifyListener implements EventListener<ReqInsProcessN
     @Override
     public void execute(ReqInsProcessNotifyEvent event) {
         ReqInsEntity reqIns = event.getReqInsEntity();
-        List<String> billNoList = new ArrayList<>();
-        billNoList.add(reqIns.getSourceChangeBillId());
-        ChangeBillEntity changeBillEntity = ChangeBillEntity.get().getById(billNoList).get(0);
+        ChangeBillEntity changeBillEntity = changeBillRepository.getByReqInsHeaderId(reqIns.getInsHeaderId());
         try {
             EntityUtils.retry(() -> changeBillWriteBackService.writeBackToEbs(reqIns, changeBillEntity), 3, "回写EBS更改单");
         } catch (NoOperationRightException ne) {

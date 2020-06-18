@@ -11,4 +11,6 @@ import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
  */
 public interface WipCnBillMapper extends CommonMapper<WipCnBillDO> {
 
+    WipCnBillDO selectByReqInsHeaderId(String reqInsHeaderId);
+
 }

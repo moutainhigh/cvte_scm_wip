@@ -22,4 +22,15 @@
             <result column="upd_user" property="updUser" />
             <result column="upd_host" property="updHost" />
         </resultMap>
+
+    <select id="selectByReqInsHeaderId" resultMap="BaseResultMap">
+        select *
+        from wip_cn_bill
+        where bill_id in (
+            select source_cn_bill_id
+            from wip_req_ins_h ih
+            where ih.ins_h_id = #{reqInsHeaderId}
+            )
+    </select>
+
 </mapper>
