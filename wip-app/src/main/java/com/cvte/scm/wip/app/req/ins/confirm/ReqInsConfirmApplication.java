@@ -64,9 +64,16 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
         for (ReqInsEntity insHeader : insHeaderList) {
 
-            Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
                 checkReqInsDomainService.checkInsProcessed(insHeader);
+            } catch (ServerException se) {
+                // 跳过已执行的指令
+                log.warn(se.getMessage());
+                continue;
+            }
+
+            Map<String, List<WipReqLineEntity>> reqLineMap;
+            try {
                 checkReqInsDomainService.checkPreInsExists(insHeader);
             } catch (RuntimeException re) {
                 insHeader.processFailed("校验失败," + re.getMessage());

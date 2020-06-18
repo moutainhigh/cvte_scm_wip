@@ -48,7 +48,7 @@ public class CheckReqInsDomainService implements DomainService {
             // 只有未执行和执行异常的指令可以执行
             List<String> sourceCnBillNoList = new ArrayList<>();
             sourceCnBillNoList.add(insEntity.getSourceChangeBillId());
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + "只有未执行或异常状态的指令可以执行,更改单:" + ChangeBillEntity.get().getById(sourceCnBillNoList).get(0).getBillNo());
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + ",只有未执行或异常状态的指令可以执行,更改单:" + ChangeBillEntity.get().getById(sourceCnBillNoList).get(0).getBillNo());
         }
     }
 

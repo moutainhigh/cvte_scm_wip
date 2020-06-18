@@ -82,18 +82,21 @@
     </select>
 
     <select id="getItemsInReq" resultType="com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO">
-        select lot_number as adaptItem,
-               item_no as beforeItemNo
-        from wip_req_source_v
-        where organization_id = #{organizationId} and
+        select rs.lot_number as adaptItem,
+               si.item_no as beforeItemNo
+        from wip_req_source_v rs
+        left join scm.scm_item_v si
+        on to_char(rs.organization_id) = si.organization_id
+        and to_char(rs.item_id) = si.item_id
+        where rs.organization_id = #{organizationId} and
         <foreach collection="lotNoList" item="lotNo" open="(" separator="or" close=")">
-            (lot_number = #{lotNo} and item_no in
+            (rs.lot_number = #{lotNo} and si.item_no in
             <foreach collection="itemNoList" item="itemNo" open="(" separator="," close=")">
                 #{itemNo}
             </foreach>
             )
         </foreach>
-        group by lot_number, item_no
+        group by rs.lot_number, si.item_no
     </select>
 
 </mapper>
