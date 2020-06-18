@@ -1,12 +1,10 @@
 package com.cvte.scm.wip.domain.core.changebill.valueobject;
 
 import com.cvte.scm.wip.common.base.domain.VO;
-import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Transient;
 import java.util.Date;
 import java.util.List;
 
@@ -45,6 +43,10 @@ public class ChangeBillBuildVO implements VO {
     private String remarks;
 
     private String pcRemarks;
+
+    private String motLotNo;
+
+    private String sourceNo;
 
     private List<ChangeBillDetailBuildVO> detailVOList;
 
