@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
   * 
@@ -45,13 +46,24 @@ public class ReqInsProcessNotifyListener implements EventListener<ReqInsProcessN
     @Override
     public void execute(ReqInsProcessNotifyEvent event) {
         ReqInsEntity reqIns = event.getReqInsEntity();
-        ChangeBillEntity changeBillEntity = changeBillRepository.getByReqInsHeaderId(reqIns.getInsHeaderId());
+        ChangeBillEntity changeBillEntity = null;
         try {
-            EntityUtils.retry(() -> changeBillWriteBackService.writeBackToEbs(reqIns, changeBillEntity), 3, "回写EBS更改单");
-        } catch (NoOperationRightException ne) {
-            String message = ne.getMessage();
-            reqIns.setExecuteResult(message);
-            reqIns.updateInstruction();
+            changeBillEntity = changeBillRepository.getByReqInsHeaderId(reqIns.getInsHeaderId());
+        } catch (RuntimeException re) {
+            log.error("指令反查更改单时发生未知异常,msg={}", re.getMessage());
+        }
+        if (Objects.nonNull(changeBillEntity)) {
+            try {
+                ChangeBillEntity finalChangeBillEntity = changeBillEntity;
+                EntityUtils.retry(() -> changeBillWriteBackService.writeBackToEbs(reqIns, finalChangeBillEntity), 3, "回写EBS更改单");
+            } catch (NoOperationRightException ne) {
+                String message = ne.getMessage();
+                reqIns.setExecuteResult(message);
+                reqIns.updateInstruction();
+            }
+        } else {
+            changeBillEntity = ChangeBillEntity.get();
+            log.error("指令没有对应有效的更改单,指令ID={},批次={}", reqIns.getInsHeaderId(), reqIns.getAimReqLotNo());
         }
         if (ProcessingStatusEnum.EXCEPTION.getCode().equals(reqIns.getStatus())) {
             // 执行异常, 记录日志

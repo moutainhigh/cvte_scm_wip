@@ -83,6 +83,9 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
     @Override
     public ChangeBillEntity getByReqInsHeaderId(String reqInsHeaderId) {
         WipCnBillDO billDO = cnBillMapper.selectByReqInsHeaderId(reqInsHeaderId);
+        if (Objects.isNull(billDO)) {
+            return null;
+        }
         return WipCnBillDO.buildEntity(billDO);
     }
 
