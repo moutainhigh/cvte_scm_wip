@@ -38,8 +38,7 @@ public class ReqInsController {
 
     @PostMapping("/confirm")
     public RestResponse confirm(@RequestBody String... insHeaderId) {
-        reqInsConfirmApplication.doAction(insHeaderId);
-        return new RestResponse();
+        return new RestResponse().setData(reqInsConfirmApplication.doAction(insHeaderId));
     }
 
     @PostMapping("/info")

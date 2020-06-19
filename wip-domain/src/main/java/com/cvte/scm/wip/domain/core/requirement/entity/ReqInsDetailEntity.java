@@ -261,7 +261,7 @@ public class ReqInsDetailEntity implements Entity<String> {
         if (StringUtils.isBlank(this.getMoLotNo()) || this.getAimReqLotNo().equals(this.getMoLotNo())) {
             // 小批次为空 或者 小批次=工单批次, 则新增所有批次
             if (Objects.isNull(wipLotMap) || wipLotMap.isEmpty()) {
-                throw new ServerException(ReqInsErrEnum.ADD_LOT_NULL.getCode(), ReqInsErrEnum.ADD_LOT_NULL.getDesc() + this.toString());
+                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LOT_INVALID.getDesc());
             }
             resultList.addAll(wipLotMap.values().stream().map(this::buildReqLine).collect(Collectors.toList()));
         } else {
@@ -269,7 +269,7 @@ public class ReqInsDetailEntity implements Entity<String> {
             WipLotVO filterWipLot = wipLotMap.get(this.getMoLotNo());
             if (Objects.isNull(filterWipLot)) {
                 // 若小批次不存在, 报错
-                throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + this.toString());
+                throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc());
             }
             // 只会筛选出一个有效的小批次
             resultList.add(this.buildReqLine(filterWipLot));
@@ -288,7 +288,7 @@ public class ReqInsDetailEntity implements Entity<String> {
 
     private List<WipReqLineEntity> parseReplaceType(List<WipReqLineEntity> reqLineList) {
         if (StringUtils.isBlank(this.getItemIdNew())) {
-            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "替换后物料不可为空,指令:" + this.toString());
+            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "替换后物料不可为空");
         }
         String afterItemNo = itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew());
         reqLineList.forEach(line ->
@@ -348,7 +348,7 @@ public class ReqInsDetailEntity implements Entity<String> {
             WipLotVO wipLot = wipLotMap.get(lotNumber);
             if (Objects.isNull(wipLot)) {
                 // 小批次不存在, 报错
-                throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + this.toString());
+                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LOT_INVALID.getDesc());
             }
             // 向上取整的原因: 分配数量可以是负数, 如果向下取整, 可能出现前几个小批次刚好没扣完, 而分配到最后一个数量又过剩, 不合理
             // 如: 3个小批次, 用量各为334, 分配总量1001, -333.37向下取整为-333, 最后一个-335, 结果是1,1,0;而向上取整的结果是0,0,1
@@ -453,7 +453,7 @@ public class ReqInsDetailEntity implements Entity<String> {
     private String getOperationTypeDesc() {
         InsOperationTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getOperationType(), InsOperationTypeEnum.class);
         if (Objects.isNull(typeEnum)) {
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), String.format("指令ID:%s变更类型为空或无法识别", this.getInsDetailId()));
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), "无效的变更类型");
         }
         return typeEnum.getDesc();
     }

@@ -45,10 +45,7 @@ public class CheckReqInsDomainService implements DomainService {
      */
     public void checkInsProcessed(ReqInsEntity insEntity) {
         if (!(ProcessingStatusEnum.PENDING.getCode().equals(insEntity.getStatus()) || ProcessingStatusEnum.EXCEPTION.getCode().equals(insEntity.getStatus()))) {
-            // 只有未执行和执行异常的指令可以执行
-            List<String> sourceCnBillNoList = new ArrayList<>();
-            sourceCnBillNoList.add(insEntity.getSourceChangeBillId());
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + ",只有未执行或异常状态的指令可以执行,更改单:" + ChangeBillEntity.get().getById(sourceCnBillNoList).get(0).getBillNo());
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc());
         }
     }
 
@@ -61,13 +58,21 @@ public class CheckReqInsDomainService implements DomainService {
     public Map<String, List<WipReqLineEntity>> validAndGetLine(ReqInsEntity insEntity) {
         Map<String, List<WipReqLineEntity>> reqLineMap = new HashMap<>();
         boolean validateFailed = false;
+        if (ListUtil.empty(insEntity.getDetailList())) {
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc());
+        }
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
-            WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(detailEntity);
             try {
+                WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(detailEntity);
                 if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())
                         && !InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
                     // 非新增或增加(因为增加对象不存在时新增), 获取指令的目标投料行
-                    List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO);
+                    List<String> statusList = new ArrayList<>();
+                    statusList.add(BillStatusEnum.DRAFT.getCode());
+                    statusList.add(BillStatusEnum.CONFIRMED.getCode());
+                    statusList.add(BillStatusEnum.PREPARED.getCode());
+                    statusList.add(BillStatusEnum.ISSUED.getCode());
+                    List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO, statusList);
                     this.validateTargetLine(reqLineList);
                     reqLineMap.put(detailEntity.getInsDetailId(), reqLineList);
                 } else {
@@ -79,7 +84,7 @@ public class CheckReqInsDomainService implements DomainService {
             }
         }
         if (validateFailed) {
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), "投料行不存在或数量为空");
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), "投料行不存在或用量为空");
         }
         return reqLineMap;
     }
@@ -92,7 +97,7 @@ public class CheckReqInsDomainService implements DomainService {
 
     private void validateIncreaseQty(ReqInsDetailEntity detailEntity) {
         if (Objects.isNull(detailEntity.getItemUnitQty())) {
-            throw new ServerException(ReqInsErrEnum.ADD_VALID_QTY.getCode(), ReqInsErrEnum.ADD_VALID_QTY.getDesc() + detailEntity.toString());
+            throw new ServerException(ReqInsErrEnum.ADD_VALID_QTY.getCode(), ReqInsErrEnum.ADD_VALID_QTY.getDesc());
         }
     }
 
@@ -123,7 +128,7 @@ public class CheckReqInsDomainService implements DomainService {
             }
         }
         if (validateFailed) {
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc());
+            throw new ServerException(ReqInsErrEnum.TARGET_LINE_ISSUED.getCode(), ReqInsErrEnum.TARGET_LINE_ISSUED.getDesc());
         }
     }
 
@@ -151,7 +156,7 @@ public class CheckReqInsDomainService implements DomainService {
                 long reqQty = reqLineList.stream().filter(line -> Objects.nonNull(line.getReqQty())).mapToLong(WipReqLineEntity::getReqQty).sum();
                 long replaceQty = detailEntity.getItemQty().longValue();
                 if (reqQty != replaceQty) {
-                    throw new ServerException(ReqInsErrEnum.PART_MIX.getCode(), ReqInsErrEnum.PART_MIX.getDesc() + detailEntity.toString());
+                    throw new ServerException(ReqInsErrEnum.PART_MIX.getCode(), ReqInsErrEnum.PART_MIX.getDesc());
                 }
             }
         }
