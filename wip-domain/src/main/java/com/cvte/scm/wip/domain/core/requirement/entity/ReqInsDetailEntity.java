@@ -323,12 +323,22 @@ public class ReqInsDetailEntity implements Entity<String> {
     List<WipReqLineEntity> allocateQty(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap, BigDecimal updateUnitQty) {
         List<WipReqLineEntity> resultList = new ArrayList<>();
 
-        // 小批次数量之和(工单数量) * 单位用量, 以这个数量为总量来分配
-        BigDecimal remainLotQty = wipLotMap.values().stream().map(WipLotVO::getLotQuantity)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .multiply(updateUnitQty)
-                .setScale(1, RoundingMode.FLOOR)
-                .setScale(0, RoundingMode.CEILING);
+        // 用于分配给小批次的总数量
+        BigDecimal remainLotQty;
+        if (Objects.nonNull(this.getItemQty())) {
+            // 用量不为空时取用量
+            remainLotQty = this.getItemQty();
+            if (updateUnitQty.compareTo(BigDecimal.ZERO) < 0) {
+                remainLotQty = remainLotQty.negate();
+            }
+        } else {
+            // 用量为空时取 小批次数量之和(工单数量) * 单位用量
+            remainLotQty = wipLotMap.values().stream().map(WipLotVO::getLotQuantity)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    .multiply(updateUnitQty)
+                    .setScale(1, RoundingMode.FLOOR)
+                    .setScale(0, RoundingMode.CEILING);
+        }
 
         Map<String, List<WipReqLineEntity>> lotGroupLineMap = reqLineList.stream().collect(Collectors.groupingBy(WipReqLineEntity::getLotNumber));
         Iterator<Map.Entry<String, List<WipReqLineEntity>>> lotGroupLineMapIterator = lotGroupLineMap.entrySet().iterator();
