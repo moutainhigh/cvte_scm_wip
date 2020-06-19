@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.service;
 
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
@@ -10,6 +11,7 @@ import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
+import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
@@ -31,9 +33,11 @@ import java.util.stream.Collectors;
 public class CheckReqInsDomainService implements DomainService {
 
     private WipReqLineRepository lineRepository;
+    private ReqInsRepository insRepository;
 
-    public CheckReqInsDomainService(WipReqLineRepository lineRepository) {
+    public CheckReqInsDomainService(WipReqLineRepository lineRepository, ReqInsRepository insRepository) {
         this.lineRepository = lineRepository;
+        this.insRepository = insRepository;
     }
 
     /**
@@ -189,6 +193,13 @@ public class CheckReqInsDomainService implements DomainService {
             List<ChangeBillEntity> changeBillList = ChangeBillEntity.get().getById(cnBillIdList);
             List<String> billNoList = changeBillList.stream().map(ChangeBillEntity::getBillNo).collect(Collectors.toList());
             throw new ServerException(ReqInsErrEnum.EXISTS_PRE_INS.getCode(), ReqInsErrEnum.EXISTS_PRE_INS.getDesc() + "," + String.join(",", billNoList));
+        }
+    }
+
+    public void checkInsPrepared(List<String> insHeaderIdList) {
+        List<String> preparedBillNoList = insRepository.getPreparedById(insHeaderIdList);
+        if (ListUtil.notEmpty(preparedBillNoList)) {
+            throw new ParamsIncorrectException("更改单:" + String.join(",", preparedBillNoList) + "已备料");
         }
     }
 
