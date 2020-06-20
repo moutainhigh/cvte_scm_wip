@@ -4,6 +4,7 @@ import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
+import com.cvte.scm.wip.common.enums.ExecutionResultEnum;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
@@ -32,6 +33,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class ReqInsConfirmApplication implements Application<String[], String> {
+
+    private static final String VALIDATE_FAILED = "校验失败,";
+    private static final String PARSE_FAILED = "解析失败,";
+    private static final String EXECUTE_FAILED = "执行失败,";
 
     private CheckReqInsDomainService checkReqInsDomainService;
     private WipReqLineService wipReqLineService;
@@ -62,31 +67,34 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
         }
         insHeaderList.sort((Comparator.comparing(ReqInsEntity::getEnableDate)));
 
+        List<ReqInsConfirmResultDTO> confirmResultList = new ArrayList<>();
         for (ReqInsEntity insHeader : insHeaderList) {
 
             try {
                 checkReqInsDomainService.checkInsProcessed(insHeader);
             } catch (ServerException se) {
                 // 跳过已执行的指令
-                log.warn(se.getMessage());
+                confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.SKIP, null));
+                continue;
+            }
+
+            try {
+                checkReqInsDomainService.checkPreInsExists(insHeader);
+            } catch (RuntimeException re) {
+                insHeader.processFailed(VALIDATE_FAILED + re.getMessage());
+                confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.FAILED, VALIDATE_FAILED + re.getMessage()));
                 continue;
             }
 
             Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
-                checkReqInsDomainService.checkPreInsExists(insHeader);
-            } catch (RuntimeException re) {
-                insHeader.processFailed("校验失败," + re.getMessage());
-                throw re;
-            }
-
-            try {
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
                 checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
             } catch (RuntimeException re) {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
-                insHeader.processFailed("校验失败," + headerErrMsg);
-                throw re;
+                insHeader.processFailed(VALIDATE_FAILED + headerErrMsg);
+                confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.FAILED, VALIDATE_FAILED + re.getMessage()));
+                continue;
             }
 
             List<WipReqLineEntity> reqLineList;
@@ -94,8 +102,9 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 reqLineList = insHeader.parse(reqLineMap);
             } catch (RuntimeException re) {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
-                insHeader.processFailed("解析失败," + headerErrMsg);
-                throw re;
+                insHeader.processFailed(PARSE_FAILED + headerErrMsg);
+                confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.FAILED, PARSE_FAILED + re.getMessage()));
+                continue;
             }
 
             transactionTemplate.setTransactionManager(pgTransactionManager);
@@ -106,15 +115,21 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 });
             } catch (RuntimeException re) {
                 this.lineErrToInsErr(reqLineList, insHeader.getDetailList());
-                insHeader.processFailed("执行失败," + this.groupExecuteErr(reqLineList));
-                throw re;
+                String errMsg = this.groupExecuteErr(reqLineList);
+                if (StringUtils.isBlank(errMsg)) {
+                    errMsg = re.getMessage();
+                }
+                insHeader.processFailed(EXECUTE_FAILED + errMsg);
+                confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.FAILED, EXECUTE_FAILED + re.getMessage()));
+                continue;
             }
 
             insHeader.processSuccess();
+            confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.SUCCESS, null));
 
         }
 
-        return null;
+        return ReqInsConfirmResultDTO.buildMsg(confirmResultList);
     }
 
     private void lineErrToInsErr(List<WipReqLineEntity> reqLineList, List<ReqInsDetailEntity> insDetailList) {

@@ -22,6 +22,8 @@ public enum ChangedTypeEnum implements Codeable {
     ISSUED_UPDATE("issued_update", "更新领料"),
     ISSUED_INVALID("issued_invalid", "失效领料"),
     EXECUTE("execute", "自动改投料"),
+    REDUCE("reduce", "减少"),
+    INCREASE("increase", "增加"),
     ;
 
     private String code, desc;

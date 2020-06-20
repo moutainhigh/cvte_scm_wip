@@ -3,6 +3,8 @@ package com.cvte.scm.wip.domain.core.requirement.entity
 import com.cvte.scm.wip.domain.BaseJunitTest
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipLotVO
 
+import java.math.RoundingMode
+
 class ReqInsDetailEntityTest extends BaseJunitTest {
 
     def "数量增/减"() {
@@ -77,6 +79,42 @@ class ReqInsDetailEntityTest extends BaseJunitTest {
         then:
         reqLineList1[0].reqQty == 34 && reqLineList1[0].unitQty == 34 / 100
         reqLineList1[1].reqQty == 16 && reqLineList1[1].unitQty == 16 / 50
+    }
+
+    def "两个小批次,增加数量"() {
+        given:
+        def lotNoList = ["SK20051866_1", "SK20051866_2"]
+        def unitQty = "0.36429872"
+        def wipLotMap = [
+                (lotNoList[0]): new WipLotVO(lotQuantity: 250, lotNumber: lotNoList[0]),
+                (lotNoList[1]): new WipLotVO(lotQuantity: 55, lotNumber: lotNoList[1]),
+        ]
+        when:
+        def reqLineList1 = ReqInsDetailEntity.get().setPosNo("A1").setItemQty(new BigDecimal("111")).setItemUnitQty(new BigDecimal(unitQty))
+                .parseIncreaseType(null, wipLotMap)
+        then:
+        reqLineList1[0].reqQty == 91 && reqLineList1[0].unitQty == BigDecimal.valueOf(91).divide(BigDecimal.valueOf(250), 6, RoundingMode.DOWN).doubleValue()
+        reqLineList1[1].reqQty == 20 && reqLineList1[1].unitQty == BigDecimal.valueOf(20).divide(BigDecimal.valueOf(55), 6, RoundingMode.DOWN).doubleValue()
+    }
+
+    def "两个小批次,减少数量"() {
+        given:
+        def lotNoList = ["SK20051866_1", "SK20051866_2"]
+        def unitQty = "0.36429872"
+        def wipLotMap = [
+                (lotNoList[0]): new WipLotVO(lotQuantity: 250, lotNumber: lotNoList[0]),
+                (lotNoList[1]): new WipLotVO(lotQuantity: 55, lotNumber: lotNoList[1]),
+        ]
+        def reqLineList = [
+                new WipReqLineEntity(lotNumber: lotNoList[0], posNo: "CD158", reqQty: 250),
+                new WipReqLineEntity(lotNumber: lotNoList[1], posNo: "CD158", reqQty: 55),
+        ]
+        when:
+        def reqLineList1 = ReqInsDetailEntity.get().setPosNo("A1").setItemQty(new BigDecimal("111")).setItemUnitQty(new BigDecimal(unitQty))
+                .allocateQty(reqLineList, wipLotMap, new BigDecimal(unitQty).negate())
+        then:
+        reqLineList1[0].reqQty == 159 && reqLineList1[0].unitQty == BigDecimal.valueOf(159).divide(BigDecimal.valueOf(250), 6, RoundingMode.DOWN).doubleValue()
+        reqLineList1[1].reqQty == 35 && reqLineList1[1].unitQty == BigDecimal.valueOf(35).divide(BigDecimal.valueOf(55), 6, RoundingMode.DOWN).doubleValue()
     }
 
 }

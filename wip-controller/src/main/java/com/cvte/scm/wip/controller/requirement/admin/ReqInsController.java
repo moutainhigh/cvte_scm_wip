@@ -1,10 +1,12 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.req.ins.confirm.ReqInsConfirmApplication;
 import com.cvte.scm.wip.app.req.ins.invalid.ReqInsInvalidApplication;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLinePageService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
@@ -29,17 +31,18 @@ public class ReqInsController {
     private ReqInsConfirmApplication reqInsConfirmApplication;
     private WipReqLinePageService wipReqLinePageService;
     private ReqInsInvalidApplication reqInsInvalidApplication;
+    private CheckReqInsDomainService checkReqInsDomainService;
 
-    public ReqInsController(ReqInsConfirmApplication reqInsConfirmApplication, WipReqLinePageService wipReqLinePageService, ReqInsInvalidApplication reqInsInvalidApplication) {
+    public ReqInsController(ReqInsConfirmApplication reqInsConfirmApplication, WipReqLinePageService wipReqLinePageService, ReqInsInvalidApplication reqInsInvalidApplication, CheckReqInsDomainService checkReqInsDomainService) {
         this.reqInsConfirmApplication = reqInsConfirmApplication;
         this.wipReqLinePageService = wipReqLinePageService;
         this.reqInsInvalidApplication = reqInsInvalidApplication;
+        this.checkReqInsDomainService = checkReqInsDomainService;
     }
 
     @PostMapping("/confirm")
     public RestResponse confirm(@RequestBody String... insHeaderId) {
-        reqInsConfirmApplication.doAction(insHeaderId);
-        return new RestResponse();
+        return new RestResponse().setData(reqInsConfirmApplication.doAction(insHeaderId));
     }
 
     @PostMapping("/info")
@@ -59,6 +62,17 @@ public class ReqInsController {
     public RestResponse invalid(@RequestBody List<ReqInsBuildVO> voList) {
         reqInsInvalidApplication.doAction(voList);
         return new RestResponse();
+    }
+
+    @PostMapping("/isPrepared")
+    public RestResponse isPrepared(@RequestBody List<String> insHeaderId) {
+        String msg = null;
+        try {
+            checkReqInsDomainService.checkInsPrepared(insHeaderId);
+        } catch (ParamsIncorrectException pie) {
+            msg = pie.getMessage();
+        }
+        return new RestResponse().setData(msg);
     }
 
 }

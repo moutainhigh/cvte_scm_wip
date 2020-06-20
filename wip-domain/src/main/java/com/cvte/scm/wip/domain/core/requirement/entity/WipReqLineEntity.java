@@ -162,7 +162,9 @@ public class WipReqLineEntity {
                     Objects.equals(this.posNo, wipReqLine.posNo) &&
                     Objects.equals(this.itemId, wipReqLine.itemId) &&
                     Objects.equals(this.itemNo, wipReqLine.itemNo) &&
-                    Objects.equals(this.lineVersion, wipReqLine.lineVersion);
+                    Objects.equals(this.lineVersion, wipReqLine.lineVersion) &&
+                    // 增加变更类型, add by tingyx 20-06-20
+                    Objects.equals(this.changeType, wipReqLine.changeType);
         }
         return false;
     }
@@ -178,6 +180,8 @@ public class WipReqLineEntity {
         result = 31 * result + Objects.hashCode(this.itemId);
         result = 31 * result + Objects.hashCode(this.itemNo);
         result = 31 * result + Objects.hashCode(this.lineVersion);
+        // 增加变更类型
+        result = 31 * result + Objects.hashCode(this.changeType);
         return result;
     }
 }

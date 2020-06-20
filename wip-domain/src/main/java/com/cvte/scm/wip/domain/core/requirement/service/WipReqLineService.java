@@ -474,7 +474,7 @@ public class WipReqLineService {
 
     public void executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
         wipReqLineList = sortLineByChangeType(wipReqLineList);
-        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::validateAndGetExecuteData);
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::simpleAddChangedData);
         Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, getWipUserId());
         Consumer<WipReqLineEntity> manipulate = line -> {
             ChangedTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(line.getChangeType(), ChangedTypeEnum.class);
@@ -494,6 +494,12 @@ public class WipReqLineService {
                 case UPDATE:
                     update(singletonList(line), eMode, cMode, false, userId);
                     break;
+                case REDUCE:
+                    reduce(singletonList(line), eMode, cMode, false, userId);
+                    break;
+                case INCREASE:
+                    increase(singletonList(line), eMode, cMode, false, userId);
+                    break;
                 default:
                     throw new ParamsIncorrectException("不支持的投料行变更类型:" + typeEnum.getDesc());
             }
@@ -501,6 +507,30 @@ public class WipReqLineService {
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
         change(parameters);
+    }
+
+    /**
+     * 减少数量, 不写库, 只写入接口表
+     */
+    public String[] reduce(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.REDUCE, this::simpleAddChangedData);
+        Consumer<WipReqLineEntity> manipulate = line -> line.setUpdUser(userId);
+        Consumer<WipReqLineEntity> complete = line -> line.setUpdUser(userId);
+        ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.DELETE).setLog(isLog).setComplete(complete)
+                .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
+        return change(parameters);
+    }
+
+    /**
+     * 增加数量, 不写库, 只写入接口表
+     */
+    public String[] increase(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.INCREASE, this::simpleAddChangedData);
+        Consumer<WipReqLineEntity> manipulate = line -> line.setUpdUser(userId);
+        Consumer<WipReqLineEntity> complete = line -> line.setUpdUser(userId);
+        ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.ADD).setLog(isLog).setComplete(complete)
+                .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
+        return change(parameters);
     }
 
     private List<WipReqLineEntity> sortLineByChangeType(List<WipReqLineEntity> reqLineEntityList) {
@@ -516,10 +546,12 @@ public class WipReqLineService {
         addGroupedLine.accept(ChangedTypeEnum.ADD.getCode());
         addGroupedLine.accept(ChangedTypeEnum.REPLACE.getCode());
         addGroupedLine.accept(ChangedTypeEnum.UPDATE.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.REDUCE.getCode());
+        addGroupedLine.accept(ChangedTypeEnum.INCREASE.getCode());
         return sortedList;
     }
 
-    private String validateAndGetExecuteData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> changedData) {
+    private String simpleAddChangedData(WipReqLineEntity wipReqLine, List<WipReqLineEntity> changedData) {
         changedData.add(wipReqLine);
         return "";
     }

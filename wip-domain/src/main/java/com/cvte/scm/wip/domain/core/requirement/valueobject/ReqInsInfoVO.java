@@ -93,4 +93,7 @@ public class ReqInsInfoVO {
     @ApiModelProperty("执行结果")
     private String executeResult;
 
+    @ApiModelProperty("源更改单号")
+    private String sourceNo;
+
 }

@@ -43,7 +43,7 @@ public class WipReqLineKeyQueryVO {
 
     public static WipReqLineKeyQueryVO build(ReqInsDetailEntity entity) {
         if (StringUtils.isBlank(entity.getMoLotNo()) && StringUtils.isBlank(entity.getWkpNo()) && StringUtils.isBlank(entity.getItemIdNew()) && StringUtils.isNotBlank(entity.getPosNo())) {
-            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + ",删除范围过大,指令:ID=" + entity.getInsDetailId());
+            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + ",删除范围过大");
         }
         WipReqLineKeyQueryVO keyQueryVO = new WipReqLineKeyQueryVO();
         keyQueryVO.setHeaderId(entity.getAimHeaderId())

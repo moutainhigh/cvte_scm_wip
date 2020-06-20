@@ -21,7 +21,13 @@
             <result column="upd_time" property="updTime" />
             <result column="upd_user" property="updUser" />
             <result column="upd_host" property="updHost" />
-        </resultMap>
+            <result column="version" property="version" />
+            <result column="change_content" property="changeContent" />
+            <result column="remarks" property="remarks" />
+            <result column="pc_remarks" property="pcRemarks" />
+            <result column="mot_lot_no" property="motLotNo" />
+            <result column="source_no" property="sourceNo" />
+    </resultMap>
 
     <select id="selectByReqInsHeaderId" resultMap="BaseResultMap">
         select *
@@ -32,6 +38,31 @@
             from wip_req_ins_h ih
             where ih.ins_h_id = #{reqInsHeaderId}
             )
+    </select>
+
+
+    <select id="selectSyncFailedBills" resultMap="BaseResultMap">
+            select *
+            from wip_cn_bill cb
+            where cb.bill_status = '110'
+              and exists(
+                  select 1
+                  from wip_cn_bill_error_log el
+                  where el.bill_id = cb.bill_id
+                    and el.opt_type = '1'
+                    and el.crt_time > current_timestamp + '-12 hour'
+                    <if test="errMsgList != null and errMsgList.size() > 0">
+                        and el.error_message in
+                        <foreach collection="errMsgList" item="errMsg" open="(" separator="," close=")">
+                             #{errMsg}
+                        </foreach>
+                    </if>
+                )
+              and not exists(
+                  select 1
+                  from wip_req_ins_h ih
+                  where ih.source_cn_bill_id = cb.bill_id
+              )
     </select>
 
 </mapper>

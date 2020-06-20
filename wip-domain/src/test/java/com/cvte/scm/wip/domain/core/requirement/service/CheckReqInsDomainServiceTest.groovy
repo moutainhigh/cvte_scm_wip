@@ -33,7 +33,7 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
                 .setDetailList([ReqInsDetailEntity.get()])
         def reqLineList = []
-        when(lineRepository.selectValidByKey(anyObject())).thenReturn(reqLineList)
+        when(lineRepository.selectValidByKey(anyObject(), anyObject())).thenReturn(reqLineList)
         when:
         checkReqInsDomainService.validAndGetLine(reqIns)
         then:
