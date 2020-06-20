@@ -78,7 +78,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 continue;
             }
 
-            Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
                 checkReqInsDomainService.checkPreInsExists(insHeader);
             } catch (RuntimeException re) {
@@ -87,6 +86,7 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 continue;
             }
 
+            Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
                 checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);

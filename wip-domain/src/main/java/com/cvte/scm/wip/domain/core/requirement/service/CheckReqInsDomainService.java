@@ -68,8 +68,7 @@ public class CheckReqInsDomainService implements DomainService {
         for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
             try {
                 WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(detailEntity);
-                if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())
-                        && !InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
+                if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())) {
                     // 非新增或增加(因为增加对象不存在时新增), 获取指令的目标投料行
                     List<String> statusList = new ArrayList<>();
                     statusList.add(BillStatusEnum.DRAFT.getCode());
@@ -77,7 +76,9 @@ public class CheckReqInsDomainService implements DomainService {
                     statusList.add(BillStatusEnum.PREPARED.getCode());
                     statusList.add(BillStatusEnum.ISSUED.getCode());
                     List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO, statusList);
-                    this.validateTargetLine(reqLineList);
+                    if (!InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
+                        this.validateTargetLine(reqLineList);
+                    }
                     reqLineMap.put(detailEntity.getInsDetailId(), reqLineList);
                 } else {
                     this.validateIncreaseQty(detailEntity);

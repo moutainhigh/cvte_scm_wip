@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -360,6 +361,9 @@ public class ReqInsDetailEntity implements Entity<String> {
             remainLotQty = remainLotQty.subtract(updateQty);
 
             List<WipReqLineEntity> lotGroupLineList = lotGroupLineEntry.getValue();
+            // 因为原子服务update的回写EBS不会被处理, 所以要同时生成新增/删除类型的参数用于回写EBS的行
+            List<WipReqLineEntity> reduceOrIncreaseList = new ArrayList<>();
+
             // 分配策略: 将分配数量均匀加/减到批次对应的投料行上, 若出现小数, 向上取整
             BigDecimal allocateQty = updateQty.divide(new BigDecimal(lotGroupLineList.size()), 0, RoundingMode.UP);
             Iterator<WipReqLineEntity> lotGroupLineIterator = lotGroupLineList.iterator();
@@ -391,10 +395,26 @@ public class ReqInsDetailEntity implements Entity<String> {
                     roundingMode = RoundingMode.DOWN;
                 }
                 lotGroupLine.setUnitQty(new BigDecimal(resultQty).divide(wipLot.getLotQuantity(), 6, roundingMode).doubleValue());
+
+                // 若行变更类型为空(以防新增类型重复处理), 则再生成一个变更类型=指令的行, 用于回写EBS, 原因是EBS接口表不处理update类型的数据
+                if (StringUtils.isBlank(lotGroupLine.getChangeType())) {
+                    WipReqLineEntity reduceOrIncreaseLine = new WipReqLineEntity();
+                    BeanUtils.copyProperties(lotGroupLine, reduceOrIncreaseLine);
+                    reduceOrIncreaseLine.setReqQty(realAllocateQty.abs().intValue())
+                            .setUnitQty(realAllocateQty.abs().divide(wipLot.getLotQuantity(), 6, roundingMode).doubleValue());
+                    if (InsOperationTypeEnum.REDUCE.getCode().equals(this.getOperationType())) {
+                        reduceOrIncreaseLine.setChangeType(ChangedTypeEnum.REDUCE.getCode());
+                    } else {
+                        reduceOrIncreaseLine.setChangeType(ChangedTypeEnum.INCREASE.getCode());
+                    }
+                    reduceOrIncreaseList.add(reduceOrIncreaseLine);
+                }
+
                 // 小批次数量扣减已分配到位号的数量
                 updateQty = updateQty.subtract(realAllocateQty);
             }
             resultList.addAll(lotGroupLineList);
+            resultList.addAll(reduceOrIncreaseList);
         }
         for (WipReqLineEntity line : resultList) {
             if (StringUtils.isBlank(line.getChangeType())) {
