@@ -4,16 +4,17 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
+import com.cvte.scm.wip.infrastructure.changebill.mapper.WipCnBillDMapper;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.WipCnBillMapper;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.dataobject.WipCnBillDO;
+import com.cvte.scm.wip.infrastructure.changebill.mapper.dataobject.WipCnBillDetailDO;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
   * 
@@ -26,9 +27,11 @@ import java.util.Objects;
 public class ChangeBillRepositoryImpl implements ChangeBillRepository {
 
     private WipCnBillMapper cnBillMapper;
+    private WipCnBillDMapper cnBillDMapper;
 
-    public ChangeBillRepositoryImpl(WipCnBillMapper cnBillMapper) {
+    public ChangeBillRepositoryImpl(WipCnBillMapper cnBillMapper, WipCnBillDMapper cnBillDMapper) {
         this.cnBillMapper = cnBillMapper;
+        this.cnBillDMapper = cnBillDMapper;
     }
 
     @Override
@@ -80,6 +83,12 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
         return WipCnBillDO.batchBuildEntity(billDOList);
     }
 
+    /**
+     * 根据指令集ID获取其对应的更改单
+     * @since 2020/6/18 5:21 下午
+     * @author xueyuting
+     * @param reqInsHeaderId 指令头ID
+     */
     @Override
     public ChangeBillEntity getByReqInsHeaderId(String reqInsHeaderId) {
         WipCnBillDO billDO = cnBillMapper.selectByReqInsHeaderId(reqInsHeaderId);
@@ -87,6 +96,34 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
             return null;
         }
         return WipCnBillDO.buildEntity(billDO);
+    }
+
+    /**
+     * 获取同步失败的更改单
+     * @since 2020/6/18 5:20 下午
+     * @author xueyuting
+     * @param errMsgList 用于查询的同步失败信息
+     */
+    @Override
+    public List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList) {
+        List<WipCnBillDO> billDOList = cnBillMapper.selectSyncFailedBills(errMsgList);
+        List<WipCnBillDetailDO> billDetailDOList = cnBillDMapper.selectSyncFailedDetails(errMsgList);
+
+        // 把更改单组合起来
+        List<ChangeBillEntity> billList = WipCnBillDO.batchBuildEntity(billDOList);
+        List<ChangeBillDetailEntity> billDetailList = WipCnBillDetailDO.batchBuildEntity(billDetailDOList);
+        Map<String, ChangeBillEntity> billMap = new HashMap<>();
+        billList.forEach(bill -> billMap.put(bill.getBillId(), bill));
+        for (ChangeBillDetailEntity detail : billDetailList) {
+            ChangeBillEntity bill = billMap.get(detail.getBillId());
+            List<ChangeBillDetailEntity> subDetailList = bill.getBillDetailList();
+            if (ListUtil.empty(subDetailList)) {
+                subDetailList = new ArrayList<>();
+                bill.setBillDetailList(subDetailList);
+            }
+            subDetailList.add(detail);
+        }
+        return billList;
     }
 
 }
