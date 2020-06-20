@@ -198,7 +198,7 @@ public class ReqInsEntity implements Entity<String> {
             }
         }
         if (parseFailed) {
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), "解析失败");
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), "指令解析失败");
         }
         return reqLineEntityList;
     }

@@ -7,6 +7,7 @@ import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
+import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillSyncFailedDomainService;
 import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
@@ -38,11 +39,13 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
     private SourceChangeBillService sourceChangeBillService;
     private WipReqHeaderService reqHeaderService;
     private CheckReqInsDomainService checkReqInsDomainService;
+    private ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService;
 
-    public ChangeBillParseApplication(SourceChangeBillService sourceChangeBillService, WipReqHeaderService reqHeaderService, CheckReqInsDomainService checkReqInsDomainService) {
+    public ChangeBillParseApplication(SourceChangeBillService sourceChangeBillService, WipReqHeaderService reqHeaderService, CheckReqInsDomainService checkReqInsDomainService, ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService) {
         this.sourceChangeBillService = sourceChangeBillService;
         this.reqHeaderService = reqHeaderService;
         this.checkReqInsDomainService = checkReqInsDomainService;
+        this.changeBillSyncFailedDomainService = changeBillSyncFailedDomainService;
     }
 
     @Override
@@ -58,6 +61,9 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
         synchronized (queryVO.getOrganizationId().intern()) {
             // 获取EBS更改单
             changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
+
+            // 把已创建更改单, 但是创建指令失败的单据加进来
+            changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList);
 
             if (ListUtil.empty(changeBillBuildVOList)) {
                 return "";

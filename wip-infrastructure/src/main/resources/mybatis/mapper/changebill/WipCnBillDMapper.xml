@@ -25,5 +25,31 @@
             <result column="upd_host" property="updHost" />
             <result column="item_unit_qty" property="itemUnitQty" />
             <result column="item_qty" property="itemQty" />
+            <result column="source_line_id" property="sourceLineId" />
         </resultMap>
+
+    <select id="selectSyncFailedDetails" resultMap="BaseResultMap">
+        select *
+        from wip_cn_bill_d cbd
+        where cbd.status = '110'
+          and exists(
+              select 1
+              from wip_cn_bill_error_log el
+              where el.bill_id = cbd.bill_id
+                and el.opt_type = '1'
+                and el.crt_time > current_timestamp + '-12 hour'
+              <if test="errMsgList != null and errMsgList.size() > 0">
+                  and el.error_message in
+                  <foreach collection="errMsgList" item="errMsg" open="(" separator="," close=")">
+                      #{errMsg}
+                  </foreach>
+              </if>
+            )
+          and not exists(
+              select 1
+              from wip_req_ins_h ih
+              where ih.source_cn_bill_id = cbd.bill_id
+          )
+    </select>
+
 </mapper>

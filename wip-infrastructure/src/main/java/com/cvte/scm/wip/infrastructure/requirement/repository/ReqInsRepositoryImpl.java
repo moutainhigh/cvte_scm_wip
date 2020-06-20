@@ -73,4 +73,9 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
         return WipReqInsHeaderDO.batchBuildEntity(headerDOList);
     }
 
+    @Override
+    public List<String> getPreparedById(List<String> idList) {
+        return insHMapper.selectPreparedById(idList);
+    }
+
 }

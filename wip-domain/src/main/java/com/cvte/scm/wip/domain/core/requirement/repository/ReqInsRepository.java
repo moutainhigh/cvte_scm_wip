@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -20,5 +21,7 @@ public interface ReqInsRepository {
     ReqInsEntity selectByKey(String insKey);
 
     List<ReqInsEntity> selectByAimHeaderId(String aimHeaderId, List<String> statusList);
+
+    List<String> getPreparedById(@Param("idList") List<String> idList);
 
 }

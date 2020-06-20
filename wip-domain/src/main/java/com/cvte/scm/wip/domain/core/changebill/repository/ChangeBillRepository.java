@@ -24,4 +24,6 @@ public interface ChangeBillRepository extends Repository {
 
     ChangeBillEntity getByReqInsHeaderId(String reqInsHeaderId);
 
+    List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList);
+
 }

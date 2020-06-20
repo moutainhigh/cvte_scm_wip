@@ -21,7 +21,7 @@ public interface WipReqLineRepository {
 
     List<WipReqLineEntity> selectByExample(Example example);
 
-    List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO);
+    List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO, List<String> statusList);
 
     void insertSelective(WipReqLineEntity lineEntity);
 
