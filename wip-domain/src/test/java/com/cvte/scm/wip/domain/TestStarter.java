@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @Import({
         TestConfiguration.class,
+        TestCkdConfiguration.class,
 })
 @ComponentScan({"com.cvte.scm.wip.domain", "com.cvte.scm.wip.common"})
 public class TestStarter {

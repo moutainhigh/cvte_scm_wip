@@ -114,7 +114,7 @@ class ReqInsDetailEntityTest extends BaseJunitTest {
                 .allocateQty(reqLineList, wipLotMap, new BigDecimal(unitQty).negate())
         then:
         reqLineList1[0].reqQty == 159 && reqLineList1[0].unitQty == BigDecimal.valueOf(159).divide(BigDecimal.valueOf(250), 6, RoundingMode.DOWN).doubleValue()
-        reqLineList1[1].reqQty == 35 && reqLineList1[1].unitQty == BigDecimal.valueOf(35).divide(BigDecimal.valueOf(55), 6, RoundingMode.DOWN).doubleValue()
+        reqLineList1[2].reqQty == 35 && reqLineList1[2].unitQty == BigDecimal.valueOf(35).divide(BigDecimal.valueOf(55), 6, RoundingMode.DOWN).doubleValue()
     }
 
 }
