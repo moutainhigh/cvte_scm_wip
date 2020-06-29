@@ -74,7 +74,7 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
                 changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList);
 
                 if (ListUtil.empty(changeBillBuildVOList)) {
-                    return "";
+                    continue;
                 }
 
                 for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
