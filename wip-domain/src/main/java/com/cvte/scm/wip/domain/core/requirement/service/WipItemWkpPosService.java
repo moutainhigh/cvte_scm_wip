@@ -43,6 +43,13 @@ public class WipItemWkpPosService {
     @Autowired
     private ModelMapper modelMapper;
 
+    public void deleteByIds(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+
+        repository.deleteListByIds(ids.toArray(new String[0]));
+    }
 
     /**
      *
@@ -121,7 +128,7 @@ public class WipItemWkpPosService {
      **/
     public void validateAndInitWipItemWkpPostImportDTO(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
 
-        Map<String, String> orgCodeAndIdMap = getOrgCodeAndIdMapByImportDTOS(wipItemWkpPostImportDTOS);
+        Map<String, String> orgCodeAndIdMap = getOrgNameAndIdMapByImportDTOS(wipItemWkpPostImportDTOS);
 
 
         StringBuilder errMsgs = new StringBuilder();
@@ -129,15 +136,15 @@ public class WipItemWkpPosService {
         wipItemWkpPostImportDTOS.forEach(el -> {
 
             StringBuilder errMsg = new StringBuilder(ValidateUtils.validate(el));
-            if (StringUtil.isNotBlank(el.getOrganizationCode()) && !orgCodeAndIdMap.containsKey(el.getOrganizationCode())) {
-                errMsg.append(String.format("组织%s未找到;", el.getOrganizationCode()));
+            if (StringUtil.isNotBlank(el.getOrgName()) && !orgCodeAndIdMap.containsKey(el.getOrgName())) {
+                errMsg.append(String.format("组织%s未找到;", el.getOrgName()));
             }
 
-            el.setOrganizationId(orgCodeAndIdMap.get(el.getOrganizationCode()));
+            el.setOrganizationId(orgCodeAndIdMap.get(el.getOrgName()));
             String uniqueKey = el.generateUniqueKey();
 
             if (uniqueKeySet.contains(uniqueKey)) {
-                errMsg.append("不可同时导入重复数据;");
+                errMsg.append("不可同时导入【产品型号+版本+物料编码+工艺属性】相同数据;");
             }
             if (errMsg.length() > 0) {
                 errMsgs.append(String.format("【第%d行：%s】", el.getRowNum(), errMsg));
@@ -170,15 +177,15 @@ public class WipItemWkpPosService {
         }
     }
 
-    private Map<String, String> getOrgCodeAndIdMapByImportDTOS(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
-        List<String> organizationCodes = wipItemWkpPostImportDTOS.stream()
-                .map(WipItemWkpPostImportDTO::getOrganizationCode)
+    private Map<String, String> getOrgNameAndIdMapByImportDTOS(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
+        List<String> orgNames = wipItemWkpPostImportDTOS.stream()
+                .map(WipItemWkpPostImportDTO::getOrgName)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
         List<SysOrgOrganizationVO> sysOrgOrganizationVOS = scmViewCommonService.listSysOrgOrganizationVO(
-                new SysOrgOrganizationVQuery().setEbsOrganizationCodes(organizationCodes));
+                new SysOrgOrganizationVQuery().setOrganizationNames(orgNames));
         return sysOrgOrganizationVOS.stream()
-                .collect(Collectors.toMap(SysOrgOrganizationVO::getEbsOrganizationCode, SysOrgOrganizationVO::getEbsOrganizationId));
+                .collect(Collectors.toMap(SysOrgOrganizationVO::getOrgName, SysOrgOrganizationVO::getEbsOrganizationId));
     }
 
 

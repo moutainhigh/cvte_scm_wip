@@ -17,4 +17,6 @@ public class SysOrgOrganizationVQuery {
 
     private List<String> ebsOrganizationCodes;
 
+    private List<String> organizationNames;
+
 }

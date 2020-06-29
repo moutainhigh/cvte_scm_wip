@@ -33,16 +33,14 @@ public class WipItemWkpPostImportDTO extends BaseRowSet {
     @ExcelProperty(value = "物料编码")
     private String itemCode;
 
-    @NotBlank(message = "组织编码不能为空")
-    @ExcelProperty(value = "组织编码")
-    private String organizationCode;
+    @NotBlank(message = "组织名称不能为空")
+    @ExcelProperty(value = "组织名称")
+    private String orgName;
 
     @NotBlank(message = "产品型号不能为空")
     @ExcelProperty(value = "产品型号")
     private String productModel;
 
-    @ExcelProperty(value = "文件版本")
-    private String versionNo;
 
     @ExcelProperty(value = "位置A")
     private String locationA;
@@ -57,6 +55,7 @@ public class WipItemWkpPostImportDTO extends BaseRowSet {
     @ExcelProperty(value = "位置A部件数量")
     private Integer locationAQty;
 
+    @NotBlank(message = "工艺属性不能为空")
     @ExcelProperty(value = "工艺属性")
     private String techniqueAttr;
 

@@ -35,6 +35,23 @@ public class WipItemWkpPosApplication {
         if (CollectionUtils.isEmpty(wipItemWkpPostImportDTOS)) {
             throw new ParamsIncorrectException("导入数据不能为空");
         }
+        batchSave(wipItemWkpPostImportDTOS);
+    }
+
+    public void saveImport(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
+        if (CollectionUtils.isEmpty(wipItemWkpPostImportDTOS)) {
+            return;
+        }
+
+        for (int i = 0; i < wipItemWkpPostImportDTOS.size(); i++) {
+            wipItemWkpPostImportDTOS.get(i).setRowNum(i + 1);
+        }
+
+        batchSave(wipItemWkpPostImportDTOS);
+
+    }
+
+    private void batchSave(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
 
         wipItemWkpPosService.validateAndInitWipItemWkpPostImportDTO(wipItemWkpPostImportDTOS);
 
