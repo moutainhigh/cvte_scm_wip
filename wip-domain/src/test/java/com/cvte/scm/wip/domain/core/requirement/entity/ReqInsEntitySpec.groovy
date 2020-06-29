@@ -55,12 +55,12 @@ class ReqInsEntitySpec extends BaseJunitTest {
                 new WipLotVO(lotNumber: lotNo2, lotQuantity: 150)
         ])
         when:
-        def reqLineList = insEntity.parse(null)
+        def reqLineList = insEntity.parse(Collections.emptyMap())
         then:
         reqLineList.size() == 2
         and:
-        def line1 = reqLineList.get(0)
-        def line2 = reqLineList.get(1)
+        def line1 = reqLineList.get(1)
+        def line2 = reqLineList.get(0)
         line1.lotNumber == lotNo1 && line1.reqQty == 150
         line2.lotNumber == lotNo2 && line2.reqQty == 225
     }
@@ -76,7 +76,7 @@ class ReqInsEntitySpec extends BaseJunitTest {
                 new WipLotVO(lotNumber: lotNo1, lotQuantity: 100)
         ])
         when:
-        def reqLineList = insEntity.parse(null)
+        def reqLineList = insEntity.parse(Collections.emptyMap())
         then:
         def reqLine = reqLineList[0]
         reqLine.lotNumber == lotNo1 && reqLine.reqQty == 150

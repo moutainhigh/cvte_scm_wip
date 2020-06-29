@@ -65,7 +65,7 @@
         , xoi.organization_id
         , wlv.lot_number
         , xoi.pos_str
-        , siv.item_no
+        , mi.item_code as item_no
         , xoi.wkp_no
         , xoi.item_unit_qty
         , round(wlv.lot_quantity* xoi.item_unit_qty)
@@ -85,8 +85,7 @@
         and xmv.organization_id = xoi.organization_id
         inner join wip.wip_lot_v wlv
         on xoi.wip_entity_id = wlv.wip_id
-        inner join scm.scm_item_v siv
-        on siv.item_id = cast(xoi.item_id as varchar) and siv.organization_id = cast(xoi.organization_id as varchar)
+        inner join scm.md_item mi on to_char(xoi.item_id) = mi.inventory_item_id
         where xoi.organization_id in
         <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
             #{organizationId}

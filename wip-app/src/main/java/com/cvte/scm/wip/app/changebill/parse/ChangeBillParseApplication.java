@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,40 +56,50 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
             throw new ParamsIncorrectException("组织ID不可为空");
         }
 
-        List<ChangeBillBuildVO> changeBillBuildVOList;
+        List<String> syncedBillNoList = new ArrayList<>();
 
-        // 接口和定时任务可能同时调用, 为避免并发引起的数据问题, 按业务组织加锁。 intern将字符串写入常量池, 保证每次拿到的是业务组织的同一个内存对象
-        synchronized (queryVO.getOrganizationId().intern()) {
-            // 获取EBS更改单
-            changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
+        String[] organizationIdArr = queryVO.getOrganizationId().split(",");
+        for (String splitOrganizationId : organizationIdArr) {
+            splitOrganizationId = splitOrganizationId.trim();
+            queryVO.setOrganizationId(splitOrganizationId);
 
-            // 把已创建更改单, 但是创建指令失败的单据加进来
-            changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList);
+            // 接口和定时任务可能同时调用, 为避免并发引起的数据问题, 按业务组织加锁。 intern将字符串写入常量池, 保证每次拿到的是业务组织的同一个内存对象
+            synchronized (splitOrganizationId.intern()) {
+                List<ChangeBillBuildVO> changeBillBuildVOList;
 
-            if (ListUtil.empty(changeBillBuildVOList)) {
-                return "";
-            }
+                // 获取EBS更改单
+                changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
 
-            for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
-                ChangeBillEntity billEntity = null;
-                try {
-                    // 生成更改单
-                    billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
-                    // 生成指令
-                    this.parseChangeBill(billEntity);
-                } catch (RuntimeException re) {
-                    if (Objects.isNull(billEntity)) {
-                        billEntity = ChangeBillEntity.get();
-                        billEntity.setBillId(changeBillBuildVO.getBillId())
-                                .setBillNo(changeBillBuildVO.getBillNo())
-                                .setMoId(changeBillBuildVO.getMoId());
-                    }
-                    billEntity.notifyEntity(re.getMessage());
+                // 把已创建更改单, 但是创建指令失败的单据加进来
+                changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList);
+
+                if (ListUtil.empty(changeBillBuildVOList)) {
+                    return "";
                 }
+
+                for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
+                    ChangeBillEntity billEntity = null;
+                    try {
+                        // 生成更改单
+                        billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
+                        // 生成指令
+                        this.parseChangeBill(billEntity);
+                    } catch (RuntimeException re) {
+                        if (Objects.isNull(billEntity)) {
+                            billEntity = ChangeBillEntity.get();
+                            billEntity.setBillId(changeBillBuildVO.getBillId())
+                                    .setBillNo(changeBillBuildVO.getBillNo())
+                                    .setMoId(changeBillBuildVO.getMoId());
+                        }
+                        billEntity.notifyEntity(re.getMessage());
+                    }
+                }
+
+                syncedBillNoList.addAll(changeBillBuildVOList.stream().map(ChangeBillBuildVO::getBillNo).collect(Collectors.toList()));
             }
         }
 
-        return changeBillBuildVOList.stream().map(ChangeBillBuildVO::getBillNo).collect(Collectors.joining(","));
+        return String.join(",", syncedBillNoList);
     }
 
     @Transactional("pgTransactionManager")

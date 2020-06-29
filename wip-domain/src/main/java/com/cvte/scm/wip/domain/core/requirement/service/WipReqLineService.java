@@ -562,7 +562,25 @@ public class WipReqLineService {
     public String[] update(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
         Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.UPDATE, this::validateAndGetUpdateData);
         Consumer<WipReqLineEntity> manipulate = wipReqLineRepository::updateSelectiveById;
-        Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, userId);
+        Consumer<WipReqLineEntity> complete = line -> {
+            EntityUtils.writeStdUpdInfoToEntity(line, userId);
+            if (Objects.nonNull(line.getIssuedQty()) && line.getIssuedQty() > 0) {
+                // 领料数量大于0, 更新状态为已领料
+                boolean needChangeFlag = BillStatusEnum.CLOSED.getCode().equals(line.getLineStatus())
+                        || BillStatusEnum.CANCELLED.getCode().equals(line.getLineStatus())
+                        || BillStatusEnum.ISSUED.getCode().equals(line.getLineStatus());
+                if (!needChangeFlag) {
+                    line.setLineStatus(BillStatusEnum.ISSUED.getCode());
+                }
+            }
+            if (Objects.nonNull(line.getIssuedQty()) && line.getIssuedQty() == 0 && BillStatusEnum.ISSUED.getCode().equals(line.getLineStatus())) {
+                line.setLineStatus(BillStatusEnum.PREPARED.getCode());
+            }
+            if (Objects.nonNull(line.getReqQty()) && line.getReqQty() <= 0) {
+                // 需求数量减少为0, 则更新状态为取消
+                completeCancelledData(line, userId);
+            }
+        };
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.UPDATE).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
         return change(parameters);
