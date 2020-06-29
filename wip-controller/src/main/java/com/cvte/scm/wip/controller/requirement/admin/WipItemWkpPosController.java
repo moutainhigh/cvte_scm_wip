@@ -43,12 +43,11 @@ public class WipItemWkpPosController {
         return ResponseFactory.getOkResponse(null);
     }
 
-    @DeleteMapping("/batch")
+    @PostMapping("/batchDel")
     public RestResponse deleteByIds(@RequestBody List<String> ids) {
         wipItemWkpPosService.deleteByIds(ids);
         return ResponseFactory.getOkResponse(null);
     }
-
 
 
 }
