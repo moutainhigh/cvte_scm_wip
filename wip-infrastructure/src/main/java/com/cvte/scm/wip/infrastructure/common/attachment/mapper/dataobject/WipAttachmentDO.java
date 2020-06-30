@@ -40,6 +40,10 @@ public class WipAttachmentDO extends BaseModel {
     @Column(name = "reference_id")
     @ApiModelProperty(value = "实体id")
     private String referenceId;
+
+    @Column(name = "reference_type")
+    @ApiModelProperty(value = "实体类型")
+    private String referenceType;
     /**
      * 文件名
      */

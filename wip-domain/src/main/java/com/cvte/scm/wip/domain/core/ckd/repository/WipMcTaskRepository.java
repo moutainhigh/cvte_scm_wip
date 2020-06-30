@@ -39,4 +39,14 @@ public interface WipMcTaskRepository extends WipBaseRepository<WipMcTaskEntity> 
 
     List<WipMcTaskEntity> listWipMcTask(WipMcTaskQuery query);
 
+
+    /**
+     * 是否指定的特殊客户
+     *
+     * @param mcTaskId
+     * @return java.lang.Boolean
+     **/
+    Boolean isSpecClient(String mcTaskId);
+
+
 }

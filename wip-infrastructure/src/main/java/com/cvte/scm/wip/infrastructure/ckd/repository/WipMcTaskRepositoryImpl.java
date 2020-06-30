@@ -35,9 +35,6 @@ public class WipMcTaskRepositoryImpl
         implements WipMcTaskRepository{
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     private WipMcTaskMapper wipMcTaskMapper;
 
     @Override
@@ -117,6 +114,10 @@ public class WipMcTaskRepositoryImpl
         }
 
         return modelMapper.map(mapper.selectByExample(example), new TypeToken<List<WipMcTaskEntity>>(){}.getType());
+    }
+
+    public Boolean isSpecClient(String mcTaskId) {
+        return mapper.isSpecClient(mcTaskId);
     }
 
 

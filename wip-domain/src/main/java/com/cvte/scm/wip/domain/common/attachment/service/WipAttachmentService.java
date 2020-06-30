@@ -2,7 +2,9 @@ package com.cvte.scm.wip.domain.common.attachment.service;
 
 import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.base.enums.YesOrNoEnum;
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
+import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
@@ -15,6 +17,7 @@ import com.cvte.scm.wip.domain.common.attachment.entity.WipAttachmentEntity;
 import com.cvte.scm.wip.domain.common.attachment.repository.WipAttachmentRepository;
 import com.cvte.scm.wip.domain.common.sys.user.entity.SysUserEntity;
 import com.cvte.scm.wip.domain.common.sys.user.repository.SysUserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import java.util.stream.Collectors;
  * @author zy
  * @since 2020-04-29
  */
+@Slf4j
 @Service
 @Transactional(transactionManager = "pgTransactionManager")
 public class WipAttachmentService {
@@ -80,6 +84,22 @@ public class WipAttachmentService {
 
     public List<AttachmentVO> listAttachmentView(AttachmentQuery attachmentQuery) {
         return repository.listAttachmentView(attachmentQuery);
+    }
+
+    public AttachmentVO getAttachmentView(AttachmentQuery attachmentQuery) {
+
+        List<AttachmentVO> attachmentVOS = listAttachmentView(attachmentQuery);
+
+        AttachmentVO attachmentVO;
+        if (CollectionUtils.isEmpty(attachmentVOS)) {
+            attachmentVO = null;
+        } else if (attachmentVOS.size() == 1) {
+            attachmentVO = attachmentVOS.get(0);
+        } else {
+            log.error("[WipAttachmentService][getAttachmentView] select one, but found {}", attachmentVOS.size());
+            throw new ParamsIncorrectException("附件信息有误，请联系管理员维护");
+        }
+        return attachmentVO;
     }
 
 

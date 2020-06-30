@@ -1,7 +1,7 @@
 package com.cvte.scm.wip.infrastructure.common.log.mapper.dataobject;
 
 
-import com.cvte.csb.validator.entity.BaseEntity;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -23,7 +23,7 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-public class WipOperationLogDO extends BaseEntity {
+public class WipOperationLogDO extends BaseModel {
 
     private static final long serialVersionUID = 1L;
 

@@ -13,6 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class WipMcTaskLineQuery {
 
+    private List<String> taskLineIds;
 
     private List<String> taskIds;
 

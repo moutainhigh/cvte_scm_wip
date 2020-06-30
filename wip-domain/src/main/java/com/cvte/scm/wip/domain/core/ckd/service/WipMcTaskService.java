@@ -15,6 +15,11 @@ import com.cvte.scm.wip.common.utils.EmptyObjectUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
 import com.cvte.scm.wip.common.utils.HostUtils;
+import com.cvte.scm.wip.domain.common.attachment.constants.AttReferenceTypeConstant;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentDTO;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
+import com.cvte.scm.wip.domain.common.attachment.service.WipAttachmentService;
 import com.cvte.scm.wip.domain.common.base.WipBaseService;
 import com.cvte.scm.wip.domain.common.log.constant.LogModuleConstant;
 import com.cvte.scm.wip.domain.common.log.dto.WipLogDTO;
@@ -36,13 +41,14 @@ import com.cvte.scm.wip.domain.core.ckd.handler.McTaskStatusUpdateIHandler;
 import com.cvte.scm.wip.domain.core.ckd.repository.WipMcTaskRepository;
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
+import com.cvte.scm.wip.domain.core.scm.vo.SysBuDeptVO;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockDTO;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.dto.EbsInoutStockResponse;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.EbsDeliveryStatusEnum;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.InterfaceActionEnum;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.TxnSourceTypeNameEnum;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.service.EbsInvokeService;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockDTO;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.dto.EbsInoutStockResponse;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.EbsDeliveryStatusEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.InterfaceActionEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.enums.TxnSourceTypeNameEnum;
+import com.cvte.scm.wip.domain.core.thirdpart.ebs.service.EbsInvokeService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -73,9 +79,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     private ModelMapper modelMapper;
 
     @Autowired
-    private WipMcTaskRepository repository;
-
-    @Autowired
     private WipMcTaskLineService wipMcTaskLineService;
 
     @Autowired
@@ -94,9 +97,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     private UserService userService;
 
     @Autowired
-    private ScmViewCommonService scmViewCommonSerivce;
-
-    @Autowired
     private EbsInvokeService ebsInvokeService;
 
     @Autowired
@@ -110,6 +110,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     @Autowired
     private WipOperationLogService wipOperationLogService;
+
+    @Autowired
+    private WipAttachmentService wipAttachmentService;
 
     public WipMcTaskEntity getById(String mcTaskId) {
         return repository.getById(mcTaskId);
@@ -130,16 +133,36 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         operatingUser.setAccount(wipMcTaskUpdateStatus.getOptUser());
         CurrentContext.setCurrentOperatingUser(operatingUser);
 
-        wipMcTaskViews.forEach(el -> this.updateStatus(el.getMcTaskId(), wipMcTaskUpdateStatus.getUpdateToStatus()));
+        Set<String> mcTaskIds = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toSet());
+        mcTaskIds.forEach(el -> this.updateStatus(el, wipMcTaskUpdateStatus.getUpdateToStatus()));
     }
 
     public void updateStatus(String taskId, String updateToStatus) {
+        updateStatus(taskId, updateToStatus, true);
+    }
+
+
+    /**
+     * 变更配料任务状态
+     *
+     * 目前会跳过生命周期状态转换的校验场景有：
+     *  1. 配料任务状态取消锁定。专题会转换到配料任务前一个非锁定的状态
+     *  2. 更新配料任务行信息，如果所有配料任务行都被失效的，会将配料任务作废
+     *
+     * @param taskId
+     * @param updateToStatus
+     * @param validateUpdateTO 仅控制是否做生命周期状态转换的校验，不控制注册在处理器中的特殊校验
+     * @return void
+     **/
+    public void updateStatus(String taskId, String updateToStatus, boolean validateUpdateTO) {
 
         McTaskStatusEnum updateToStatusEnum = EnumUtils.getByCode(updateToStatus, McTaskStatusEnum.class);
 
         McTaskInfoView mcTaskInfoView = getMcTaskInfoView(taskId);
 
-        wipMcTaskValidateService.validateUpdStatusTo(mcTaskInfoView.getStatus(), updateToStatus);
+        if (validateUpdateTO) {
+            wipMcTaskValidateService.validateUpdStatusTo(mcTaskInfoView.getStatus(), updateToStatus);
+        }
 
 
         // 已注册的特殊状态变更校验
@@ -161,15 +184,16 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
         repository.updateSelectiveById(wipMcTask);
 
-        if (!McTaskStatusEnum.CHANGE.equals(curStatusEnum)) {
-            wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
-                    taskId,
-                    updateToStatusEnum.getOptName()));
-        } else {
+        if (McTaskStatusEnum.CHANGE.equals(curStatusEnum) && !McTaskStatusEnum.CHANGE.equals(updateToStatusEnum)) {
             // crm取消变更时会回滚到之前的状态，这里记录的日志信息需要特殊处理下
             wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
                     taskId,
-                    "驳回/取消变更审核"));
+                    "解除锁定",
+                    String.format("%s -> %s", curStatusEnum.getValue(), updateToStatusEnum.getValue())));
+        } else {
+            wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
+                    taskId,
+                    updateToStatusEnum.getOptName()));
         }
 
 
@@ -189,6 +213,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         // 设入字典值
         if (StringUtils.isNotBlank(mcTaskInfoView.getStatus())) {
             mcTaskInfoView.setStatusName(EnumUtils.getByCode(mcTaskInfoView.getStatus(), McTaskStatusEnum.class).getValue());
+        }
+        if (StringUtils.isNotBlank(mcTaskInfoView.getMcFinishStatusCode())) {
+            mcTaskInfoView.setMcFinishStatus(EnumUtils.getByCode(mcTaskInfoView.getMcFinishStatusCode(), McTaskFinishStatusEnums.class).getValue());
         }
 
         return mcTaskInfoView;
@@ -261,10 +288,14 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
     }
 
     
-    public void inoutStock(TransactionTypeNameEnum transactionTypeNameEnum, String taskId, String versionId) {
+    public void inoutStock(TransactionTypeNameEnum transactionTypeNameEnum, String taskId, String versionId, List<String> mcTaskLineIds) {
 
         if (StringUtils.isBlank(taskId, versionId)) {
             throw new ParamsRequiredException("配料任务id/版本id不能为空");
+        }
+
+        if (CollectionUtils.isEmpty(mcTaskLineIds)) {
+            throw new ParamsRequiredException("请先勾选需要调拨的配料任务行");
         }
 
         McTaskInfoView mcTaskInfoView = getMcTaskInfoView(taskId);
@@ -276,13 +307,18 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             throw new ParamsIncorrectException("只能调拨最新版本的配料清单");
         }
 
-        wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView);
-
         String inoutStockId = UUIDUtils.getUUID();
         List<WipMcTaskLineView> wipMcTaskLineViews = wipMcTaskLineService.listWipMcTaskLineView(
                 new WipMcTaskLineQuery()
                         .setTaskIds(Arrays.asList(taskId))
+                        .setTaskLineIds(mcTaskLineIds)
                         .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
+
+        if (CollectionUtils.isEmpty(wipMcTaskLineViews)) {
+            throw new ParamsIncorrectException("请选择需要调拨的行");
+        }
+        wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView, wipMcTaskLineViews);
+
         EbsInoutStockDTO ebsInoutStockDTO = generateEbsInoutStockDTO(transactionTypeNameEnum, inoutStockId, mcTaskInfoView, wipMcTaskLineViews);
         EbsInoutStockResponse ebsInoutStockResponse = ebsInvokeService.inoutStockImport(ebsInoutStockDTO);
 
@@ -294,7 +330,6 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 mcTaskInfoView.getMcTaskId(),
                 ebsInoutStockResponse.getReturnInfo().getHeaderId(),
                 ebsInoutStockResponse.getReturnInfo().getTicketNo());
-        EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcInoutStock);
         wipMcInoutStock.setInoutStockId(inoutStockId);
 
         if (CollectionUtils.isEmpty(ebsInoutStockResponse.getRtLines())) {
@@ -315,8 +350,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         wipMcInoutStockLineService.insertList(wipMcInoutStockLines);
         wipMcInoutStockService.insertSelective(wipMcInoutStock);
 
-        // 更新头表
-        WipMcTaskEntity wipMcTask = generateWipMcTaskByInoutStock(transactionTypeNameEnum, taskId, inoutStockId);
+        // 更新头表的更新时间
+        WipMcTaskEntity wipMcTask = new WipMcTaskEntity().setMcTaskId(taskId);
+        EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
         repository.updateSelectiveById(wipMcTask);
 
         wipMcTaskVersionService.sync(taskId, false);
@@ -330,22 +366,41 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     }
 
-    private WipMcTaskEntity generateWipMcTaskByInoutStock(TransactionTypeNameEnum transactionTypeNameEnum,
-                                                    String taskId,
-                                                    String inoutStockId) {
-        WipMcTaskEntity wipMcTask = new WipMcTaskEntity();
-        wipMcTask.setMcTaskId(taskId);
-        EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
-        switch (transactionTypeNameEnum) {
-            case IN:
-                wipMcTask.setInStockId(inoutStockId);
-                break;
-            case OUT:
-                wipMcTask.setOutStockId(inoutStockId);
-                break;
+    public void saveBatchAttachment(List<AttachmentDTO> attachmentSaveDTOList) {
+
+        if (CollectionUtils.isEmpty(attachmentSaveDTOList)) {
+            return;
         }
-        return wipMcTask;
+
+        attachmentSaveDTOList.forEach(el -> el.setReferenceType(AttReferenceTypeConstant.CKD));
+        wipAttachmentService.saveBatch(attachmentSaveDTOList);
+
+        String detail = attachmentSaveDTOList.stream().map(AttachmentDTO::getFileName).collect(Collectors.joining("；"));
+        WipLogDTO wipLogDTO = new WipLogDTO();
+        wipLogDTO.setModule(LogModuleConstant.CKD)
+                .setReferenceId(attachmentSaveDTOList.get(0).getReferenceId())
+                .setOperation("上传附件")
+                .setDetail(detail + " 附件上传");
+        wipOperationLogService.addLog(wipLogDTO);
+
     }
+
+    public void removeAttachmentById(String id) {
+        AttachmentVO wipAttachment = wipAttachmentService.getAttachmentView(new AttachmentQuery().setId(id));
+        if (ObjectUtils.isNull(wipAttachment)) {
+            return;
+        }
+        wipAttachmentService.removeById(id);
+
+        WipLogDTO wipLogDTO = new WipLogDTO();
+        wipLogDTO.setModule(LogModuleConstant.CKD)
+                .setReferenceId(wipAttachment.getReferenceId())
+                .setOperation("删除附件")
+                .setDetail(wipAttachment.getFileName() + " 附件删除");
+        wipOperationLogService.addLog(wipLogDTO);
+    }
+
+
     private WipMcInoutStockEntity generateWipMcInoutStockByInoutStock(TransactionTypeNameEnum transactionTypeNameEnum,
                                                           String taskId,
                                                           String headerId,
@@ -357,7 +412,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setHeaderNo(deliveryNo)
                 .setStatus(EbsDeliveryStatusEnum.ENTER.getCode())
                 .setType(transactionTypeNameEnum.name());
-        EntityUtils.writeStdUpdInfoToEntity(wipMcInoutStock, CurrentContext.getCurrentOperatingUser().getId());
+        EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcInoutStock);
         return wipMcInoutStock;
     }
 
@@ -422,6 +477,14 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         return repository.listValidTaskIds(mcTaskIds);
     }
 
+    public Boolean isSpecClient(String mcTaskId) {
+        if (StringUtils.isBlank(mcTaskId)) {
+            return false;
+        }
+
+        return repository.isSpecClient(mcTaskId);
+    }
+
     private EbsInoutStockDTO generateEbsInoutStockDTO(TransactionTypeNameEnum transactionTypeNameEnum,
                                                       String inoutStockId,
                                                       McTaskInfoView mcTaskInfoView,
@@ -457,6 +520,18 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         return ebsInoutStockDTO;
     }
 
+    /**
+     * 1、调拨出库：物料仓（XX-01）---》在制仓（XX-257）
+     * 对应的目的仓库是XX-257
+     * 2、调拨入库：在制仓（XX-257）---》散料仓（XX-54）
+     * 对应的目的仓库是XX-54
+     *
+     * @param
+     * @param transactionTypeNameEnum
+     * @param wipMcTaskLineView
+     * @param lineDTO
+     * @return void
+     **/
     private void handlerDefaultValueOfInoutStockLineDTO(TransactionTypeNameEnum transactionTypeNameEnum,
                                                         WipMcTaskLineView wipMcTaskLineView,
                                                         EbsInoutStockDTO.LineDTO lineDTO) {
@@ -481,6 +556,14 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
     }
 
+    /**
+     * 货位：仓库.工厂编码
+     *
+     * @param
+     * @param subInventory
+     * @param factoryCode
+     * @return java.lang.String
+     **/
     private String getLocatorCode(String subInventory, String factoryCode) {
         return String.format("%s.%s.", subInventory, factoryCode);
     }
@@ -527,8 +610,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         mcReqs.forEach(el -> {
             el.validate();
             if (!(StringUtils.equals(el.getFactoryId(), firstMcReq.getFactoryId())
-                    && StringUtils.equals(el.getBuName(), firstMcReq.getBuName())
-                    && StringUtils.equals(el.getDeptName(), firstMcReq.getDeptName())
+                    && StringUtils.equals(el.getBuCode(), firstMcReq.getBuCode())
+                    && StringUtils.equals(el.getDeptCode(), firstMcReq.getDeptCode())
                     && StringUtils.equals(el.getOrganizationId(), firstMcReq.getOrganizationId())
                     && el.getMtrReadyTime().equals(firstMcReq.getMtrReadyTime())
             )) {
@@ -540,15 +623,21 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             soIdSet.add(el.getMcReqId());
         });
 
+        SysBuDeptVO sysBuDeptDetailVO = scmViewCommonService.getSysBuDeptVO(firstMcReq.getBuCode(), firstMcReq.getDeptCode());
+        if (ObjectUtils.isNull(sysBuDeptDetailVO)) {
+            throw new SourceNotFoundException(
+                    String.format("获取部门/事业错误：buCode=%s,deptCode=%s", firstMcReq.getBuCode(), firstMcReq.getDeptCode()));
+        }
 
         // 头表
         WipMcTaskEntity wipMcTask = modelMapper.map(mcReqs.get(0), WipMcTaskEntity.class);
         wipMcTask.setMcTaskId(UUIDUtils.getUUID())
                 .setMcTaskNo(getMcTaskNo(firstMcReq.getFactoryId()))
-                .setBuName(firstMcReq.getBuName())
-                .setDeptName(firstMcReq.getDeptName())
+                .setBuName(sysBuDeptDetailVO.getBuName())
+                .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
-                .setOrgId(getOrgIdByOrganizationId(firstMcReq.getOrganizationId()));
+                .setOrgId(getOrgIdByOrganizationId(firstMcReq.getOrganizationId()))
+                .setFinishStatus(McTaskFinishStatusEnums.UN_FINISH.getCode());
         EntityUtils.writeStdCrtInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
 
         // 设入审核状态
@@ -561,7 +650,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         wipMcReqToTaskService.saveTaskRel(wipMcTask.getMcTaskId(), soIdSet);
 
         // 新增版本信息
-        wipMcTaskVersionService.add(wipMcTask.getMcTaskId(), wipMcTaskLines);
+        wipMcTaskVersionService.add(wipMcTask.getMcTaskId(), modelMapper.map(wipMcTaskLines, new TypeToken<List<WipMcTaskLineView>>(){}.getType()));
 
         wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
                 wipMcTask.getMcTaskId(),
@@ -582,16 +671,20 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         // 校验是否可以变更
         McTaskInfoView mcTaskInfoView = wipMcTaskValidateService.validateUpdOpt(mcReq.getMcTaskId());
 
+        SysBuDeptVO sysBuDeptDetailVO = scmViewCommonService.getSysBuDeptVO(mcReq.getBuCode(), mcReq.getDeptCode());
+        if (ObjectUtils.isNull(sysBuDeptDetailVO)) {
+            throw new SourceNotFoundException(String.format("获取部门/事业错误：buCode=%s,deptCode=%s", mcReq.getBuCode(), mcReq.getDeptCode()));
+        }
 
         WipMcTaskEntity wipMcTask = getByTaskId(mcReq.getMcTaskId());
         wipMcTask.setMtrReadyTime(mcReq.getMtrReadyTime())
                 .setFactoryId(mcReq.getFactoryId())
-                .setBuName(mcReq.getBuName())
-                .setDeptName(mcReq.getDeptName())
+                .setBuName(sysBuDeptDetailVO.getBuName())
+                .setDeptName(sysBuDeptDetailVO.getDeptName())
                 .setBackOffice(getUserIdByAccount(wipMcTaskSaveDTO.getBackOffice()))
-                .setBuName(mcReq.getBuName())
-                .setDeptName(mcReq.getDeptName())
-                .setOrgId(getOrgIdByOrganizationId(mcReq.getOrganizationId()));
+                .setOrgId(getOrgIdByOrganizationId(mcReq.getOrganizationId()))
+                .setFinishStatus(McTaskFinishStatusEnums.UN_FINISH.getCode())
+                .setClientId(mcReq.getClientId());
         EntityUtils.writeStdUpdInfoToEntity(wipMcTask, CurrentContext.getCurrentOperatingUser().getId());
 
         List<WipMcReqToTaskEntity> wipMcReqToTasks = wipMcReqToTaskService.selectList(new WipMcReqToTaskEntity()
@@ -607,8 +700,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
 
         // 同步版本信息
-        List<WipMcTaskLineView> wipMcTaskLines = wipMcTaskLineService
-                .listWipMcTaskLineView(new WipMcTaskLineQuery().setTaskIds(Arrays.asList(mcReq.getMcTaskId())));
+        List<WipMcTaskLineEntity> wipMcTaskLineEntities = wipMcTaskLineService
+                .selectList(new WipMcTaskLineEntity().setMcTaskId(mcReq.getMcTaskId()));
+        List<WipMcTaskLineView> wipMcTaskLines = modelMapper.map(wipMcTaskLineEntities, new TypeToken<List<WipMcTaskLineView>>(){}.getType());
         wipMcTaskVersionService.sync(wipMcTask.getMcTaskId(), true, wipMcTaskLines);
 
         WipMcTaskDetailView wipMcTaskDetailView = modelMapper.map(wipMcTask, WipMcTaskDetailView.class);
@@ -695,7 +789,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
             throw new ParamsRequiredException("ebs组织id不能为空");
         }
 
-        List<SysOrgOrganizationVO> sysOrgOrganizationVS = scmViewCommonSerivce.listSysOrgOrganizationVO(
+        List<SysOrgOrganizationVO> sysOrgOrganizationVS = scmViewCommonService.listSysOrgOrganizationVO(
                 new SysOrgOrganizationVQuery().setEbsOrganizationIds(Arrays.asList(organizationId)));
         if (CollectionUtils.isEmpty(sysOrgOrganizationVS)) {
             throw new SourceNotFoundException("获取组织" + organizationId + "信息失败");

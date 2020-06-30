@@ -3,17 +3,27 @@ package com.cvte.scm.wip.domain.core.ckd.service;
 import com.cvte.csb.core.exception.client.forbiddens.NoOperationRightException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
+import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.EnumUtils;
+import com.cvte.scm.wip.domain.common.attachment.constants.AttReferenceTypeConstant;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentQuery;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentVO;
+import com.cvte.scm.wip.domain.common.attachment.service.WipAttachmentService;
+import com.cvte.scm.wip.domain.common.sys.user.repository.SysUserRepository;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
+import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
+import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
 import com.cvte.scm.wip.domain.core.ckd.utils.McTaskStatusUtils;
-import com.cvte.scm.wip.domain.thirdpart.thirdpart.enums.EbsDeliveryStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  *
@@ -24,8 +34,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class WipMcTaskValidateService {
 
+    // 销管角色编码
+    @Value("${wip.role.code.sales}")
+    private String salesRoleCode;
+
     @Autowired
     private WipMcTaskService wipMcTaskService;
+
+    @Autowired
+    private WipAttachmentService wipAttachmentService;
+
+    @Autowired
+    private SysUserRepository sysUserRepository;
 
     public void validateUpdStatusTo(String curStatus, String updStatusTo) {
 
@@ -74,7 +94,7 @@ public class WipMcTaskValidateService {
     }
 
 
-    public void validateInoutStock(TransactionTypeNameEnum transactionTypeNameEnum, McTaskInfoView mcTaskInfoView) {
+    public void validateInoutStock(TransactionTypeNameEnum transactionTypeNameEnum, McTaskInfoView mcTaskInfoView, List<WipMcTaskLineView> wipMcTaskLineViews) {
 
         if (ObjectUtils.isNull(mcTaskInfoView) || StringUtils.isBlank(mcTaskInfoView.getStatus())) {
             throw new ParamsRequiredException("获取配料任务状态错误");
@@ -85,35 +105,62 @@ public class WipMcTaskValidateService {
                 McTaskStatusEnum.VERIFY,
                 McTaskStatusEnum.REJECT,
                 McTaskStatusEnum.CANCEL,
-                McTaskStatusEnum.CLOSE,
                 McTaskStatusEnum.CHANGE)) {
             McTaskStatusEnum mcTaskStatusEnum = EnumUtils.getByCode(mcTaskInfoView.getStatus(), McTaskStatusEnum.class);
             throw new ParamsIncorrectException("不可对" + mcTaskStatusEnum.getValue() + "状态的配料进行调拨操作");
         }
 
-        switch (transactionTypeNameEnum) {
-            case OUT:
-                if (StringUtils.isNotBlank(mcTaskInfoView.getDeliveryOutStatus())
-                    && !EbsDeliveryStatusEnum.CANCELLED.getCode().equals(mcTaskInfoView.getDeliveryOutStatus())) {
-                    throw new ParamsIncorrectException("调拨出库单已存在");
-                }
-                break;
-            case IN:
-                if (StringUtils.isNotBlank(mcTaskInfoView.getDeliveryInStatus())
-                        && !EbsDeliveryStatusEnum.CANCELLED.getCode().equals(mcTaskInfoView.getDeliveryInStatus())) {
-                    throw new ParamsIncorrectException("调拨入库单已存在");
-                }
+        for (WipMcTaskLineView wipMcTaskLineView : wipMcTaskLineViews) {
+            switch (transactionTypeNameEnum) {
+                case OUT:
+                    // 对于部分客户的配料任务，需要上传唛头才允许创建调拨出库单
+                    if (wipMcTaskService.isSpecClient(mcTaskInfoView.getMcTaskId()) && !hasAttachment(mcTaskInfoView.getMcTaskId())) {
+                        throw new ParamsIncorrectException("需要销管上传唛头后，才能创建调拨单");
+                    }
+                    // 行数据调拨单不存在/已取消，才可创建
+                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
+                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨出库单已存在的行，请检查");
+                    }
+                    break;
+                case IN:
+                    // 行数据调拨单不存在/已取消，且行出库单对应的调拨单行已过账才可创建
+                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
+                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
+                    }
 
-                if (!EbsDeliveryStatusEnum.POSTED.getCode().equals(mcTaskInfoView.getDeliveryOutStatus())) {
-                    throw new ParamsIncorrectException("调拨出库单未过账不允许创建调拨入库");
-                }
-
-                // 头表已过账，行表含有未过账数据，也不能创建入库单
-                break;
-            default:
-                throw new ParamsIncorrectException("不支持的调拨类型");
+                    if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
+                    }
+                    break;
+                default:
+                    throw new ParamsIncorrectException("不支持的调拨类型");
+            }
         }
 
+    }
+
+
+    /**
+     * 判断是否有销管上传的唛头
+     *
+     * @param mcTaskId
+     * @return boolean
+     **/
+    private boolean hasAttachment(String mcTaskId) {
+        if (StringUtils.isBlank(mcTaskId)) {
+            return false;
+        }
+
+        List<String> userIds = sysUserRepository.listRoleUserIds(salesRoleCode);
+        if (CollectionUtils.isEmpty(userIds)) {
+            return false;
+        }
+
+        List<AttachmentVO> attachmentVOS = wipAttachmentService.listAttachmentView(
+                new AttachmentQuery().setReferenceId(mcTaskId).setReferenceType(AttReferenceTypeConstant.CKD).setCrtUsers(userIds));
+        return CollectionUtils.isNotEmpty(attachmentVOS);
     }
 
 }

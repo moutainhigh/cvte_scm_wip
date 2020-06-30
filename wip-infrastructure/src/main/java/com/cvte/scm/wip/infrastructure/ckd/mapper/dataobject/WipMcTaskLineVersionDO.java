@@ -41,6 +41,10 @@ public class WipMcTaskLineVersionDO extends BaseModel {
     @ApiModelProperty(value = "版本id")
     private String versionId;
 
+    @Column(name = "line_id")
+    @ApiModelProperty(value = "版本id")
+    private String lineId;
+
     /**
      * 物料id
      */
@@ -107,8 +111,14 @@ public class WipMcTaskLineVersionDO extends BaseModel {
     @Column(name = "delivery_in_status")
     private String deliveryInStatus;
 
+    @Column(name = "delivery_in_line_status")
+    private String deliveryInLineStatus;
+
     @Column(name = "delivery_out_status")
     private String deliveryOutStatus;
+
+    @Column(name = "delivery_out_line_status")
+    private String deliveryOutLineStatus;
 
     @Column(name = "delivery_in_line_no")
     private String deliveryInLineNo;

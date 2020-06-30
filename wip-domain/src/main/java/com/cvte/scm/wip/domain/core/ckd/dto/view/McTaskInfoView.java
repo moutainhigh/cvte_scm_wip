@@ -16,7 +16,11 @@ public class McTaskInfoView {
 
     private String mcTaskId;
 
+    private String sourceNo;
+
     private String client;
+
+    private String clientId;
 
     private String status;
 
@@ -42,8 +46,8 @@ public class McTaskInfoView {
     @ApiModelProperty("配料完成状态")
     private String mcFinishStatus;
 
-    @ApiModelProperty("配料完成状态名")
-    private String mcFinishStatusName;
+    @ApiModelProperty("配料完成状态")
+    private String mcFinishStatusCode;
 
     @ApiModelProperty("生管审核人")
     private String pmAuditUser;
@@ -71,10 +75,16 @@ public class McTaskInfoView {
 
     private String ebsOrganizationCode;
 
-    private String deliveryInStatus;
+    @ApiModelProperty("物料项数")
+    private Integer itemCount;
 
-    private String deliveryOutStatus;
+    @ApiModelProperty("附件上传人")
+    private String attachmentUploadUser;
 
-    private String inoutStockId;
+    @ApiModelProperty("销管")
+    private String sales;
+
+    private Date planDeliveryTime;
+
 
 }

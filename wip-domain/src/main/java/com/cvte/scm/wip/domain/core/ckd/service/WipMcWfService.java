@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,13 @@ public class WipMcWfService {
     }
 
 
+    /**
+     *
+     *
+     * @param mcTaskId
+     * @param mcTaskStatusEnum
+     * @return void
+     **/
     public void restorePreStatusIfCurStatusEqualsTo(String mcTaskId, McTaskStatusEnum mcTaskStatusEnum) {
 
         List<WipMcWfEntity> wipMcWfs = repository.listWipMcWf(new WipMcWfQuery().setMcTaskId(mcTaskId));
@@ -80,13 +88,27 @@ public class WipMcWfService {
         if (!mcTaskStatusEnum.getCode().equals(wipMcWfs.get(0).getStatus())) {
             return;
         }
-        wipMcTaskService.updateStatus(mcTaskId, wipMcWfs.get(1).getStatus());
+
+        // 取第一个与mcTaskStatusEnum 不同的状态
+        String updateToStatus = null;
+        for (int i = 1; i < wipMcWfs.size(); i ++) {
+            if (mcTaskStatusEnum.getCode().equals(wipMcWfs.get(i).getStatus())) {
+                continue;
+            }
+
+            updateToStatus = wipMcWfs.get(i).getStatus();
+            break;
+        }
+
+        if (StringUtils.isNotBlank(updateToStatus)) {
+            wipMcTaskService.updateStatus(mcTaskId, updateToStatus, false);
+        }
 
     }
 
     public void batchRestorePreStatusIfCurStatusEqualsTo(List<String> mcTaskIds, McTaskStatusEnum mcTaskStatusEnum) {
 
-        for (String mcTaskId : mcTaskIds) {
+        for (String mcTaskId : new HashSet<>(mcTaskIds)) {
             restorePreStatusIfCurStatusEqualsTo(mcTaskId, mcTaskStatusEnum);
         }
     }

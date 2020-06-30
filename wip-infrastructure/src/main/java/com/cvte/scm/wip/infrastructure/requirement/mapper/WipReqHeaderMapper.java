@@ -17,4 +17,7 @@ public interface WipReqHeaderMapper extends CommonMapper<WipReqHeaderDO> {
 
     /* 获取工单信息，主要用投料单头的增量写入。 */
     List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList);
+
+    /* 判断货位信息在投料单头下是否存在 */
+    boolean existLotNumber(@Param("headerId") Integer headerId, @Param("lotNumber") String lotNumber);
 }

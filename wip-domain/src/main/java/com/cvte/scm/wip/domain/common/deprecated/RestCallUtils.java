@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -146,8 +147,17 @@ public class RestCallUtils {
         }
         StringBuilder query = new StringBuilder("?");
         for (Map.Entry<String, Object> param : formMap.entrySet()) {
-            query.append(param.getKey()).append("=")
-                    .append(encode(param.getValue().toString(), "UTF-8")).append("&");
+            Object value = param.getValue();
+            if (value instanceof Collection) {
+                for (Object obj : (Collection) value) {
+                    query.append(param.getKey()).append("=")
+                            .append(encode(obj.toString(), "UTF-8")).append("&");
+                }
+            } else {
+                query.append(param.getKey()).append("=")
+                        .append(encode(param.getValue().toString(), "UTF-8")).append("&");
+            }
+
         }
         query.setLength(query.length() - 1);
         return query.toString();

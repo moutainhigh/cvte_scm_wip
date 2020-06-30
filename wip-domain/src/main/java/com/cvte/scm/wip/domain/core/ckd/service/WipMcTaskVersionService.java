@@ -15,7 +15,6 @@ import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskLineVersionQuery;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskCompareView;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineVersionView;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
-import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskLineEntity;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskLineVersionEntity;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskVersionEntity;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskLineStatusEnum;
@@ -143,7 +142,7 @@ public class WipMcTaskVersionService extends WipBaseService<WipMcTaskVersionEnti
     }
 
 
-    public void add(String taskId, List<WipMcTaskLineEntity> wipMcTaskLineList) {
+    public void add(String taskId, List<WipMcTaskLineView> wipMcTaskLineViews) {
 
         if (StringUtils.isBlank(taskId)) {
             throw new ParamsIncorrectException("配料任务id不能为空");
@@ -158,11 +157,11 @@ public class WipMcTaskVersionService extends WipBaseService<WipMcTaskVersionEnti
         EntityUtils.writeStdCrtInfoToEntity(wipMcTaskVersion, CurrentContextUtils.getOrDefaultUserId("SCM-WIP"));
 
         // 版本任务清单
-        wipMcTaskLineList = ObjectUtils.isNotNull(wipMcTaskLineList)
-                ? wipMcTaskLineList : wipMcTaskLineService.selectList(new WipMcTaskLineEntity().setMcTaskId(taskId));
+        wipMcTaskLineViews = ObjectUtils.isNotNull(wipMcTaskLineViews)
+                ? wipMcTaskLineViews : wipMcTaskLineService.listWipMcTaskLineView(new WipMcTaskLineQuery().setTaskIds(Arrays.asList(taskId)));
 
         List<WipMcTaskLineVersionEntity> wipMcTaskLineVersions = new ArrayList<>();
-        wipMcTaskLineList.forEach(el -> {
+        wipMcTaskLineViews.forEach(el -> {
 
             WipMcTaskLineVersionEntity wipMcTaskLineVersion = modelMapper.map(el, WipMcTaskLineVersionEntity.class);
             wipMcTaskLineVersion.setId(UUIDUtils.getUUID())

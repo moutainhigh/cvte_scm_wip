@@ -19,4 +19,6 @@ public class WipMcTaskQuery {
 
     private List<String> sourceLineIds;
 
+    private String status;
+
 }

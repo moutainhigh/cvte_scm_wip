@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsDMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsDetailDO">
+            <result column="ins_d_id" property="insDId" />
+            <result column="ins_h_id" property="insHId" />
+            <result column="organization_id" property="organizationId" />
+            <result column="source_cn_detail_id" property="sourceCnDetailId" />
+            <result column="mo_lot_no" property="moLotNo" />
+            <result column="wkp_no" property="wkpNo" />
+            <result column="item_id_old" property="itemIdOld" />
+            <result column="item_id_new" property="itemIdNew" />
+            <result column="item_unit_qty" property="itemUnitQty" />
+            <result column="item_qty" property="itemQty" />
+            <result column="pos_no" property="posNo" />
+            <result column="operation_type" property="operationType" />
+            <result column="ins_status" property="insStatus" />
+            <result column="enable_date" property="enableDate" />
+            <result column="disable_date" property="disableDate" />
+            <result column="confirm_date" property="confirmDate" />
+            <result column="confirmed_by" property="confirmedBy" />
+            <result column="invalid_by" property="invalidBy" />
+            <result column="invalid_reason" property="invalidReason" />
+            <result column="rmk01" property="rmk01" />
+            <result column="rmk02" property="rmk02" />
+            <result column="rmk03" property="rmk03" />
+            <result column="rmk04" property="rmk04" />
+            <result column="rmk05" property="rmk05" />
+            <result column="crt_time" property="crtTime" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_host" property="crtHost" />
+            <result column="upd_time" property="updTime" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_host" property="updHost" />
+        </resultMap>
+</mapper>

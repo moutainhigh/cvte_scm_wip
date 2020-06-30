@@ -1,6 +1,6 @@
 spring:
   application:
-      name: scm-demo
+      name: scm-wip
   aop:
     proxy-target-class: true
   sleuth:
@@ -22,14 +22,14 @@ hystrix:
 
 csb:
   mybatis:
-    basePackage: com.cvte.scm.xxxx.**.core.mapper
-    xmlLocation: classpath*:mapper/oracle/*.xml
+    basePackage: com.cvte.scm.wip.infrastructure.**.mapper
+    xmlLocation: classpath*:mybatis/mapper/**/*.xml
   swagger:
-    basePackage: com.cvte.scm.demo
-    description: Demo 接口
+    basePackage: com.cvte.scm.wip
+    description: WIP 接口
     version: 1.0
   redis:
-    app_prefix: SCM-DEMO
+    app_prefix: SCM-WIP
 
 #设置打印日志
 logging:
@@ -37,6 +37,8 @@ logging:
     tk.mybatis: DEBUG
     com.cvte.csb: DEBUG
     org.springframework.core: INFO
+    org.springframework.jdbc: DEBUG
+    com.cvte.scm.wip.infrastructure: DEBUG
     com.cvte.scm.demo: INFO
     com.cvte.scm.demo.**.core.mapper: DEBUG
     com.xxl: ERROR

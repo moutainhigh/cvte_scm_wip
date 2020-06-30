@@ -15,6 +15,11 @@
         <result column="ebs_org_id" property="ebsOrgId"/>
     </resultMap>
 
+    <resultMap id="MdItemVO" type="com.cvte.scm.wip.domain.core.scm.vo.MdItemVO">
+        <result column="inventory_item_id" property="inventoryItemId"/>
+        <result column="item_code" property="itemCode"/>
+    </resultMap>
+
     <select id="listSysOrgOrganizationVO" resultMap="SysOrgOrganizationV">
         select Soov.*
         FROM scm.sys_org_organization_v Soov
@@ -38,5 +43,34 @@
         where ebs_factory_id = #{factoryId}
     </select>
 
+    <resultMap id="getSysBuDeptVO" type="com.cvte.scm.wip.domain.core.scm.vo.SysBuDeptVO">
+        <result column="bu_code" property="buCode"/>
+        <result column="bu_name" property="buName"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="dept_name" property="deptName"/>
+    </resultMap>
+    <select id="getSysBuDeptVO" resultMap="getSysBuDeptVO">
+        select Sbv.bu_code
+            , Sbv.bu_name
+            , Sbdv.dept_code
+            , Sbdv.dept_name
+        from scm.sys_bu_v Sbv
+        join scm.sys_bu_dept_v Sbdv on Sbv.bu_code = Sbdv.bu_code
+        where Sbv.bu_code = #{buCode}
+        and Sbdv.dept_code = #{deptCode}
+    </select>
+
+    <select id="listMdItemVO" resultType="com.cvte.scm.wip.domain.core.scm.vo.MdItemVO">
+        select inventory_item_id
+            , item_code
+        from scm.md_item
+        where 1=1
+        <if test="itemCodes != null and itemCodes.size() > 0">
+            and item_code in
+            <foreach collection="itemCodes" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
 
 </mapper>

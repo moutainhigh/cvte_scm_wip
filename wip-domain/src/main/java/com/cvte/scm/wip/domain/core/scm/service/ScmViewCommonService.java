@@ -1,7 +1,10 @@
 package com.cvte.scm.wip.domain.core.scm.service;
 
+import com.cvte.scm.wip.domain.core.scm.dto.query.MdItemQuery;
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.repository.ScmViewCommonRepository;
+import com.cvte.scm.wip.domain.core.scm.vo.SysBuDeptVO;
+import com.cvte.scm.wip.domain.core.scm.vo.MdItemVO;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,4 +29,15 @@ public class ScmViewCommonService {
     public String getFactoryCodeById(String factoryId) {
         return repository.getFactoryCodeById(factoryId);
     }
+
+    public SysBuDeptVO getSysBuDeptVO(String buCode, String deptCode) {
+        return repository.getSysBuDeptVO(buCode, deptCode);
+    }
+
+
+    public List<MdItemVO> listMdItemVO(MdItemQuery query) {
+        return repository.listMdItemVO(query);
+    }
+
+
 }

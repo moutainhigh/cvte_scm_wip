@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
 import com.cvte.csb.core.interfaces.enums.DefaultStatusEnum;
+import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.scm.wip.domain.common.user.entity.OrgExtEntity;
 import com.cvte.scm.wip.domain.common.user.entity.OrgRelationBaseEntity;
 import com.cvte.scm.wip.domain.common.user.service.OrgService;
@@ -53,6 +54,10 @@ public class OrgServiceImpl implements OrgService {
         }
         FeignResult<SysOrgExt> feignResult = sysOrgApiClient.getOrgExtById(id);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
+            if (ObjectUtils.isNull(feignResult.getData())) {
+                return null;
+            }
+
             OrgExtEntity orgExtEntity = new OrgExtEntity();
             BeanUtils.copyProperties(feignResult.getData(), orgExtEntity);
             return orgExtEntity;

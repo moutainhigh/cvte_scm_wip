@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
   * 
@@ -44,7 +45,11 @@ public class UserServiceImpl implements UserService {
         FeignResult<UserBaseDTO> feignResult = sysUserApiClient.getSysUserDetail(id);
         if(DefaultStatusEnum.OK.getCode().equals(feignResult.getStatus())) {
             UserBaseEntity userBaseEntity = new UserBaseEntity();
-            BeanUtils.copyProperties(feignResult.getData(), userBaseEntity);
+            UserBaseDTO userBaseDTO = feignResult.getData();
+            if (Objects.isNull(userBaseDTO)) {
+                return null;
+            }
+            BeanUtils.copyProperties(userBaseDTO, userBaseEntity);
             return userBaseEntity;
         } else {
             throw new ServerException(DefaultStatusEnum.SERVER_ERROR.getCode(), "远程获取用户信息失败, feignResult = " + JSON.toJSONString(feignResult));

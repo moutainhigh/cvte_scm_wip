@@ -262,4 +262,13 @@ public class WipReqInterfaceDO {
         return interfaceEntityList;
     }
 
+    public static List<WipReqInterfaceDO> batchBuildDO(List<WipReqInterfaceEntity> interfaceEntityList) {
+        List<WipReqInterfaceDO> interfaceDOList = new ArrayList<>();
+        for (WipReqInterfaceEntity interfaceEntity : interfaceEntityList) {
+            WipReqInterfaceDO interfaceDO = buildDO(interfaceEntity);
+            interfaceDOList.add(interfaceDO);
+        }
+        return interfaceDOList;
+    }
+
 }

@@ -1,7 +1,9 @@
 package com.cvte.scm.wip.controller.ckd.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.web.rest.ResponseFactory;
+import com.cvte.scm.wip.domain.common.attachment.dto.AttachmentDTO;
 import com.cvte.scm.wip.domain.core.ckd.dto.WipMcTaskUpdateStatusDTO;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskVersionEntity;
 import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
@@ -53,6 +55,10 @@ public class WipMcTaskController {
         return ResponseFactory.getOkResponse(wipMcTaskService.getMcTaskInfoView(mcTaskId));
     }
 
+    public static void main(String[] args) {
+        System.out.println(UUIDUtils.getUUID());
+    }
+
 
     @ApiOperation(value = "配料任务状态变更", notes = "配料任务状态变更")
     @PatchMapping("/{mcTaskId}/status")
@@ -64,17 +70,31 @@ public class WipMcTaskController {
 
     @PostMapping("/{mcTaskId}/stock/{versionId}/in")
     public RestResponse inStock(@PathVariable String mcTaskId,
-                                @PathVariable String versionId) {
-        wipMcTaskService.inoutStock(TransactionTypeNameEnum.IN, mcTaskId, versionId);
+                                @PathVariable String versionId,
+                                @RequestBody List<String> mcTaskLineIds) {
+        wipMcTaskService.inoutStock(TransactionTypeNameEnum.IN, mcTaskId, versionId, mcTaskLineIds);
         return ResponseFactory.getOkResponse(null);
     }
 
     @PostMapping("/{mcTaskId}/stock/{versionId}/out")
     public RestResponse outStock(@PathVariable String mcTaskId,
-                                 @PathVariable String versionId) {
-        wipMcTaskService.inoutStock(TransactionTypeNameEnum.OUT, mcTaskId, versionId);
+                                 @PathVariable String versionId,
+                                 @RequestBody List<String> mcTaskLineIds) {
+        wipMcTaskService.inoutStock(TransactionTypeNameEnum.OUT, mcTaskId, versionId, mcTaskLineIds);
         return ResponseFactory.getOkResponse(null);
     }
 
+
+    @PostMapping("/attachment")
+    public RestResponse save(@RequestBody List<AttachmentDTO> attachmentSaveDTOList) {
+        wipMcTaskService.saveBatchAttachment(attachmentSaveDTOList);
+        return ResponseFactory.getOkResponse(null);
+    }
+
+    @DeleteMapping("/attachment/{id}")
+    public RestResponse removeByFileId(@PathVariable String id) {
+        wipMcTaskService.removeAttachmentById(id);
+        return ResponseFactory.getOkResponse(null);
+    }
 
 }

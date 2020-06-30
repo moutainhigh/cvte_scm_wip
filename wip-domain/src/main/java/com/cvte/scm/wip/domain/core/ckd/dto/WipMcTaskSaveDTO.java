@@ -21,11 +21,11 @@ import java.util.List;
 @EqualsAndHashCode
 public class WipMcTaskSaveDTO extends MyBaseEntity {
 
-    @NotBlankNull
+    @NotBlankNull(message = "开立类型不能为空")
     @ApiModelProperty(value = "开立类型")
     private String optType;
 
-    @NotBlankNull
+    @NotBlankNull(message = "当前操作人不能为空")
     @ApiModelProperty(value = "当前操作人")
     private String optUser;
 
@@ -41,34 +41,38 @@ public class WipMcTaskSaveDTO extends MyBaseEntity {
     @Accessors(chain = true)
     public static class McReq extends MyBaseEntity {
 
-        @NotBlankNull
+        @NotBlankNull(message = "mcReqId不能为空")
         @ApiModelProperty(value = "原始id")
         private String mcReqId;
 
-        @NotBlankNull
+        @NotBlankNull(message = "工厂不能为空")
         @ApiModelProperty(value = "工厂")
         private String factoryId;
 
-        @NotBlankNull
+        @NotBlankNull(message = "客户不能为空")
         @ApiModelProperty(value = "客户")
         private String client;
 
-        @NotNull
+        @NotBlankNull(message = "客户id不能为空")
+        @ApiModelProperty(value = "客户id")
+        private String clientId;
+
+        @NotNull(message = "齐套日期不能为空")
         @ApiModelProperty(value = "齐套日期")
         private Date mtrReadyTime;
 
         @ApiModelProperty(value = "配料任务id(用于合并开立场景，单独开立为空)")
         private String mcTaskId;
 
-        @NotBlankNull
+        @NotBlankNull(message = "事业部不能为空")
         @ApiModelProperty(value = "事业部")
-        private String buName;
+        private String buCode;
 
-        @NotBlankNull
+        @NotBlankNull(message = "部门不能为空")
         @ApiModelProperty(value = "部门")
-        private String deptName;
+        private String deptCode;
 
-        @NotBlankNull
+        @NotBlankNull(message = "organizationId不能为空")
         @ApiModelProperty(value = "ebs库存组织id")
         private String organizationId;
     }
@@ -77,19 +81,19 @@ public class WipMcTaskSaveDTO extends MyBaseEntity {
     @Accessors(chain = true)
     public static class McLine extends MyBaseEntity {
 
-        @NotBlankNull
+        @NotBlankNull(message = "原始单行号不能为空")
         @ApiModelProperty(value = "原始单行号")
         private String sourceLineNo;
 
-        @NotBlankNull
+        @NotBlankNull(message = "原始单id不能为空")
         @ApiModelProperty(value = "原始单id")
         private String sourceLineId;
 
-        @NotBlankNull
+        @NotBlankNull(message = "物料id不能为空")
         @ApiModelProperty(value = "物料id")
         private String itemId;
 
-        @NotBlankNull
+        @NotBlankNull(message = "配料数量不能为空")
         @ApiModelProperty(value = "配料数量")
         private Integer mcQty;
     }

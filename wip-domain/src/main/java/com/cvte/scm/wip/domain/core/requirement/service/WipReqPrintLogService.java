@@ -19,7 +19,7 @@ import java.util.Date;
  * @since 2020-03-06
  */
 @Service
-@Transactional
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqPrintLogService {
 
     private WipReqPrintLogRepository wipReqPrintLogRepository;

@@ -5,7 +5,6 @@ import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskLineVersionQuery;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineVersionView;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcTaskLineVersionEntity;
 import com.cvte.scm.wip.domain.core.ckd.repository.WipMcTaskLineVersionRepository;
-import com.cvte.scm.wip.domain.core.ckd.repository.WipMcTaskVersionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +20,6 @@ import java.util.List;
 @Service
 @Transactional(transactionManager = "pgTransactionManager")
 public class WipMcTaskLineVersionService  extends WipBaseService<WipMcTaskLineVersionEntity, WipMcTaskLineVersionRepository> {
-
-    @Autowired
-    private WipMcTaskLineVersionRepository repository;
 
     public List<WipMcTaskLineVersionView> listWipMcTaskLineVersionView(WipMcTaskLineVersionQuery query) {
         return repository.listWipMcTaskLineVersionView(query);

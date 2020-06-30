@@ -2,10 +2,9 @@ package com.cvte.scm.wip.infrastructure.common.log.repository;
 
 import com.cvte.scm.wip.domain.common.log.entity.WipOperationLogEntity;
 import com.cvte.scm.wip.domain.common.log.repository.WipOperationLogRepository;
+import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;
 import com.cvte.scm.wip.infrastructure.common.log.mapper.WipOperationLogMapper;
 import com.cvte.scm.wip.infrastructure.common.log.mapper.dataobject.WipOperationLogDO;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -13,16 +12,17 @@ import org.springframework.stereotype.Repository;
  * @date 2020-05-25 09:36
  **/
 @Repository
-public class WipOperationLogRepositoryImpl implements WipOperationLogRepository {
-
-    @Autowired
-    private WipOperationLogMapper mapper;
-
-    @Autowired
-    private ModelMapper modelMapper;
+public class WipOperationLogRepositoryImpl
+        extends WipBaseRepositoryImpl<WipOperationLogMapper, WipOperationLogDO, WipOperationLogEntity>
+        implements WipOperationLogRepository {
 
     @Override
-    public void insertSelective(WipOperationLogEntity entity) {
-        mapper.insertSelective(modelMapper.map(entity, WipOperationLogDO.class));
+    protected Class<WipOperationLogEntity> getEntityClass() {
+        return WipOperationLogEntity.class;
+    }
+
+    @Override
+    protected Class<WipOperationLogDO> getDomainClass() {
+        return WipOperationLogDO.class;
     }
 }

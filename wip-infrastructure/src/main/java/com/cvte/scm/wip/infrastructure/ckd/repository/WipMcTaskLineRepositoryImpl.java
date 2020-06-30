@@ -8,7 +8,6 @@ import com.cvte.scm.wip.domain.core.ckd.repository.WipMcTaskLineRepository;
 import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;
 import com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcTaskLineMapper;
 import com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcTaskLineDO;
-import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -25,9 +24,6 @@ import java.util.List;
 public class WipMcTaskLineRepositoryImpl
         extends WipBaseRepositoryImpl<WipMcTaskLineMapper, WipMcTaskLineDO, WipMcTaskLineEntity>
         implements WipMcTaskLineRepository {
-
-    @Autowired
-    private ModelMapper modelMapper;
 
     @Autowired
     private WipMcTaskLineMapper wipMcTaskLineMapper;
@@ -55,6 +51,7 @@ public class WipMcTaskLineRepositoryImpl
         if (CollectionUtils.isNotEmpty(query.getSourceLineIds())) {
             criteria.andIn("sourceLineId", query.getSourceLineIds());
         }
+
 
         return modelMapper.map(wipMcTaskLineMapper.selectByExample(example),
                 new TypeToken<List<WipMcTaskLineEntity>>(){}.getType());

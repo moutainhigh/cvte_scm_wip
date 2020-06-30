@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.subrule.mapper.WipSubRuleMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.subrule.mapper.dataobject.WipSubRuleDO">
+        <result column="rule_id" property="ruleId"/>
+        <result column="rule_no" property="ruleNo"/>
+        <result column="rule_status" property="ruleStatus"/>
+        <result column="rule_reason_type" property="ruleReasonType"/>
+        <result column="rule_reason_remark" property="ruleReasonRemark"/>
+        <result column="if_pr" property="ifPr"/>
+        <result column="if_mix" property="ifMix"/>
+        <result column="if_couple" property="ifCouple"/>
+        <result column="enable_time" property="enableTime"/>
+        <result column="disable_time" property="disableTime"/>
+        <result column="confirm_time" property="confirmTime"/>
+        <result column="process_id" property="processId"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_time" property="updTime"/>
+        <result column="organization_id" property="organizationId"/>
+    </resultMap>
+</mapper>

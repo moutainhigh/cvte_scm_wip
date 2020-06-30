@@ -1,15 +1,20 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLinesMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
 import lombok.SneakyThrows;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
@@ -79,6 +84,18 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     }
 
     @Override
+    public List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO, List<String> statusList) {
+        if (StringUtils.isNotBlank(keyQueryVO.getLineId())) {
+            WipReqLineDO queryDO = new WipReqLineDO().setLineId(keyQueryVO.getLineId());
+            List<WipReqLineDO> lineDOList = wipReqLinesMapper.select(queryDO);
+            lineDOList.removeIf(line -> BillStatusEnum.valid(line.getLineStatus()));
+            return WipReqLineDO.batchBuildEntity(lineDOList);
+        }
+        Example example = createCustomExample(keyQueryVO, statusList);
+        return selectByExample(example);
+    }
+
+    @Override
     public void insertSelective(WipReqLineEntity lineEntity) {
         WipReqLineDO lineDO = WipReqLineDO.buildDO(lineEntity);
         wipReqLinesMapper.insertSelective(lineDO);
@@ -93,6 +110,26 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public void writeIncrementalData(List<String> wipEntityIdList, List<Integer> organizationIdList) {
         wipReqLinesMapper.writeIncrementalData(wipEntityIdList, organizationIdList);
+    }
+
+    private Example createCustomExample(WipReqLineKeyQueryVO keyQueryVO, List<String> statusList) {
+        if (StringUtils.isBlank(keyQueryVO.getHeaderId())) {
+            throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "目标投料单头或组织不可为空");
+        }
+        Example example = new Example(WipReqLineDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        BiConsumer<String, String> equalOrNull = (p, v) -> criteria.andEqualTo(p, isNotEmpty(v) ? v : null);
+        equalOrNull.accept("headerId", keyQueryVO.getHeaderId());
+        equalOrNull.accept("organizationId", keyQueryVO.getOrganizationId());
+        equalOrNull.accept("lotNumber", keyQueryVO.getLotNumber());
+        equalOrNull.accept("wkpNo", keyQueryVO.getWkpNo());
+        equalOrNull.accept("itemId", keyQueryVO.getItemId());
+        equalOrNull.accept("itemNo", keyQueryVO.getItemNo());
+        equalOrNull.accept("posNo", keyQueryVO.getPosNo());
+        if (ListUtil.notEmpty(statusList)) {
+            criteria.andIn("lineStatus", statusList);
+        }
+        return example;
     }
 
     @Override
@@ -141,7 +178,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
             criteria.andEqualTo(field.getName(), value);
         }
         if (!criteria.isValid()) {
-            return null;
+            throw new ParamsIncorrectException("投料单行查询条件为空；");
         }
         criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(status, BillStatusEnum.class));
         List<WipReqLineDO> lineDOList = wipReqLinesMapper.selectByExample(example);

@@ -57,6 +57,10 @@ public class WipMcTaskDO extends BaseModel {
      */
     @ApiModelProperty(value = "客户")
     private String client;
+
+    @Column(name = "client_id")
+    @ApiModelProperty(value = "客户id")
+    private String clientId;
     /**
      * 齐套日期
      */
@@ -85,11 +89,12 @@ public class WipMcTaskDO extends BaseModel {
     @ApiModelProperty(value = "scm库存组织")
     private String orgId;
 
-    @Column(name = "in_stock_id")
-    private String inStockId;
+    @Column(name = "finish_status")
+    private String finishStatus;
 
-    @Column(name = "out_stock_id")
-    private String outStockId;
+    @Column(name = "finish_date")
+    private Date finishDate;
+
     /**
      * ${field.comment}
      */

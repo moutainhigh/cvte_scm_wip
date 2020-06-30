@@ -85,4 +85,11 @@
                 select 1 from wip.wip_req_header wrh where wrh.bill_no = x.bill_no
             )
     </select>
+
+    <select id="existLotNumber" resultType="java.lang.Boolean">
+        select count(*) > 0
+        from wip_lot_v Wl
+        where Wl.wip_id = #{headerId}
+        and Wl.lot_number = #{lotNumber}
+    </select>
 </mapper>

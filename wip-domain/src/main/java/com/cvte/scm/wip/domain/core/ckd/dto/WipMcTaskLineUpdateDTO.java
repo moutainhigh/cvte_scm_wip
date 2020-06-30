@@ -40,7 +40,7 @@ public class WipMcTaskLineUpdateDTO extends MyBaseEntity {
         private String lineStatus;
 
         @NotBlankNull
-        @ApiModelProperty(value = "物料id")
-        private String itemId;
+        @ApiModelProperty(value = "物料编码")
+        private String itemCode;
     }
 }

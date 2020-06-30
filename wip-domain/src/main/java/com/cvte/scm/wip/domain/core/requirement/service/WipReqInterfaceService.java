@@ -10,7 +10,6 @@ import com.cvte.scm.wip.common.enums.BooleanEnum;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqInterfaceEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqInterfaceRepository;
@@ -18,10 +17,8 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnu
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tk.mybatis.mapper.entity.Example;
 
 import java.util.*;
 import java.util.function.Function;
@@ -51,12 +48,8 @@ public class WipReqInterfaceService {
 
     private WipReqInterfaceRepository wipReqInterfaceRepository;
 
-    private BaseBatchMapper batchMapper;
-
     public WipReqInterfaceService(WipReqLineService wipReqLinesService,
-                                  WipReqInterfaceRepository wipReqInterfaceRepository,
-                                  @Qualifier("pgBatchMapper") BaseBatchMapper batchMapper) {
-        this.batchMapper = batchMapper;
+                                  WipReqInterfaceRepository wipReqInterfaceRepository) {
         this.wipReqLinesService = wipReqLinesService;
         this.wipReqInterfaceRepository = wipReqInterfaceRepository;
     }
@@ -81,7 +74,12 @@ public class WipReqInterfaceService {
     public void executeOmissionData() {
         OperatingUser user = new OperatingUser();
         user.setId("SCM-TRANSIT");
-        scheduleChangedRequest(wipReqInterfaceRepository.selectOmissionData(PENDING.getCode()), SLOPPY, ChangedModeEnum.AUTOMATIC);
+        List<WipReqInterfaceEntity> omissionInterfaceList = wipReqInterfaceRepository.selectOmissionData(PENDING.getCode());
+        Map<String, List<WipReqInterfaceEntity>> omissionInterfaceMap = omissionInterfaceList.stream().collect(Collectors.groupingBy(WipReqInterfaceEntity::getGroupId));
+        for (Map.Entry<String, List<WipReqInterfaceEntity>> entry : omissionInterfaceMap.entrySet()) {
+            List<WipReqInterfaceEntity> groupOmissionInterfaceList = entry.getValue();
+            scheduleChangedRequest(groupOmissionInterfaceList, SLOPPY, ChangedModeEnum.AUTOMATIC);
+        }
     }
 
     /**
@@ -230,7 +228,7 @@ public class WipReqInterfaceService {
         }
         updateStatus(solvedIdList, new WipReqInterfaceEntity().setProceed(ProcessingStatusEnum.SOLVED.getCode()).setExceptionReason(""), AutoOperationIdentityEnum.WIP.getCode());
         exceptionInterfaceList.forEach(in -> EntityUtils.writeStdUpdInfoToEntity(in.setProceed(ProcessingStatusEnum.EXCEPTION.getCode()), AutoOperationIdentityEnum.WIP.getCode()));
-        batchMapper.update(exceptionInterfaceList);
+        wipReqInterfaceRepository.batchUpdate(exceptionInterfaceList);
     }
 
     /**
