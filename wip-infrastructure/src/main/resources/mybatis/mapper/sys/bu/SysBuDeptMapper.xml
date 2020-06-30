@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.sys.bu.mapper.SysBuDeptMapper">
+
+    <select id="selectBuDeptByTypeCode" resultType="com.cvte.scm.wip.infrastructure.sys.bu.mapper.dataobject.SysBuDeptDO">
+        select bd.dept_name
+             , bd.dept_code
+             , bd.bu_code
+        from scm.sys_om_dept_v od
+        inner join scm.sys_bu_dept_v bd
+        on od.dept_name = bd.dept_name
+        where od.bt_name = #{typeCode}
+    </select>
+
+</mapper>

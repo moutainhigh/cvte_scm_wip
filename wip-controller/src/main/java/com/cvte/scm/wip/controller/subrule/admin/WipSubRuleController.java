@@ -5,6 +5,7 @@ import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.domain.core.subrule.entity.WipSubRuleEntity;
+import com.cvte.scm.wip.domain.core.subrule.service.SubRuleExecuteLogService;
 import com.cvte.scm.wip.domain.core.subrule.service.WipSubRuleService;
 import com.cvte.scm.wip.domain.core.subrule.service.WipSubRuleWfCallbackService;
 import io.swagger.annotations.Api;
@@ -28,10 +29,12 @@ public class WipSubRuleController {
 
     private WipSubRuleService wipSubRuleService;
     private WipSubRuleWfCallbackService wipSubRuleWfCallbackService;
+    private SubRuleExecuteLogService subRuleExecuteLogService;
 
-    public WipSubRuleController(WipSubRuleService wipSubRuleService, WipSubRuleWfCallbackService wipSubRuleWfCallbackService) {
+    public WipSubRuleController(WipSubRuleService wipSubRuleService, WipSubRuleWfCallbackService wipSubRuleWfCallbackService, SubRuleExecuteLogService subRuleExecuteLogService) {
         this.wipSubRuleService = wipSubRuleService;
         this.wipSubRuleWfCallbackService = wipSubRuleWfCallbackService;
+        this.subRuleExecuteLogService = subRuleExecuteLogService;
     }
 
     @PostMapping("/addOne")
@@ -72,4 +75,10 @@ public class WipSubRuleController {
         String response = wipSubRuleWfCallbackService.createSubRuleWorkFlow(subRule.getRuleId());
         return new RestResponse().setData(response);
     }
+
+    @GetMapping("/getLog/{ruleNo}")
+    public RestResponse getExeLog(@PathVariable("ruleNo") String ruleNo) {
+        return new RestResponse().setData(subRuleExecuteLogService.getLogByRuleNo(ruleNo));
+    }
+
 }

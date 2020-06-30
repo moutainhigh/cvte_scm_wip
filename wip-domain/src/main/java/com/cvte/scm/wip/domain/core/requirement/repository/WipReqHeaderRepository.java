@@ -17,6 +17,8 @@ public interface WipReqHeaderRepository {
 
     String getSourceId(String headerId);
 
+    WipReqHeaderEntity getBySourceId(String sourceId);
+
     List<WipReqHeaderEntity> selectList(WipReqHeaderEntity headerEntity);
 
     List<WipReqHeaderEntity> selectByExample(Example example);
@@ -32,4 +34,5 @@ public interface WipReqHeaderRepository {
 
     void updateStatusById(String billStatus, String headerId);
 
+    boolean existLotNumber(String headerId, String lotNumber);
 }

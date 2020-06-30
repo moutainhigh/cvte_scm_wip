@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.subrule.mapper;
 
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO;
 import com.cvte.scm.wip.infrastructure.subrule.mapper.dataobject.WipSubRuleItemDO;
 import org.apache.ibatis.annotations.Param;
@@ -21,8 +22,14 @@ public interface WipSubRuleItemMapper extends CommonMapper<WipSubRuleItemDO> {
     List<WipSubRuleItemDetailVO> getSubItemDetail(@Param("organizationId") String organizationId, @Param("itemNos") Collection<String> itemNos);
 
     /* 获取替换前后物料信息重复的规则ID */
-    List<String> getRepeatSubItemRuleIds(@Param("ruleId") String ruleId,
+    List<SubItemValidateVO> getRepeatSubItemRuleIds(@Param("ruleId") String ruleId,
                                          @Param("organizationId") String organizationId,
-                                         @Param("itemCondition") String itemCondition,
+                                         @Param("subItemNoList") List<SubItemValidateVO> subItemNoList,
+                                         @Param("scopeValueList") List<String> scopeValueList,
                                          @Param("ruleStatusCollection") Collection<Object> ruleStatusCollection);
+
+    /* 获取在指定批次的投料单中的指定物料 */
+    List<SubItemValidateVO> getItemsInReq(@Param("lotNoList") List<String> lotNoList,
+                                          @Param("itemNoList") List<String> itemNoList,
+                                          @Param("organizationId") Integer organizationId);
 }

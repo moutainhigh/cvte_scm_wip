@@ -39,4 +39,99 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.0.1.RELEASE</version>
+                <configuration>
+                    <classifier>exec</classifier>
+                </configuration>
+            </plugin>
+
+            <!-- 此插件用来生成通用mapper的代码 -->
+            <plugin>
+                <groupId>com.cvte.csb</groupId>
+                <artifactId>csb-generator</artifactId>
+                <version>1.0.5-SNAPSHOT</version>
+                <configuration>
+                    <!-- 输出目录(默认java.io.tmpdir) -->
+                    <outputDir>src/main/java</outputDir>
+                    <!-- 是否覆盖同名文件(默认false) -->
+                    <fileOverride>false</fileOverride>
+                    <!-- mapper.xml 中添加二级缓存配置(默认true) -->
+                    <enableCache>false</enableCache>
+                    <!-- 开发者名称 -->
+                    <author>author</author>
+                    <!-- 数据源配置，(必配) -->
+                    <dataSource>
+                        <driverName>org.postgresql.Driver</driverName>
+                        <url>jdbc:postgresql://pgtest002.gz.cvte.cn:5432/pgtest_scmwip</url>
+                        <username>scm</username>
+                        <password>Scm#2O19</password>
+                    </dataSource>
+                    <strategy>
+                        <!-- 表名生成策略，四种类型，从名称就能看出来含义
+                        nochange(默认),
+                        underline_to_camel,
+                        remove_prefix,
+                        remove_prefix_and_camel -->
+                        <tableNaming>underline_to_camel</tableNaming>
+
+                        <!-- 字段生成策略，四种类型，从名称就能看出来含义
+                        nochange(默认),
+                        underline_to_camel,
+                        remove_prefix,
+                        remove_prefix_and_camel -->
+                        <naming>underline_to_camel</naming>
+                        <!--Entity中的ID生成策略（默认 auto）
+                        <idGenType>uuid</idGenType>
+                        -->
+                        <!-- 要包含的表 与exclude 二选一配置-->
+                        <include>
+                            <property></property>
+                        </include>
+                        <!-- 要排除的表 -->
+                        <!--<exclude>-->
+                        <!--<property>schema_version</property>-->
+                        <!--<property>schema_version</property>-->
+                        <!--</exclude>-->
+                    </strategy>
+                    <packageInfo>
+                        <!-- 父级包名称，如果不写，下面的service等就需要写全包名(默认com.cvte.csb) -->
+                        <parent>com.cvte.scm.wip.infrastructure.</parent>
+                        <!--service包名(默认service)-->
+                        <service>service</service>
+                        <!--serviceImpl包名(默认service.impl)-->
+                        <serviceImpl>service.impl</serviceImpl>
+                        <!--entity包名(默认entity)-->
+                        <entity>entity</entity>
+                        <!--mapper包名(默认mapper)-->
+                        <mapper>mapper</mapper>
+                        <!--xml包名(默认mapper.xml)-->
+                        <xml>resources.mybatis.mapper.</xml>
+                    </packageInfo>
+                </configuration>
+                <dependencies>
+                    <!--                    <dependency>-->
+                    <!--                        <groupId>mysql</groupId>-->
+                    <!--                        <artifactId>mysql-connector-java</artifactId>-->
+                    <!--                        <version>5.1.38</version>-->
+                    <!--                    </dependency>-->
+                    <!--                    <dependency>-->
+                    <!--                        <groupId>com.oracle</groupId>-->
+                    <!--                        <artifactId>ojdbc6</artifactId>-->
+                    <!--                        <version>11.2.0.3</version>-->
+                    <!--                    </dependency>-->
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.2.9</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

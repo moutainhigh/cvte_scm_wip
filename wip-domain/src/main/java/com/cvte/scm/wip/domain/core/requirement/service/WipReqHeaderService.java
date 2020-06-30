@@ -20,13 +20,17 @@ import java.util.List;
  */
 @Service
 @Slf4j
-@Transactional
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqHeaderService {
 
     private WipReqHeaderRepository wipReqHeaderRepository;
 
     public WipReqHeaderService(WipReqHeaderRepository wipReqHeaderRepository) {
         this.wipReqHeaderRepository = wipReqHeaderRepository;
+    }
+
+    public WipReqHeaderEntity getBySourceId(String sourceId) {
+        return wipReqHeaderRepository.getBySourceId(sourceId);
     }
 
     public String updateWipReqHeaders(List<WipReqHeaderEntity> wipReqHeaderList, ExecutionModeEnum mode) {

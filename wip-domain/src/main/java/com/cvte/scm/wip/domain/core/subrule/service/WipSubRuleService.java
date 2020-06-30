@@ -51,7 +51,7 @@ public class WipSubRuleService{
     public static final String SPLIT_SYMBOL = ";";
 
     private static final BiFunction<ChangedTypeEnum, String, String> ERROR_FORMAT = (changeType, errorMessage) ->
-            String.format("{}失败，您填写的{}，请仔细修改后再重试；", changeType.getDesc(), errorMessage);
+            StringUtils.format("{}失败，您填写的{}，请仔细修改后再重试；", changeType.getDesc(), errorMessage);
 
     private static final String SERIAL_CODE = "SCM_WIP_SERI_SUB_RULE_CODE";
 
@@ -177,11 +177,11 @@ public class WipSubRuleService{
             paramMap.put("prodNumber", detail.getProductNo());
             JSONObject response = JSON.parseObject(RestCallUtils.callRest(RestCallUtils.RequestMethod.GET, "https://cplmobj.gz.cvte.cn/openapi/baseline/lock_bom", paramMap));
             if (!response.get("status").equals("0")) {
-                return String.format("客户基线校验失败，{}。", response.get("message"));
+                return String.format("客户基线校验失败，%s", response.get("message"));
             }
             JSONObject data = JSON.parseObject(response.get("data").toString());
             if (data.get("changeFlag").equals("N")) {
-                return String.format("物料 [{}] 不在产品代码 [{}] 客户基线内，请走 4M1E 变更流程，不允许出临时代用单。",
+                return String.format("物料%s不在产品代码%s的客户基线内，请走 4M1E 变更流程，不允许出临时代用单。",
                         data.get("itemList"), detail.getProductNo());
             }
         }

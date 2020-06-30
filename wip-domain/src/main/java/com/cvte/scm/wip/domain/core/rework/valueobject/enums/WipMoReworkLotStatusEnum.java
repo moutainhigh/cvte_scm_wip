@@ -13,10 +13,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum WipMoReworkLotStatusEnum implements Codeable {
-    IN_STOCK("1", "库存"),
-    ONLINE("2", "上线"),
-    NOT_ONLINE("3", "未上线"),
-    ANOTHER("100", "其他"),
+    NOT_ONLINE("1", "未上线"),
+    ONLINE("3", "已上线"),
+    IN_STOCK("100", "库存"),
     ;
     private String code, desc;
 

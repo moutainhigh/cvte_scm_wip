@@ -4,6 +4,9 @@ import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.AutoOperationIdentityEnum;
+import com.cvte.scm.wip.common.enums.error.ReworkBillErrEnum;
+import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkBillHeaderEntity;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkBillLineEntity;
 import com.cvte.scm.wip.domain.core.rework.repository.WipReworkBillHeaderRepository;
@@ -69,10 +72,11 @@ public class WipReworkBillSyncService {
         return "EBS数据无更新";
     }
 
-    public void syncBillToEbs(List<String> billNoList) {
+    public String syncBillToEbs(List<String> billNoList) {
         List<WipReworkBillHeaderEntity> billHList = wipReworkBillHeaderRepository.selectByBillNo(billNoList);
         // 校验是否有无效的单据号
         List<ErrorMsgVO> errMsgDTOList = new ArrayList<>();
+        List<ErrorMsgVO> warningDTOList = new ArrayList<>();
         List<String> notExistNoList = existBillListContainNos(billHList, billNoList);
         if (ListUtil.notEmpty(notExistNoList)) {
             notExistNoList.forEach(no -> errMsgDTOList.add(new ErrorMsgVO().setId(no).setMessage("不存在")));
@@ -84,17 +88,27 @@ public class WipReworkBillSyncService {
         // 同步返工单到EBS
         for (WipReworkBillHeaderEntity billH : billHList) {
             if (!(WipMoReworkBillStatusEnum.NEW.getCode().equals(billH.getBillStatus()) || WipMoReworkBillStatusEnum.REJECT.getCode().equals(billH.getBillStatus()))) {
-                // 非新建或驳回状态的单据不允许同步
-                errMsgDTOList.add(new ErrorMsgVO().setId(billH.getBillNo()).setMessage("非新增或驳回状态不允许提交"));
+                // 非新建或驳回状态的单据不需要同步(用户更新唛头)
+                warningDTOList.add(new ErrorMsgVO().setId(billH.getBillNo()).setMessage("单据已提交EBS, 仅更新唛头"));
                 continue;
             }
             String errorMsg = ebsReworkBillHeaderService.syncToEbs(billH, billLList);
             if (StringUtils.isNotBlank(errorMsg)) {
                 errMsgDTOList.add(new ErrorMsgVO().setId(billH.getBillNo()).setMessage(errorMsg));
             }
+
+            billH.setBillStatus(WipMoReworkBillStatusEnum.SUBMIT.getCode());
+            EntityUtils.writeStdUpdInfoToEntity(billH, EntityUtils.getWipUserId());
         }
         if (ListUtil.notEmpty(errMsgDTOList)) {
-            throw new ServerException("", ErrorMsgVO.toMsg(errMsgDTOList));
+            throw new ServerException(ReworkBillErrEnum.SYNC_TO_EBS.getCode(), ReworkBillErrEnum.SYNC_TO_EBS.getDesc() + ",原因:" + ErrorMsgVO.toMsg(errMsgDTOList));
+        }
+
+        wipReworkBillHeaderRepository.batchUpdate(billHList);
+        if (ListUtil.notEmpty(warningDTOList)) {
+            return ErrorMsgVO.toMsg(warningDTOList);
+        } else {
+            return "单据已成功提交至EBS";
         }
     }
 
@@ -148,7 +162,7 @@ public class WipReworkBillSyncService {
                 .setRejectMtrDealType(ebsBillH.getReject_mtr_deal_type())
                 .setGoodMtrDealType(ebsBillH.getGood_mtr_deal_type())
                 .setUpdDate(ebsBillH.getLast_update_date())
-                .setUpdUser("EBS");
+                .setUpdUser(AutoOperationIdentityEnum.EBS.getCode());
     }
 
     /**

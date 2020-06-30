@@ -1,15 +1,15 @@
 package com.cvte.scm.wip.infrastructure.subrule.repository;
 
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.common.deprecated.BaseBatchMapper;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.subrule.entity.WipSubRuleItemEntity;
 import com.cvte.scm.wip.domain.core.subrule.repository.WipSubRuleItemRepository;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO;
 import com.cvte.scm.wip.infrastructure.subrule.mapper.WipSubRuleItemMapper;
 import com.cvte.scm.wip.infrastructure.subrule.mapper.dataobject.WipSubRuleItemDO;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.Collection;
@@ -63,8 +63,13 @@ public class WipSubRuleItemRepositoryImpl implements WipSubRuleItemRepository {
     }
 
     @Override
-    public List<String> getRepeatSubItemRuleIds(String ruleId, String organizationId, String itemCondition, Collection<Object> ruleStatusCollection) {
-        return ruleItemMapper.getRepeatSubItemRuleIds(ruleId, organizationId, itemCondition, ruleStatusCollection);
+    public List<SubItemValidateVO> getRepeatSubItemRuleIds(String ruleId, String organizationId, List<SubItemValidateVO> subItemNoList, List<String> scopeValueList, Collection<Object> ruleStatusCollection) {
+        return ruleItemMapper.getRepeatSubItemRuleIds(ruleId, organizationId, subItemNoList, scopeValueList, ruleStatusCollection);
+    }
+
+    @Override
+    public List<SubItemValidateVO> getItemsInReq(List<String> lotNoList, List<String> itemNoList, String organizationId) {
+        return ruleItemMapper.getItemsInReq(lotNoList, itemNoList, Integer.valueOf(organizationId));
     }
 
 }

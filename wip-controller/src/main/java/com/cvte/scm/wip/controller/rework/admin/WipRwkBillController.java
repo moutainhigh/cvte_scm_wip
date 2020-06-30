@@ -62,8 +62,7 @@ public class WipRwkBillController {
 
     @PostMapping("/syncToEbs")
     public RestResponse syncToEbs(@RequestBody List<String> billNoList) {
-        wipReworkBillSyncService.syncBillToEbs(billNoList);
-        return new RestResponse();
+        return new RestResponse().setData(wipReworkBillSyncService.syncBillToEbs(billNoList));
     }
 
 }

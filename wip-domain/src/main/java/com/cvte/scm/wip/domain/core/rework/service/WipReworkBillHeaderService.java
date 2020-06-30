@@ -5,6 +5,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.AutoOperationIdentityEnum;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.serial.SerialNoGenerationService;
@@ -23,6 +24,7 @@ import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
   */
 @Slf4j
 @Service
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReworkBillHeaderService {
 
     private static final String SERIAL_CODE = "SCM_WIP_MO_REWORK_BILL_NO";
@@ -330,9 +333,12 @@ public class WipReworkBillHeaderService {
     }
 
     private String getUserNameById(String userId) {
+        if (AutoOperationIdentityEnum.EBS.getCode().equals(userId)) {
+            return null;
+        }
         UserBaseEntity user = userService.getEnableUserInfo(userId);
         if (Objects.nonNull(user)) {
-            user.getName();
+            return user.getName();
         }
         return null;
     }

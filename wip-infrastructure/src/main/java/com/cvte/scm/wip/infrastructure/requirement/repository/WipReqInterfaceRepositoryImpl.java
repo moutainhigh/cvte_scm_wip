@@ -1,15 +1,14 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
-import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqInterfaceEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqInterfaceRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInterfaceMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInterfaceDO;
-import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,8 +24,12 @@ public class WipReqInterfaceRepositoryImpl implements WipReqInterfaceRepository 
 
     private WipReqInterfaceMapper wipReqInterfaceMapper;
 
-    public WipReqInterfaceRepositoryImpl(WipReqInterfaceMapper wipReqInterfaceMapper) {
+    private BaseBatchMapper batchMapper;
+
+    public WipReqInterfaceRepositoryImpl(WipReqInterfaceMapper wipReqInterfaceMapper,
+                                         @Qualifier("pgBatchMapper") BaseBatchMapper batchMapper) {
         this.wipReqInterfaceMapper = wipReqInterfaceMapper;
+        this.batchMapper = batchMapper;
     }
 
     @Override
@@ -70,6 +73,12 @@ public class WipReqInterfaceRepositoryImpl implements WipReqInterfaceRepository 
         example.createCriteria().andIn("interfaceInId", idList);
         WipReqInterfaceDO interfaceDO = WipReqInterfaceDO.buildDO(interfaceEntity);
         wipReqInterfaceMapper.updateByExampleSelective(interfaceDO, example);
+    }
+
+    @Override
+    public void batchUpdate(List<WipReqInterfaceEntity> entityList) {
+        List<WipReqInterfaceDO> doList = WipReqInterfaceDO.batchBuildDO(entityList);
+        batchMapper.update(doList);
     }
 
 }

@@ -12,7 +12,7 @@ import static java.util.Objects.isNull;
  * @since 2020-03-04
  */
 @Service
-@Transactional
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqMtrsService {
 
     private WipReqMtrsRepository wipReqMtrsRepository;

@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.subrule.repository;
 
 import com.cvte.scm.wip.domain.core.subrule.entity.WipSubRuleItemEntity;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.SubItemValidateVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleItemDetailVO;
 
 import java.util.Collection;
@@ -25,6 +26,8 @@ public interface WipSubRuleItemRepository {
 
     List<WipSubRuleItemDetailVO> getSubItemDetail(String organizationId, Collection<String> itemNos);
 
-    List<String> getRepeatSubItemRuleIds(String ruleId, String organizationId, String itemCondition, Collection<Object> ruleStatusCollection);
+    List<SubItemValidateVO> getRepeatSubItemRuleIds(String ruleId, String organizationId, List<SubItemValidateVO> subItemNoList, List<String> scopeValueList, Collection<Object> ruleStatusCollection);
+
+    List<SubItemValidateVO> getItemsInReq(List<String> lotNoList, List<String> itemNoList, String organizationId);
 
 }

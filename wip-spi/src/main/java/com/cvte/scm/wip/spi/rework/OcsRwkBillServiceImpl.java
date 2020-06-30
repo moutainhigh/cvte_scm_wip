@@ -38,9 +38,6 @@ public class OcsRwkBillServiceImpl implements OcsRwkBillService {
 
     @Override
     public List<WipRwkAvailableQtyVO> getAvailableQty(WipRwkMoVO rwkMoDTO, List<WipReworkMoEntity> rwkMoList) {
-        if (StringUtils.isBlank(rwkMoDTO.getOcsOrderId())) {
-            return null;
-        }
         String token;
         try {
             token = accessTokenService.getAccessToken();
@@ -54,15 +51,13 @@ public class OcsRwkBillServiceImpl implements OcsRwkBillService {
 
             String priKey = generateOcsPriKey(rwkMo, rwkMo.getLotStatus());
 
-            lotStatusDTO.setOcs_order_id(rwkMoDTO.getOcsOrderId())
+            String ocsOrderId = rwkMoDTO.getOcsOrderId();
+            if (StringUtils.isBlank(ocsOrderId)) {
+                ocsOrderId = rwkMo.getOrderNumber();
+            }
+            lotStatusDTO.setOcs_order_id(ocsOrderId)
                     .setPri_key(priKey);
             availableQtyDTOList.add(lotStatusDTO);
-            // APPS.XXOCS_ITEM_LOTS_V4还会使用100这个值作为批次状态
-            WipRwkAvailableQtyVO antherStatusDTO = new WipRwkAvailableQtyVO();
-            priKey = generateOcsPriKey(rwkMo, "100");
-            antherStatusDTO.setOcs_order_id(rwkMoDTO.getOcsOrderId())
-                    .setPri_key(priKey);
-            availableQtyDTOList.add(antherStatusDTO);
         }
         String jsonParamStr = JSON.toJSONString(availableQtyDTOList);
         String url = ocsApiInfoConfiguration.getBaseUrl() + "/stockmm/available_qty";

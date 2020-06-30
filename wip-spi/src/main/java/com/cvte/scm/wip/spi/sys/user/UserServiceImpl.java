@@ -28,7 +28,7 @@ import java.util.Objects;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-@Service
+@Service(value = "wipUserService")
 public class UserServiceImpl implements UserService {
 
     private SysUserApiClient sysUserApiClient;
