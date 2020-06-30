@@ -54,10 +54,13 @@
         on sri.rule_id = sra.rule_id
         inner join wip_sub_rule sr
         on sra.rule_id = sr.rule_id
-        where sra.adapt_item in
-        <foreach collection="scopeValueList" item="scopeValue" open="(" separator="," close=")">
-            #{scopeValue}
-        </foreach>
+        where 1=1
+        <if test="scopeValueList != null and scopeValueList.size() > 0">
+            and sra.adapt_item in
+            <foreach collection="scopeValueList" item="scopeValue" open="(" separator="," close=")">
+                #{scopeValue}
+            </foreach>
+        </if>
         and
         <foreach collection="subItemNoList" item="subItemNo" open="(" separator="or" close=")">
             sri.rmk01 = #{subItemNo.beforeItemNo} and sri.rmk02 = #{subItemNo.afterItemNo}

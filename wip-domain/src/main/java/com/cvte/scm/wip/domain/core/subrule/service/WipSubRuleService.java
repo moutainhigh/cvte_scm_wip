@@ -84,6 +84,7 @@ public class WipSubRuleService{
     }
 
     public String addOne(WipSubRuleEntity wipSubRule, ExecutionModeEnum eMode) {
+        preHandler(wipSubRule);
         if (Objects.nonNull(wipSubRule)) {
             wipSubRule.setRuleId(UUIDUtils.getUUID()).setRuleStatus(SubRuleStatusEnum.DRAFT.getCode())
                     .setRuleNo(serialNoGenerationService.getNextSerialNumberByCode(SERIAL_CODE));
@@ -94,6 +95,8 @@ public class WipSubRuleService{
         } else if (CollUtil.isNotEmpty(wipSubRuleRepository.selectByRuleNo(wipSubRule.getRuleNo()))) {
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, "规则编号重复了"), eMode);
         }
+        afterValidate(wipSubRule, eMode);
+
         Object itemRuleResult = wipSubRuleItemService.insertOrDelete(wipSubRule);
         if (itemRuleResult instanceof String) {
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) itemRuleResult), eMode);
@@ -103,13 +106,8 @@ public class WipSubRuleService{
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) reviewerResult), eMode);
         }
 
-        // 联络函替换的特殊处理尽量集中在这里
         Object adaptRuleResult = null;
         if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(wipSubRule.getRuleReasonType())) {
-
-            if (!isGreaterThanOrEqualsToday(wipSubRule.getEnableTime()) || !isGreaterThanOrEqualsToday(wipSubRule.getEnableTime())) {
-                return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, "生失效日期不能取过去日期"), eMode);
-            }
             adaptRuleResult = (LazyExecution) () -> {};
         } else {
             adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(wipSubRule);
@@ -117,8 +115,9 @@ public class WipSubRuleService{
         if (adaptRuleResult instanceof String) {
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) adaptRuleResult), eMode);
         }
-
         EntityUtils.writeStdCrtInfoToEntity(wipSubRule, EntityUtils.getWipUserId());
+
+
         wipSubRuleRepository.insert(wipSubRule);
         ((LazyExecution) itemRuleResult).execute();
         ((LazyExecution) adaptRuleResult).execute();
@@ -126,6 +125,22 @@ public class WipSubRuleService{
         return "";
     }
 
+    private String afterValidate(WipSubRuleEntity wipSubRule, ExecutionModeEnum eMode) {
+        if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(wipSubRule.getRuleReasonType())) {
+
+            if (!isGreaterThanOrEqualsToday(wipSubRule.getEnableTime()) || !isGreaterThanOrEqualsToday(wipSubRule.getEnableTime())) {
+                return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, "生失效日期不能取过去日期"), eMode);
+            }
+        }
+        return "";
+    }
+
+
+    private void preHandler(WipSubRuleEntity wipSubRuleEntity) {
+        if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(wipSubRuleEntity.getRuleReasonType())) {
+            wipSubRuleEntity.setScopeMap(new HashMap<>());
+        }
+    }
     private static boolean isGreaterThanOrEqualsToday(Date date) {
         return ObjectUtils.isNotNull(date) && CalendarUtils.getDateZero(new Date()).compareTo(CalendarUtils.getDateZero(date)) <= 0;
     }
@@ -219,14 +234,16 @@ public class WipSubRuleService{
         List<LazyExecution> executor = new ArrayList<>();
         Object itemRuleResult, adaptRuleResult, reviewerResult;
         for (WipSubRuleEntity rule : updateData) {
+            preHandler(rule);
+            String afterValidateMsg = afterValidate(rule, eMode);
+            if (StringUtils.isNotBlank(afterValidateMsg)) {
+                errorMessages.append(afterValidateMsg);
+                continue;
+            }
+
             itemRuleResult = wipSubRuleItemService.insertOrDelete(rule);
             if (itemRuleResult instanceof String) {
                 errorMessages.append(EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.UPDATE, (String) itemRuleResult), eMode));
-                continue;
-            }
-            adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(rule);
-            if (adaptRuleResult instanceof String) {
-                errorMessages.append(EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.UPDATE, (String) adaptRuleResult), eMode));
                 continue;
             }
             reviewerResult = wipSubRuleWfService.insertOrDelete(rule);
@@ -234,6 +251,17 @@ public class WipSubRuleService{
                 errorMessages.append(EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.UPDATE, (String) reviewerResult), eMode));
                 continue;
             }
+
+            if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(rule.getRuleReasonType())) {
+                adaptRuleResult = (LazyExecution) () -> {};
+            } else {
+                adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(rule);
+                if (adaptRuleResult instanceof String) {
+                    errorMessages.append(EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.UPDATE, (String) adaptRuleResult), eMode));
+                    continue;
+                }
+            }
+
             EntityUtils.writeStdUpdInfoToEntity(rule, EntityUtils.getWipUserId());
             executor.add((LazyExecution) reviewerResult);
             executor.add((LazyExecution) itemRuleResult);
