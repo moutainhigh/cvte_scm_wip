@@ -7,11 +7,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
+import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.enums.BooleanEnum;
 import com.cvte.scm.wip.common.enums.Codeable;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
+import com.cvte.scm.wip.common.utils.CalendarUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.deprecated.LazyExecution;
@@ -96,20 +98,36 @@ public class WipSubRuleService{
         if (itemRuleResult instanceof String) {
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) itemRuleResult), eMode);
         }
-        Object adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(wipSubRule);
-        if (adaptRuleResult instanceof String) {
-            return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) adaptRuleResult), eMode);
-        }
         Object reviewerResult = wipSubRuleWfService.insertOrDelete(wipSubRule);
         if (reviewerResult instanceof String) {
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) reviewerResult), eMode);
         }
+
+        // 联络函替换的特殊处理尽量集中在这里
+        Object adaptRuleResult = null;
+        if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(wipSubRule.getRuleReasonType())) {
+
+            if (!isGreaterThanOrEqualsToday(wipSubRule.getEnableTime()) || !isGreaterThanOrEqualsToday(wipSubRule.getEnableTime())) {
+                return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, "生失效日期不能取过去日期"), eMode);
+            }
+            adaptRuleResult = (LazyExecution) () -> {};
+        } else {
+            adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(wipSubRule);
+        }
+        if (adaptRuleResult instanceof String) {
+            return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) adaptRuleResult), eMode);
+        }
+
         EntityUtils.writeStdCrtInfoToEntity(wipSubRule, EntityUtils.getWipUserId());
         wipSubRuleRepository.insert(wipSubRule);
         ((LazyExecution) itemRuleResult).execute();
         ((LazyExecution) adaptRuleResult).execute();
         ((LazyExecution) reviewerResult).execute();
         return "";
+    }
+
+    private static boolean isGreaterThanOrEqualsToday(Date date) {
+        return ObjectUtils.isNotNull(date) && CalendarUtils.getDateZero(new Date()).compareTo(CalendarUtils.getDateZero(date)) <= 0;
     }
 
     /**
@@ -183,7 +201,8 @@ public class WipSubRuleService{
                 .append(format.apply(rule.getIfPr(), "是否PR"))
                 .append(format.apply(rule.getIfMix(), "是否混料"))
                 .append(format.apply(rule.getIfCouple(), "是否成套替代"))
-                .append(Objects.isNull(rule.getEnableTime()) ? "生效时间为空，" : "");
+                .append(Objects.isNull(rule.getEnableTime()) ? "生效时间为空，" : "")
+                .append(format.apply(rule.getIfMrp(), "是否参与MRP计算"));
         if (errorMessage.length() > 0) {
             errorMessage.setCharAt(errorMessage.length() - 1, '；');
         }

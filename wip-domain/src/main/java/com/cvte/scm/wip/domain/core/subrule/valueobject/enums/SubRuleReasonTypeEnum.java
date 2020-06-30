@@ -19,7 +19,8 @@ public enum SubRuleReasonTypeEnum implements Codeable {
     QUALITY_PROBLEM("quality_problem", "品质问题"),
     DEVELOPMENT_CHANGED("development_changed", "研发变更"),
     BUSINESS_REQUIREMENT("business_requirement", "商务需求"),
-    OTHER("other", "其他");
+    OTHER("other", "其他"),
+    CONTACT_LETTER_REPLACE("contact_letter_replace", "联络函替换");
 
     private String code, desc;
 }
