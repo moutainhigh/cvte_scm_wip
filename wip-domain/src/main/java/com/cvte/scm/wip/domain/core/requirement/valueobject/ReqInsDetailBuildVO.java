@@ -51,6 +51,8 @@ public class ReqInsDetailBuildVO implements VO {
 
     private Date disableDate;
 
+    private String issueFlag;
+
     public static ReqInsDetailBuildVO buildVO(ChangeBillDetailEntity billDetailEntity) {
         ReqInsDetailBuildVO detailBuildVO = new ReqInsDetailBuildVO();
         detailBuildVO.setOrganizationId(billDetailEntity.getOrganizationId())
@@ -63,7 +65,8 @@ public class ReqInsDetailBuildVO implements VO {
                 .setItemQty(billDetailEntity.getItemQty())
                 .setItemUnitQty(billDetailEntity.getItemUnitQty())
                 .setEnableDate(billDetailEntity.getEnableDate())
-                .setDisableDate(billDetailEntity.getDisableDate());
+                .setDisableDate(billDetailEntity.getDisableDate())
+                .setIssueFlag(billDetailEntity.getIssueFlag());
         return detailBuildVO;
     }
 

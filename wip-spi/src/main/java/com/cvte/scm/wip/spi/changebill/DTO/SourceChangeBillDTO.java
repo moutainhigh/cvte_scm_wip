@@ -91,6 +91,12 @@ public class SourceChangeBillDTO {
     @JSONField(name = "ITEM_QTY")
     private BigDecimal itemQty;
 
+    @JSONField(name = "BILL_TO_MO_LOT_NO")
+    private String toMoLotNo;
+
+    @JSONField(name = "ISSUE_FLAG")
+    private String detailIssueFlag;
+
     private Date detailEnableDate;
 
     private Date detailDisableDate;
@@ -110,7 +116,8 @@ public class SourceChangeBillDTO {
                 .setRemarks(changeBillDTO.getRemarks())
                 .setPcRemarks(changeBillDTO.getRemarks())
                 .setMotLotNo(changeBillDTO.getMoLotNo())
-                .setSourceNo(changeBillDTO.getBillSourceNo());
+                .setSourceNo(changeBillDTO.getBillSourceNo())
+                .setToMoLotNo(changeBillDTO.getToMoLotNo());
         if (StringUtils.isBlank(billBuildVO.getBillStatus())) {
             billBuildVO.setBillStatus(StatusEnum.NORMAL.getCode());
         }
@@ -132,7 +139,8 @@ public class SourceChangeBillDTO {
                 .setDisableDate(changeBillDTO.getDetailDisableDate())
                 .setSourceLineId(changeBillDTO.getLineId())
                 .setItemUnitQty(changeBillDTO.getItemUnitQty())
-                .setItemQty(changeBillDTO.getItemQty());
+                .setItemQty(changeBillDTO.getItemQty())
+                .setIssueFlag(changeBillDTO.getDetailIssueFlag());
         if (StringUtils.isBlank(detailBuildVO.getStatus())) {
             detailBuildVO.setStatus(StatusEnum.NORMAL.getCode());
         }

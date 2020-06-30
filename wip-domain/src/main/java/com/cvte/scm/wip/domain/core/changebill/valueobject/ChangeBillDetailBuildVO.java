@@ -52,4 +52,6 @@ public class ChangeBillDetailBuildVO implements VO {
 
     private String sourceLineId;
 
+    private String issueFlag;
+
 }
