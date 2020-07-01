@@ -146,4 +146,6 @@ public class WipItemWkpPosDO extends BaseModel {
     @ApiModelProperty(value = "${field.comment}")
     private Date updTime;
 
+    @Column(name = "is_del")
+    private String isDel;
 }

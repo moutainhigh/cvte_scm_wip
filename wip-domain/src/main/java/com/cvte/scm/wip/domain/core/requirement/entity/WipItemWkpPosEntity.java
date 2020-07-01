@@ -69,6 +69,8 @@ public class WipItemWkpPosEntity extends BaseModel {
      */
     @ApiModelProperty(value = "工艺属性")
     private String techniqueAttr;
+
+    private String isDel;
     /**
      * ${field.comment}
      */

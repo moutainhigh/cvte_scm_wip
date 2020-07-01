@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.csb.base.enums.YesOrNoEnum;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipItemWkpPosVO;
@@ -38,6 +39,7 @@ public class WipItemWkpPosRepositoryImpl
         Example example = new Example(WipItemWkpPosDO.class);
         Example.Criteria criteria = example.createCriteria();
 
+        criteria.andEqualTo("isDel", YesOrNoEnum.NO.getValue());
         if (ObjectUtils.isNotNull(query.getQueryDate())) {
             criteria.andLessThanOrEqualTo("beginDate", query.getQueryDate());
             criteria.andGreaterThan("endDate", query.getQueryDate());

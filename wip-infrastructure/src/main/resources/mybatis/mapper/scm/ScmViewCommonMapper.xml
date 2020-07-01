@@ -67,8 +67,10 @@
         where 1=1
         <if test="itemCodes != null and itemCodes.size() > 0">
             and item_code in
-            <foreach collection="itemCodes" item="item" index="index" open="(" close=")" separator=",">
-                #{item}
+            <foreach collection="itemCodes" index="index" item="item" open="(" separator="," close=")">
+                <if test="(index % 999) == 998">
+                    'bucunzaide...' ) OR item_code IN (
+                </if>#{item}
             </foreach>
         </if>
     </select>

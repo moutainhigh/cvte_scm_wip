@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.service;
 
 import com.alibaba.excel.context.AnalysisContext;
+import com.cvte.csb.base.enums.YesOrNoEnum;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
@@ -13,8 +14,10 @@ import com.cvte.scm.wip.domain.core.requirement.dto.WipItemWkpPostImportDTO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipItemWkpPosEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipItemWkpPosRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipItemWkpPosVO;
+import com.cvte.scm.wip.domain.core.scm.dto.query.MdItemQuery;
 import com.cvte.scm.wip.domain.core.scm.dto.query.SysOrgOrganizationVQuery;
 import com.cvte.scm.wip.domain.core.scm.service.ScmViewCommonService;
+import com.cvte.scm.wip.domain.core.scm.vo.MdItemVO;
 import com.cvte.scm.wip.domain.core.scm.vo.SysOrgOrganizationVO;
 import jodd.util.StringUtil;
 import org.modelmapper.ModelMapper;
@@ -48,7 +51,13 @@ public class WipItemWkpPosService {
             return;
         }
 
-        repository.deleteListByIds(ids.toArray(new String[0]));
+        List<WipItemWkpPosEntity> wipItemWkpPosEntities = new ArrayList<>();
+        for (String id : ids) {
+            WipItemWkpPosEntity delEntity = new WipItemWkpPosEntity().setId(id).setIsDel(YesOrNoEnum.YES.getValue());
+            EntityUtils.writeStdUpdInfoToEntity(delEntity, CurrentContextUtils.getOrEmptyOperatingUser().getId());
+            wipItemWkpPosEntities.add(delEntity);
+        }
+        repository.updateList(wipItemWkpPosEntities);
     }
 
     /**
@@ -97,7 +106,7 @@ public class WipItemWkpPosService {
         }
 
         wipItemWkpPosEntities.forEach(el -> {
-            el.setId(UUIDUtils.getUUID()).setBeginDate(curDate).setEndDate(CommonDateConstant.END_DATE);
+            el.setId(UUIDUtils.getUUID()).setBeginDate(curDate).setEndDate(CommonDateConstant.END_DATE).setIsDel(YesOrNoEnum.NO.getValue());
             EntityUtils.writeCurUserStdCrtInfoToEntity(el);
         });
 
@@ -129,7 +138,7 @@ public class WipItemWkpPosService {
     public void validateAndInitWipItemWkpPostImportDTO(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
 
         Map<String, String> orgCodeAndIdMap = getOrgNameAndIdMapByImportDTOS(wipItemWkpPostImportDTOS);
-
+        Set<String> itemCodeSet = getItemCodeSet(wipItemWkpPostImportDTOS);
 
         StringBuilder errMsgs = new StringBuilder();
         Set<String> uniqueKeySet = new HashSet<>();
@@ -137,7 +146,10 @@ public class WipItemWkpPosService {
 
             StringBuilder errMsg = new StringBuilder(ValidateUtils.validate(el));
             if (StringUtil.isNotBlank(el.getOrgName()) && !orgCodeAndIdMap.containsKey(el.getOrgName())) {
-                errMsg.append(String.format("组织%s未找到;", el.getOrgName()));
+                errMsg.append(String.format("组织%s不存在;", el.getOrgName()));
+            }
+            if (!itemCodeSet.contains(el.getItemCode())) {
+                errMsg.append(String.format("物料%s不存在;", el.getItemCode()));
             }
 
             el.setOrganizationId(orgCodeAndIdMap.get(el.getOrgName()));
@@ -187,6 +199,17 @@ public class WipItemWkpPosService {
         return sysOrgOrganizationVOS.stream()
                 .collect(Collectors.toMap(SysOrgOrganizationVO::getOrgName, SysOrgOrganizationVO::getEbsOrganizationId));
     }
+
+    private Set<String> getItemCodeSet(List<WipItemWkpPostImportDTO> wipItemWkpPostImportDTOS) {
+        List<String> itemCodes = wipItemWkpPostImportDTOS.stream()
+                .map(WipItemWkpPostImportDTO::getItemCode)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
+        List<MdItemVO> mdItemVOS = scmViewCommonService.listMdItemVO(
+                new MdItemQuery().setItemCodes(itemCodes));
+        return mdItemVOS.stream().map(MdItemVO::getItemCode).collect(Collectors.toSet());
+    }
+
 
 
 }

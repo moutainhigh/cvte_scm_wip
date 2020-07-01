@@ -41,7 +41,6 @@ public class WipItemWkpPostImportDTO extends BaseRowSet {
     @ExcelProperty(value = "产品型号")
     private String productModel;
 
-
     @ExcelProperty(value = "位置A")
     private String locationA;
 
