@@ -19,6 +19,8 @@ public interface WipReqHeaderRepository {
 
     WipReqHeaderEntity getBySourceId(String sourceId);
 
+    WipReqHeaderEntity getByHeaderId(String headerId);
+
     List<WipReqHeaderEntity> selectList(WipReqHeaderEntity headerEntity);
 
     List<WipReqHeaderEntity> selectByExample(Example example);

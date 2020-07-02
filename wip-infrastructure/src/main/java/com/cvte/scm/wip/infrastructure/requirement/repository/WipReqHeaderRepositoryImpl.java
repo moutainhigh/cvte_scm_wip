@@ -5,6 +5,7 @@ import cn.hutool.core.util.NumberUtil;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -66,6 +68,21 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
             return null;
         }
         return WipReqHeaderDO.buildEntity(resultHeader);
+    }
+
+    @Override
+    public WipReqHeaderEntity getByHeaderId(String headerId) {
+        Example example = new Example(WipReqHeaderDO.class);
+        Example.Criteria criteria = example.createCriteria().andEqualTo("headerId", headerId);
+        List<String> exceedStatus = new ArrayList<>();
+        exceedStatus.add(BillStatusEnum.CLOSED.getCode());
+        exceedStatus.add(BillStatusEnum.CANCELLED.getCode());
+        criteria.andNotIn("billStatus", exceedStatus);
+        List<WipReqHeaderDO> reqHeaderDOList = wipReqHeaderMapper.selectByExample(example);
+        if (ListUtil.notEmpty(reqHeaderDOList)) {
+            return WipReqHeaderDO.buildEntity(reqHeaderDOList.get(0));
+        }
+        return null;
     }
 
     @Override

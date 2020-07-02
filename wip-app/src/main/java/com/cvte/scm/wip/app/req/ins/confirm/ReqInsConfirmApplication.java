@@ -125,6 +125,7 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
             }
 
             insHeader.processSuccess();
+            insHeader.notifyEntity();
             confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.SUCCESS, null));
 
         }

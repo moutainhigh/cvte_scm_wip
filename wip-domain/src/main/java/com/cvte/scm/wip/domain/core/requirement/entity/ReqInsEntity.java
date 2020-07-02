@@ -173,7 +173,6 @@ public class ReqInsEntity implements Entity<String> {
         this.setExecuteResult("成功");
         headerRepository.update(this);
         ReqInsDetailEntity.get().batchProcessSuccess(this.getDetailList());
-        this.notifyEntity();
     }
 
     public void processFailed(String errMsg) {
