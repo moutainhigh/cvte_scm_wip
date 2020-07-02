@@ -106,12 +106,7 @@ public class WipSubRuleService{
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) reviewerResult), eMode);
         }
 
-        Object adaptRuleResult = null;
-        if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(wipSubRule.getRuleReasonType())) {
-            adaptRuleResult = (LazyExecution) () -> {};
-        } else {
-            adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(wipSubRule);
-        }
+        Object adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(wipSubRule);
         if (adaptRuleResult instanceof String) {
             return EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.ADD, (String) adaptRuleResult), eMode);
         }
@@ -252,14 +247,10 @@ public class WipSubRuleService{
                 continue;
             }
 
-            if (SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(rule.getRuleReasonType())) {
-                adaptRuleResult = (LazyExecution) () -> {};
-            } else {
-                adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(rule);
-                if (adaptRuleResult instanceof String) {
-                    errorMessages.append(EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.UPDATE, (String) adaptRuleResult), eMode));
-                    continue;
-                }
+            adaptRuleResult = wipSubRuleAdaptService.insertOrDelete(rule);
+            if (adaptRuleResult instanceof String) {
+                errorMessages.append(EntityUtils.handleErrorMessage(ERROR_FORMAT.apply(ChangedTypeEnum.UPDATE, (String) adaptRuleResult), eMode));
+                continue;
             }
 
             EntityUtils.writeStdUpdInfoToEntity(rule, EntityUtils.getWipUserId());
