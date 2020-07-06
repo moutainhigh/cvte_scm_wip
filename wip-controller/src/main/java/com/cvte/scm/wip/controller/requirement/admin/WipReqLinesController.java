@@ -85,6 +85,12 @@ public class WipReqLinesController {
         return ResponseFactory.getOkResponse("投料单行数据替换成功！");
     }
 
+    @PostMapping("/replaceWkp")
+    public RestResponse replaceWkp(@RequestBody List<WipReqLineEntity> wipReqLinesList) {
+        wipReqLineService.replaceWkp(wipReqLinesList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+        return ResponseFactory.getOkResponse("投料单行数据替换成功！");
+    }
+
     @PostMapping("/update")
     public RestResponse update(@RequestBody List<WipReqLineEntity> wipReqLinesList) {
         wipReqLineService.update(wipReqLinesList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
