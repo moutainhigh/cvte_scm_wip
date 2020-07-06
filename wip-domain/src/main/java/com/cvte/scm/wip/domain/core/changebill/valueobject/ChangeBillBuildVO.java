@@ -53,6 +53,8 @@ public class ChangeBillBuildVO implements VO {
 
     private String sourceNo;
 
+    private String toMoLotNo;
+
     private List<ChangeBillDetailBuildVO> detailVOList;
 
     public static ChangeBillBuildVO completeBuild(ChangeBillEntity bill) {

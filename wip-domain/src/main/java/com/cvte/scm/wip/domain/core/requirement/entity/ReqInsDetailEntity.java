@@ -114,6 +114,8 @@ public class ReqInsDetailEntity implements Entity<String> {
     // 冗余目标投料单批次
     private String aimReqLotNo;
 
+    private String issueFlag;
+
     public List<ReqInsDetailEntity> getByInstructionId(String insHeaderId) {
         return detailRepository.getByInsId(insHeaderId);
     }

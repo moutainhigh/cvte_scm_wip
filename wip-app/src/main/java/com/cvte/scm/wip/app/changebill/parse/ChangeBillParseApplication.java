@@ -1,25 +1,17 @@
 package com.cvte.scm.wip.app.changebill.parse;
 
-import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.Application;
-import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillSyncFailedDomainService;
 import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
-import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeReqVO;
-import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
-import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
-import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService;
-import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
+import com.cvte.scm.wip.domain.core.requirement.service.GenerateReqInsDomainService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +30,13 @@ import java.util.stream.Collectors;
 public class ChangeBillParseApplication implements Application<ChangeBillQueryVO, String> {
 
     private SourceChangeBillService sourceChangeBillService;
-    private WipReqHeaderService reqHeaderService;
-    private CheckReqInsDomainService checkReqInsDomainService;
     private ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService;
+    private GenerateReqInsDomainService generateReqInsDomainService;
 
-    public ChangeBillParseApplication(SourceChangeBillService sourceChangeBillService, WipReqHeaderService reqHeaderService, CheckReqInsDomainService checkReqInsDomainService, ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService) {
+    public ChangeBillParseApplication(SourceChangeBillService sourceChangeBillService, ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService, GenerateReqInsDomainService generateReqInsDomainService) {
         this.sourceChangeBillService = sourceChangeBillService;
-        this.reqHeaderService = reqHeaderService;
-        this.checkReqInsDomainService = checkReqInsDomainService;
         this.changeBillSyncFailedDomainService = changeBillSyncFailedDomainService;
+        this.generateReqInsDomainService = generateReqInsDomainService;
     }
 
     @Override
@@ -74,7 +64,7 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
                 changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList);
 
                 if (ListUtil.empty(changeBillBuildVOList)) {
-                    return "";
+                    continue;
                 }
 
                 for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
@@ -83,7 +73,7 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
                         // 生成更改单
                         billEntity = ChangeBillEntity.get().completeChangeBill(changeBillBuildVO);
                         // 生成指令
-                        this.parseChangeBill(billEntity);
+                        generateReqInsDomainService.parseChangeBill(billEntity);
                     } catch (RuntimeException re) {
                         if (Objects.isNull(billEntity)) {
                             billEntity = ChangeBillEntity.get();
@@ -100,27 +90,6 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
         }
 
         return String.join(",", syncedBillNoList);
-    }
-
-    @Transactional("pgTransactionManager")
-    void parseChangeBill(ChangeBillEntity billEntity) {
-        // 获取目标投料单
-        WipReqHeaderEntity reqHeaderEntity = reqHeaderService.getBySourceId(billEntity.getMoId());
-        if (Objects.isNull(reqHeaderEntity)) {
-            throw new ServerException(ReqInsErrEnum.TARGET_REQ_INVALID.getCode(), ReqInsErrEnum.TARGET_REQ_INVALID.getDesc());
-        }
-        ChangeReqVO reqVO = ChangeReqVO.buildVO(reqHeaderEntity);
-
-        // 解析更改单
-        ReqInsBuildVO instructionBuildVO = billEntity.parseChangeBill(reqVO);
-
-        // 校验对应指令是否已执行或作废
-        boolean insProcessed = checkReqInsDomainService.checkInsProcessed(instructionBuildVO);
-        if (insProcessed) {
-            throw new ServerException(ReqInsErrEnum.INS_IMMUTABLE.getCode(), String.format("%s,指令ID=%s", ReqInsErrEnum.INS_IMMUTABLE.getDesc(), instructionBuildVO.getInsHeaderId()));
-        }
-        // 生成投料单指令
-        ReqInsEntity.get().completeInstruction(instructionBuildVO);
     }
 
 }

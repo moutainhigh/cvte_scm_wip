@@ -34,7 +34,8 @@ public class ChangeBillDetailEntityFactory implements DomainFactory<ChangeBillDe
                 .setItemUnitQty(vo.getItemUnitQty())
                 .setEnableDate(vo.getEnableDate())
                 .setDisableDate(vo.getDisableDate())
-                .setSourceLineId(vo.getSourceLineId());
+                .setSourceLineId(vo.getSourceLineId())
+                .setIssueFlag(vo.getIssueFlag());
         return entity;
     }
 }

@@ -1,0 +1,26 @@
+@startuml
+
+!define TABLE(name) class name << (T,#FFAAAA) >>
+!define CLASS(name) class name << (C,#FFAAAA) >>
+
+package req {
+
+    TABLE(wip_item_wkp_pos) {
+        整机螺丝类物料工艺属性基表
+        ==
+        #id VC(36) --主键
+        -item_id VC(36) --物料id
+        version_no VC(50) --版本号
+        location_a VC(50) --位置a
+        location_b VC(50) --位置b
+        unit_qty int4 --物料单位用量
+        location_a_qty int4 --位置a部件数量
+        technique_attr VC(50) --工艺属性
+        rmk01 VC(200)
+        rmk02 VC(200)
+        rmk03 VC(200)
+        rmk04 VC(200)
+        rmk05 VC(200)
+    }
+}
+@enduml

@@ -24,7 +24,7 @@ public enum ChangedTypeEnum implements Codeable {
     EXECUTE("execute", "自动改投料"),
     REDUCE("reduce", "减少"),
     INCREASE("increase", "增加"),
-    ;
+    WKP_REPLACE("wkp_replace", "工序替换");
 
     private String code, desc;
 }

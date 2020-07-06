@@ -34,6 +34,9 @@ public class WipReqLineEntity {
     @ApiModelProperty(value = "工序号")
     private String wkpNo;
 
+    @ApiModelProperty(value = "工序号，替换工序号时使用")
+    private String beforeWkpNo;
+
     @ApiModelProperty(value = "批次号")
     private String lotNumber;
 
@@ -146,11 +149,12 @@ public class WipReqLineEntity {
     @Transient
     private String executeResult;
 
-    public boolean canCancel() {
+    public boolean isProcessing() {
         BillStatusEnum billStatusEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getLineStatus(), BillStatusEnum.class);
         return ObjectUtils.isNotNull(billStatusEnum)
                 && Arrays.asList(BillStatusEnum.DRAFT, BillStatusEnum.CONFIRMED, BillStatusEnum.PREPARED).contains(billStatusEnum);
     }
+
     @Override
     public boolean equals(Object obj) {
         if (Objects.nonNull(obj) && obj instanceof WipReqLineEntity) {

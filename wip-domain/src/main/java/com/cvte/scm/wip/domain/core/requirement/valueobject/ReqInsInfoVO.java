@@ -96,4 +96,7 @@ public class ReqInsInfoVO {
     @ApiModelProperty("源更改单号")
     private String sourceNo;
 
+    @ApiModelProperty("是否回收")
+    private String issueFlag;
+
 }

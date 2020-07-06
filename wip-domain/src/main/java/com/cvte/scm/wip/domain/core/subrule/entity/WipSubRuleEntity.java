@@ -2,13 +2,12 @@ package com.cvte.scm.wip.domain.core.subrule.entity;
 
 
 import com.cvte.scm.wip.domain.core.subrule.valueobject.ReviewerVO;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.persistence.*;
+import javax.persistence.Transient;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +43,9 @@ public class WipSubRuleEntity {
 
     @ApiModelProperty(value = "是否成套替代  Y/N")
     private String ifCouple;
+
+    @ApiModelProperty(value = "是否参与MRP计算 Y/N")
+    private String ifMrp;
 
     @ApiModelProperty(value = "生效时间")
     private Date enableTime;

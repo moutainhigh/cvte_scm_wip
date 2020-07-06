@@ -59,6 +59,10 @@ public class WipSubRuleDO {
     @ApiModelProperty(value = "是否成套替代  Y/N")
     private String ifCouple;
 
+    @Column(name = "if_mrp")
+    @ApiModelProperty(value = "是否参与MRP计算  Y/N")
+    private String ifMrp;
+
     @Column(name = "enable_time")
     @ApiModelProperty(value = "生效时间")
     private Date enableTime;

@@ -173,6 +173,12 @@ public class WipCnBillDO extends BaseEntity {
     @Column(name = "source_no")
     @ApiModelProperty(value = "源更改单需求单号")
     private String sourceNo;
+    /**
+     * 改后生产批次
+     */
+    @Column(name = "to_mo_lot_no")
+    @ApiModelProperty(value = "改后生产批次")
+    private String toMoLotNo;
 
     public static ChangeBillEntity buildEntity(WipCnBillDO headerDO) {
         ChangeBillEntity headerEntity = ChangeBillEntity.get();

@@ -3,6 +3,7 @@ package com.cvte.scm.wip.infrastructure.requirement.repository;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
@@ -22,6 +23,8 @@ import java.util.List;
   */
 @Repository
 public class ReqInsRepositoryImpl implements ReqInsRepository {
+
+    private final static String STATUS = "status";
 
     private WipReqInsHMapper insHMapper;
 
@@ -50,8 +53,10 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
             throw new ParamsIncorrectException("查询具体指令时主键不可为空");
         }
         Example example = new Example(WipReqInsHeaderDO.class);
-        example.createCriteria().andEqualTo("insHId", insKey);
+        Example.Criteria headerIdCriteria = example.createCriteria().andEqualTo("insHId", insKey);
+        headerIdCriteria.andNotEqualTo(STATUS, StatusEnum.CLOSE.getCode());
         Example.Criteria sourceBillCriteria = example.createCriteria().andEqualTo("sourceCnBillId", insKey);
+        sourceBillCriteria.andNotEqualTo(STATUS, StatusEnum.CLOSE.getCode());
         example.or(sourceBillCriteria);
         List<WipReqInsHeaderDO> insDOList = insHMapper.selectByExample(example);
         if (ListUtil.empty(insDOList)) {
@@ -67,7 +72,7 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
     public List<ReqInsEntity> selectByAimHeaderId(String aimHeaderId, List<String> statusList) {
         Example example = new Example(WipReqInsHeaderDO.class);
         Example.Criteria criteria = example.createCriteria().andEqualTo("aimHeaderId", aimHeaderId);
-        criteria.andIn("status", statusList);
+        criteria.andIn(STATUS, statusList);
         example.orderBy("enableDate").asc();
         List<WipReqInsHeaderDO> headerDOList = insHMapper.selectByExample(example);
         return WipReqInsHeaderDO.batchBuildEntity(headerDOList);

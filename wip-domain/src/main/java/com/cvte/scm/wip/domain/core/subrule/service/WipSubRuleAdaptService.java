@@ -17,6 +17,7 @@ import com.cvte.scm.wip.domain.core.subrule.valueobject.EntryVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.GroupObjectVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.WipSubRuleLotDetailVO;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleAdaptTypeEnum;
+import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleReasonTypeEnum;
 import com.cvte.scm.wip.domain.core.subrule.valueobject.enums.SubRuleScopeTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,7 +53,9 @@ public class WipSubRuleAdaptService {
     public Object insertOrDelete(WipSubRuleEntity wipSubRule) {
         String ruleId = wipSubRule.getRuleId(), organizationId = wipSubRule.getOrganizationId();
         Map<String, Map<String, String>> scopeMap = wipSubRule.getScopeMap();
-        if (StringUtils.isEmpty(ruleId) || StringUtils.isEmpty(organizationId) || CollUtil.isEmpty(scopeMap)) {
+
+        boolean requireScopeMap = !SubRuleReasonTypeEnum.CONTACT_LETTER_REPLACE.getCode().equals(wipSubRule.getRuleReasonType());
+        if (StringUtils.isEmpty(ruleId) || StringUtils.isEmpty(organizationId) || (requireScopeMap && CollUtil.isEmpty(scopeMap))) {
             return "适用信息为空";
         }
         Map<GroupObjectVO, String> adaptRuleMap = getAdaptRuleMap(ruleId);

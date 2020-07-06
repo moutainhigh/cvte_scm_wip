@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipReqHeaderVO;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.entity.Example;
 
@@ -19,6 +20,8 @@ public interface WipReqHeaderRepository {
 
     WipReqHeaderEntity getBySourceId(String sourceId);
 
+    WipReqHeaderEntity getByHeaderId(String headerId);
+
     List<WipReqHeaderEntity> selectList(WipReqHeaderEntity headerEntity);
 
     List<WipReqHeaderEntity> selectByExample(Example example);
@@ -35,4 +38,7 @@ public interface WipReqHeaderRepository {
     void updateStatusById(String billStatus, String headerId);
 
     boolean existLotNumber(String headerId, String lotNumber);
+
+    List<WipReqHeaderEntity> listWipReqHeaderEntity(QueryWipReqHeaderVO queryWipReqHeaderVO);
+
 }

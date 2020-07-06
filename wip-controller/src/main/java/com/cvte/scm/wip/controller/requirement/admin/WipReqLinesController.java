@@ -2,6 +2,7 @@ package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
+import com.cvte.scm.wip.app.req.line.ReqLineReplaceApplication;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
@@ -32,11 +33,13 @@ public class WipReqLinesController {
     private WipReqLinePageService wipReqLinePageService;
     private WipReqMtrsService wipReqMtrsService;
     private WipReqLineService wipReqLineService;
+    private ReqLineReplaceApplication reqLineReplaceApplication;
 
-    public WipReqLinesController(WipReqLinePageService wipReqLinePageService, WipReqMtrsService wipReqMtrsService, WipReqLineService wipReqLineService) {
+    public WipReqLinesController(WipReqLinePageService wipReqLinePageService, WipReqMtrsService wipReqMtrsService, WipReqLineService wipReqLineService, ReqLineReplaceApplication reqLineReplaceApplication) {
         this.wipReqLinePageService = wipReqLinePageService;
         this.wipReqMtrsService = wipReqMtrsService;
         this.wipReqLineService = wipReqLineService;
+        this.reqLineReplaceApplication = reqLineReplaceApplication;
     }
 
     @PostMapping("/tree")
@@ -78,7 +81,13 @@ public class WipReqLinesController {
 
     @PostMapping("/replace")
     public RestResponse replace(@RequestBody List<WipReqLineEntity> wipReqLinesList) {
-        wipReqLineService.replace(wipReqLinesList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+        reqLineReplaceApplication.doAction(wipReqLinesList);
+        return ResponseFactory.getOkResponse("投料单行数据替换成功！");
+    }
+
+    @PostMapping("/replaceWkp")
+    public RestResponse replaceWkp(@RequestBody List<WipReqLineEntity> wipReqLinesList) {
+        wipReqLineService.replaceWkp(wipReqLinesList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
         return ResponseFactory.getOkResponse("投料单行数据替换成功！");
     }
 
