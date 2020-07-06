@@ -112,7 +112,7 @@ public class WipReqLineService {
         Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(
                 wipReqLineList, ChangedTypeEnum.ADD, this::validateAndGetAddedData);
         Consumer<WipReqLineEntity> complete = line -> completeAddedData(line, userId);
-        Consumer<WipReqLineEntity> manipulate = this::splitAndSaveEntity;
+        Consumer<WipReqLineEntity> manipulate = wipReqLineRepository::insertSelective;
         ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.ADD).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
         return change(parameters);
