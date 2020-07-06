@@ -36,8 +36,8 @@ import static com.cvte.csb.toolkit.StringUtils.isEmpty;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
   * 
@@ -62,6 +62,7 @@ public class WipSubRuleItemService {
     }
 
     public Object insertOrDelete(WipSubRuleEntity wipSubRuleEntity) {
+
         String ruleId = wipSubRuleEntity.getRuleId(), organizationId = wipSubRuleEntity.getOrganizationId();
         List<String[]> subItemNoList = wipSubRuleEntity.getSubItemNoList();
         if (isEmpty(ruleId) || isEmpty(organizationId) || CollUtil.isEmpty(subItemNoList)) {
