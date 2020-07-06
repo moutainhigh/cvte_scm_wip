@@ -1,7 +1,10 @@
 package com.cvte.scm.wip.common.utils;
 
+import java.util.List;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
@@ -31,5 +34,16 @@ public class LambdaUtils {
     public static <T> Stream<T> cartesian(BinaryOperator<T> aggregator, Supplier<Stream<T>>... suppliers) {
         return stream(suppliers).reduce((a, b) -> () -> a.get().flatMap(t1 -> b.get().map(t2 -> aggregator.apply(t1, t2))))
                 .orElse(Stream::empty).get();
+    }
+
+    /**
+     * 将对象列表转换成目标列表
+     *
+     * @param list
+     * @param function
+     * @return java.util.List<R>
+     **/
+    public static <T, R> List<R> mapToList(List<T> list, Function<T, R> function) {
+        return list.stream().map(function).collect(Collectors.toList());
     }
 }

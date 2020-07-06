@@ -344,19 +344,19 @@
                 <version>1.0.4</version>
                 <configuration>
                     <!-- 输出目录(默认java.io.tmpdir) -->
-                    <outputDir>src/main/java</outputDir>
+                    <outputDir>wip-infrastructure/src/main/java</outputDir>
                     <!-- 是否覆盖同名文件(默认false) -->
                     <fileOverride>false</fileOverride>
                     <!-- mapper.xml 中添加二级缓存配置(默认true) -->
                     <enableCache>false</enableCache>
                     <!-- 开发者名称 -->
-                    <author>author</author>
+                    <author>zy</author>
                     <!-- 数据源配置，(必配) -->
                     <dataSource>
-                        <driverName>oracle.jdbc.driver.OracleDriver</driverName>
-                        <url>jdbc:oracle:thin:@erptest-db.gz.cvte.cn:1531/erptest</url>
-                        <username>xxnewsrm</username>
-                        <password>Xxnewsrm#2O19</password>
+                        <driverName>org.postgresql.Driver</driverName>
+                        <url>jdbc:postgresql://pgtest002.gz.cvte.cn:5432/pgtest_scmwip</url>
+                        <username>wip</username>
+                        <password>Wip#2O19</password>
                     </dataSource>
                     <strategy>
                         <!-- 表名生成策略，四种类型，从名称就能看出来含义
@@ -377,7 +377,7 @@
                         -->
                         <!-- 要包含的表 与exclude 二选一配置-->
                         <include>
-                            <property>pms_vendor_org_info_ext</property>
+                            <property>wip_item_wkp_pos</property>
                         </include>
                         <!-- 要排除的表 -->
                         <!--<exclude>-->
@@ -387,17 +387,17 @@
                     </strategy>
                     <packageInfo>
                         <!-- 父级包名称，如果不写，下面的service等就需要写全包名(默认com.cvte.csb) -->
-                        <parent>com.cvte.scm.pms.vendor.core</parent>
+                        <parent>com.cvte.scm.wip.infrastructure.requirement</parent>
                         <!--service包名(默认service)-->
                         <service>service</service>
                         <!--serviceImpl包名(默认service.impl)-->
                         <serviceImpl>service.impl</serviceImpl>
                         <!--entity包名(默认entity)-->
-                        <entity>entity</entity>
+                        <entity>mapper.dataobject</entity>
                         <!--mapper包名(默认mapper)-->
                         <mapper>mapper</mapper>
                         <!--xml包名(默认mapper.xml)-->
-                        <xml>resources.mapper.oracle.vendor</xml>
+                        <xml>resources.mybatis.mapper.requirement</xml>
                     </packageInfo>
                 </configuration>
                 <dependencies>
@@ -407,9 +407,9 @@
                     <!--<version>5.1.38</version>-->
                     <!--</dependency>-->
                     <dependency>
-                        <groupId>com.oracle</groupId>
-                        <artifactId>ojdbc6</artifactId>
-                        <version>11.2.0.3</version>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.2.9</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -440,6 +440,42 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
+
+
+            <!--生成sql-->
+            <plugin>
+                <groupId>com.cvte.csb</groupId>
+                <artifactId>csb-uml-generator</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <configuration>
+                    <!-- 配置uml生成路径 -->
+                    <inputFile>doc/uml/SCM-1655/SCM-1655.puml</inputFile>
+                    <!-- 配置逆向sql路径 -->
+                    <outputDir>doc/sql/SCM-1655</outputDir>
+
+                    <addDefaultColumn>false</addDefaultColumn>
+                    <!-- 是否生成删除表sql -->
+                    <dropTable>false</dropTable>
+                    <!-- 配置需要创建的表 与 exclue互斥 -->
+                    <include>
+                        <property>wip_item_wkp_pos</property>
+                    </include>
+                    <!-- 配置不需要创建的表 -->
+                    <exclude>
+                    </exclude>
+                    <!-- 自定义扩展列 -->
+                    <extendColumns>
+                        crt_user VARCHAR(36),
+                        crt_host VARCHAR(30),
+                        crt_time TIMESTAMP,
+                        upd_user VARCHAR(36),
+                        upd_host VARCHAR(30),
+                        upd_time TIMESTAMP,
+                    </extendColumns>
+                </configuration>
+            </plugin>
+
 
         </plugins>
 

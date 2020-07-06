@@ -11,5 +11,6 @@ public class CommonUserConstant {
     /* 定时任务调度用 */
     public static final String TIMING_TASK ="Timing Task";
 
+    public static final String SCM_WIP = "SCM_WIP";
 
 }

@@ -11,6 +11,19 @@
 
     <artifactId>wip-common</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>2.1.0-beta4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>3.8.2</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
