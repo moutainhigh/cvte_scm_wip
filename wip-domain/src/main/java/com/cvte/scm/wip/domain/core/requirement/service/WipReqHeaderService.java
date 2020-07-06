@@ -29,6 +29,10 @@ public class WipReqHeaderService {
         this.wipReqHeaderRepository = wipReqHeaderRepository;
     }
 
+    public WipReqHeaderEntity getByHeaderId(String headerId) {
+        return wipReqHeaderRepository.getByHeaderId(headerId);
+    }
+
     public WipReqHeaderEntity getBySourceId(String sourceId) {
         return wipReqHeaderRepository.getBySourceId(sourceId);
     }

@@ -88,6 +88,8 @@ public class ChangeBillEntity implements Entity<String> {
 
     private String sourceNo;
 
+    private String toMoLotNo;
+
     private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
     public ChangeBillEntity getByKey(String billKey) {

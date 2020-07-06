@@ -32,7 +32,8 @@ public class ReqInsDetailEntityFactory implements DomainFactory<ReqInsDetailBuil
                 .setOperationType(vo.getOperationType())
                 .setInsStatus(vo.getInsStatus())
                 .setEnableDate(vo.getEnableDate())
-                .setDisableDate(vo.getDisableDate());
+                .setDisableDate(vo.getDisableDate())
+                .setIssueFlag(vo.getIssueFlag());
         return detailEntity;
     }
 
