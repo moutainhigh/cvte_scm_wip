@@ -179,6 +179,24 @@ public class WipCnBillDO extends BaseEntity {
     @Column(name = "to_mo_lot_no")
     @ApiModelProperty(value = "改后生产批次")
     private String toMoLotNo;
+    /**
+     * 工厂ID
+     */
+    @Column(name = "factory_id")
+    @ApiModelProperty(value = "工厂ID")
+    private String factoryId;
+    /*
+     * 改前批次状态(1:未发放 3:已发放 4:完成 7:已取消 12:已关闭)
+     */
+    @Column(name = "status_type")
+    @ApiModelProperty(value = "改前批次状态")
+    private String statusType;
+    /*
+     * 更改单类型(1:库存 2:上线 3:未上线)
+     */
+    @Column(name = "type_code")
+    @ApiModelProperty(value = "更改单类型")
+    private String typeCode;
 
     public static ChangeBillEntity buildEntity(WipCnBillDO headerDO) {
         ChangeBillEntity headerEntity = ChangeBillEntity.get();

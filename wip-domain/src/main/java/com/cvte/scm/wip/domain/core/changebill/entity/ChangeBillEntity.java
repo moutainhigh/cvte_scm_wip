@@ -90,6 +90,14 @@ public class ChangeBillEntity implements Entity<String> {
 
     private String toMoLotNo;
 
+    private String factoryId;
+
+    // 改前批次状态(1:未发放 3:已发放 4:完成 7:已取消 12:已关闭)
+    private String statusType;
+
+    // 更改单类型(1:库存 2:上线 3:未上线)
+    private String typeCode;
+
     private List<ChangeBillDetailEntity> billDetailList = Collections.emptyList();
 
     public ChangeBillEntity getByKey(String billKey) {

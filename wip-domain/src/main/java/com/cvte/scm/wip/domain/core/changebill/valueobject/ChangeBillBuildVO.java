@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.beans.BeanUtils;
 
-import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,6 +53,12 @@ public class ChangeBillBuildVO implements VO {
     private String sourceNo;
 
     private String toMoLotNo;
+
+    private String factoryId;
+
+    private String statusType;
+
+    private String typeCode;
 
     private List<ChangeBillDetailBuildVO> detailVOList;
 
