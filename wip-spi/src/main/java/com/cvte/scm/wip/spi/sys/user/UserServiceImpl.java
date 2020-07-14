@@ -15,6 +15,7 @@ import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysGroup;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysPost;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.UserBaseDTO;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,11 +32,8 @@ import java.util.Objects;
 @Service(value = "wipUserService")
 public class UserServiceImpl implements UserService {
 
+    @Autowired
     private SysUserApiClient sysUserApiClient;
-
-    public UserServiceImpl(SysUserApiClient sysUserApiClient) {
-        this.sysUserApiClient = sysUserApiClient;
-    }
 
     @Override
     public UserBaseEntity getEnableUserInfo(String id) {
