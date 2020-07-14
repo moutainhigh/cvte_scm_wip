@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.requirement.entity;
 
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
@@ -335,6 +336,19 @@ public class ReqInsDetailEntity implements Entity<String> {
                 remainLotQty = remainLotQty.negate();
             }
         } else {
+            List<String> lineLotNumberList = reqLineList.stream().map(WipReqLineEntity::getLotNumber).collect(Collectors.toList());
+            Iterator<Map.Entry<String, WipLotVO>> wipLotIterator = wipLotMap.entrySet().iterator();
+            while (wipLotIterator.hasNext()) {
+                Map.Entry<String, WipLotVO> wipLotEntry = wipLotIterator.next();
+                String lotNumber = wipLotEntry.getKey();
+                if (!lineLotNumberList.contains(lotNumber)) {
+                    wipLotIterator.remove();
+                }
+            }
+            if (CollectionUtils.isEmpty(wipLotMap)) {
+                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc());
+            }
+
             // 用量为空时取 小批次数量之和(工单数量) * 单位用量
             remainLotQty = wipLotMap.values().stream().map(WipLotVO::getLotQuantity)
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
