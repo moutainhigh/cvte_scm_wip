@@ -1,12 +1,14 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsDMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsDetailDO;
 import org.springframework.stereotype.Repository;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
@@ -42,9 +44,11 @@ public class ReqInsDetailRepositoryImpl implements ReqInsDetailRepository {
 
     @Override
     public List<ReqInsDetailEntity> getByInsId(String insId) {
-        WipReqInsDetailDO queryDetail = new WipReqInsDetailDO();
-        queryDetail.setInsHId(insId);
-        List<WipReqInsDetailDO> billDetailDOList = insDMapper.select(queryDetail);
+        Example example = new Example(WipReqInsDetailDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("insHId", insId);
+        criteria.andNotEqualTo("insStatus", StatusEnum.CLOSE.getCode());
+        List<WipReqInsDetailDO> billDetailDOList = insDMapper.selectByExample(example);
         if (ListUtil.empty(billDetailDOList)) {
             return null;
         }
