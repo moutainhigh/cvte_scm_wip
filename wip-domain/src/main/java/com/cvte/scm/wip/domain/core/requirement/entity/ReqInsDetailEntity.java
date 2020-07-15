@@ -175,9 +175,9 @@ public class ReqInsDetailEntity implements Entity<String> {
         List<ReqInsDetailEntity> dbDetailEntityList = getByInstructionId(vo.getInsHeaderId());
         List<ReqInsDetailBuildVO> detailVoList = vo.getDetailList();
         List<String> sourceDetailIdList = detailVoList.stream().map(ReqInsDetailBuildVO::getSourceChangeDetailId).collect(Collectors.toList());
+        // 可更新列表
+        List<ReqInsDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
         if (ListUtil.notEmpty(dbDetailEntityList)) {
-            // 可更新列表
-            List<ReqInsDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
             Map<String, ReqInsDetailEntity> detailEntityMap = toMapBySourceId(dbDetailEntityList);
             Iterator<ReqInsDetailBuildVO> iterator = updateVoList.iterator();
             while (iterator.hasNext()) {
@@ -199,14 +199,15 @@ public class ReqInsDetailEntity implements Entity<String> {
             dbDetailEntityList.removeIf(detailEntity -> sourceDetailIdList.contains(detailEntity.getSourceDetailId()));
             if (ListUtil.notEmpty(dbDetailEntityList) && needDelete) {
                 this.batchDeleteDetail(dbDetailEntityList);
+            } else {
                 resultDetailEntityList.addAll(dbDetailEntityList);
             }
         }
 
         // 剩下的新增
-        if (resultDetailEntityList.size() != detailVoList.size()) {
-            List<String> savedSourceIdList = resultDetailEntityList.stream().map(ReqInsDetailEntity::getSourceDetailId).collect(Collectors.toList());
-            detailVoList.removeIf(detailVo -> savedSourceIdList.contains(detailVo.getSourceChangeDetailId()));
+        if (updateVoList.size() != detailVoList.size()) {
+            Set<String> savedSourceIdSet = updateVoList.stream().map(ReqInsDetailBuildVO::getSourceChangeDetailId).collect(Collectors.toSet());
+            detailVoList.removeIf(detailVo -> savedSourceIdSet.contains(detailVo.getSourceChangeDetailId()));
             if (ListUtil.notEmpty(detailVoList)) {
                 resultDetailEntityList.addAll(this.batchCreateDetail(detailVoList));
             }

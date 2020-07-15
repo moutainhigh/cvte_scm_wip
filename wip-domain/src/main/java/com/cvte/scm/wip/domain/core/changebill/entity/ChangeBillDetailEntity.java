@@ -136,9 +136,9 @@ public class ChangeBillDetailEntity implements Entity<String>{
         List<ChangeBillDetailBuildVO> detailVoList = vo.getDetailVOList();
         // 原始修改项按位号拆分后, 其 来源行Id 相同, 需要加上 位号 作为对比查询时的唯一键
         List<String> detailVoKeyList = detailVoList.stream().map(detailVo -> detailVo.getSourceLineId() + detailVo.getPosNo()).collect(Collectors.toList());
+        // 可更新列表
         List<ChangeBillDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
         if (ListUtil.notEmpty(dbDetailEntityList)) {
-            // 可更新列表
             Map<String, ChangeBillDetailEntity> detailEntityMap = toMapByChangeDetailKey(dbDetailEntityList);
             Iterator<ChangeBillDetailBuildVO> iterator = updateVoList.iterator();
             while (iterator.hasNext()) {
@@ -167,8 +167,8 @@ public class ChangeBillDetailEntity implements Entity<String>{
 
         // 剩下的新增
         if (updateVoList.size() != detailVoList.size()) {
-            Set<String> savedSourceIdList = updateVoList.stream().map(updateVo -> updateVo.getSourceLineId() + updateVo.getPosNo()).collect(Collectors.toSet());
-            detailVoList.removeIf(detailVo -> savedSourceIdList.contains(detailVo.getSourceLineId() + detailVo.getPosNo()));
+            Set<String> savedSourceIdSet = updateVoList.stream().map(updateVo -> updateVo.getSourceLineId() + updateVo.getPosNo()).collect(Collectors.toSet());
+            detailVoList.removeIf(detailVo -> savedSourceIdSet.contains(detailVo.getSourceLineId() + detailVo.getPosNo()));
             if (ListUtil.notEmpty(detailVoList)) {
                 resultDetailEntityList.addAll(this.batchCreateDetail(detailVoList));
             }
