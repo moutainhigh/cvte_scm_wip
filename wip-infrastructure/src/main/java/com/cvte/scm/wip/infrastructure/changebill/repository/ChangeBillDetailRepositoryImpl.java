@@ -1,12 +1,14 @@
 package com.cvte.scm.wip.infrastructure.changebill.repository;
 
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillDetailRepository;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.WipCnBillDMapper;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.dataobject.WipCnBillDetailDO;
 import org.springframework.stereotype.Repository;
+import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 
@@ -42,9 +44,11 @@ public class ChangeBillDetailRepositoryImpl implements ChangeBillDetailRepositor
 
     @Override
     public List<ChangeBillDetailEntity> selectByBillId(String billId) {
-        WipCnBillDetailDO queryDetail = new WipCnBillDetailDO();
-        queryDetail.setBillId(billId);
-        List<WipCnBillDetailDO> billDetailDOList = billDMapper.select(queryDetail);
+        Example example = new Example(WipCnBillDetailDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("billId", billId);
+        criteria.andNotEqualTo("status", StatusEnum.CLOSE.getCode());
+        List<WipCnBillDetailDO> billDetailDOList = billDMapper.selectByExample(example);
         if (ListUtil.empty(billDetailDOList)) {
             return null;
         }
