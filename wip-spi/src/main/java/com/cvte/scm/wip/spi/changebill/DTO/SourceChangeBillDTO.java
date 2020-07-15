@@ -97,6 +97,17 @@ public class SourceChangeBillDTO {
     @JSONField(name = "ISSUE_FLAG")
     private String detailIssueFlag;
 
+    @JSONField(name = "BILL_FACTORY_ID")
+    private Integer factoryId;
+
+    // 改前批次状态
+    @JSONField(name = "BILL_STATUS_TYPE")
+    private Integer statusType;
+
+    // 更改单类型(1:库存 2:上线 3:未上线)
+    @JSONField(name = "BILL_TYPE_CODE")
+    private String typeCode;
+
     private Date detailEnableDate;
 
     private Date detailDisableDate;
@@ -117,7 +128,10 @@ public class SourceChangeBillDTO {
                 .setPcRemarks(changeBillDTO.getRemarks())
                 .setMotLotNo(changeBillDTO.getMoLotNo())
                 .setSourceNo(changeBillDTO.getBillSourceNo())
-                .setToMoLotNo(changeBillDTO.getToMoLotNo());
+                .setToMoLotNo(changeBillDTO.getToMoLotNo())
+                .setFactoryId(changeBillDTO.getFactoryId().toString())
+                .setStatusType(changeBillDTO.getStatusType().toString())
+                .setTypeCode(changeBillDTO.getTypeCode());
         if (StringUtils.isBlank(billBuildVO.getBillStatus())) {
             billBuildVO.setBillStatus(StatusEnum.NORMAL.getCode());
         }

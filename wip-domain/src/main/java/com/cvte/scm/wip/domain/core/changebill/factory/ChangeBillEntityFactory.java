@@ -45,7 +45,10 @@ public class ChangeBillEntityFactory implements DomainFactory<ChangeBillBuildVO,
                 .setPcRemarks(vo.getRemarks())
                 .setMotLotNo(vo.getMotLotNo())
                 .setSourceNo(vo.getSourceNo())
-                .setToMoLotNo(vo.getToMoLotNo());
+                .setToMoLotNo(vo.getToMoLotNo())
+                .setFactoryId(vo.getFactoryId())
+                .setStatusType(vo.getStatusType())
+                .setTypeCode(vo.getTypeCode());
         return entity;
     }
 
