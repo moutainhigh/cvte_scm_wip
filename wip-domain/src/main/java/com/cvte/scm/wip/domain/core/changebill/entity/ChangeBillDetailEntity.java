@@ -136,9 +136,9 @@ public class ChangeBillDetailEntity implements Entity<String>{
         List<ChangeBillDetailBuildVO> detailVoList = vo.getDetailVOList();
         // 原始修改项按位号拆分后, 其 来源行Id 相同, 需要加上 位号 作为对比查询时的唯一键
         List<String> detailVoKeyList = detailVoList.stream().map(detailVo -> detailVo.getSourceLineId() + detailVo.getPosNo()).collect(Collectors.toList());
+        List<ChangeBillDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
         if (ListUtil.notEmpty(dbDetailEntityList)) {
             // 可更新列表
-            List<ChangeBillDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
             Map<String, ChangeBillDetailEntity> detailEntityMap = toMapByChangeDetailKey(dbDetailEntityList);
             Iterator<ChangeBillDetailBuildVO> iterator = updateVoList.iterator();
             while (iterator.hasNext()) {
@@ -160,14 +160,15 @@ public class ChangeBillDetailEntity implements Entity<String>{
             dbDetailEntityList.removeIf(detailEntity -> detailVoKeyList.contains(detailEntity.getSourceLineId() + detailEntity.getPosNo()));
             if (ListUtil.notEmpty(dbDetailEntityList) && needDelete) {
                 this.batchDeleteDetail(dbDetailEntityList);
+            } else {
                 resultDetailEntityList.addAll(dbDetailEntityList);
             }
         }
 
         // 剩下的新增
-        if (resultDetailEntityList.size() != detailVoList.size()) {
-            List<String> savedSourceIdList = resultDetailEntityList.stream().map(ChangeBillDetailEntity::getSourceLineId).collect(Collectors.toList());
-            detailVoList.removeIf(detailVo -> savedSourceIdList.contains(detailVo.getSourceLineId()));
+        if (updateVoList.size() != detailVoList.size()) {
+            Set<String> savedSourceIdList = updateVoList.stream().map(updateVo -> updateVo.getSourceLineId() + updateVo.getPosNo()).collect(Collectors.toSet());
+            detailVoList.removeIf(detailVo -> savedSourceIdList.contains(detailVo.getSourceLineId() + detailVo.getPosNo()));
             if (ListUtil.notEmpty(detailVoList)) {
                 resultDetailEntityList.addAll(this.batchCreateDetail(detailVoList));
             }
