@@ -45,6 +45,12 @@ public class WipReqManualLimitDO extends BaseEntity {
     @ApiModelProperty(value = "物料")
     private String itemClass;
     /**
+     * 变更类型
+     */
+    @Column(name = "change_type")
+    @ApiModelProperty(value = "变更类型")
+    private String changeType;
+    /**
      * ${field.comment}
      */
     @ApiModelProperty(value = "${field.comment}")

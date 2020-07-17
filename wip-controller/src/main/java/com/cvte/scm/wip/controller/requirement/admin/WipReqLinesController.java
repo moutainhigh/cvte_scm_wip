@@ -69,13 +69,13 @@ public class WipReqLinesController {
 
     @PostMapping("/cancelByLineIds")
     public RestResponse cancel(@RequestBody String... lineIds) {
-        wipReqLineService.cancelledByLineIds(ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, lineIds);
+        wipReqLineService.cancelledByLineIds(ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, lineIds);
         return ResponseFactory.getOkResponse("投料单行数据删除成功！");
     }
 
     @PostMapping("/cancelByWipReqLines")
     public RestResponse cancel(@RequestBody List<WipReqLineEntity> wipReqLineList) {
-        wipReqLineService.cancelledByConditions(wipReqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+        wipReqLineService.cancelledByConditions(wipReqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, EntityUtils.getWipUserId());
         return ResponseFactory.getOkResponse("投料单行数据删除成功！");
     }
 

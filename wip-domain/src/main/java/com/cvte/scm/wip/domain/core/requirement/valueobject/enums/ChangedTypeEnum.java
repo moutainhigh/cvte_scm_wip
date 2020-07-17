@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ChangedTypeEnum implements Codeable {
-    ADD("add", "添加"),
+    ADD("add", "新增"),
     DELETE("delete", "删除"),
     UPDATE("update", "更新"),
     REPLACE("replace", "替换"),
