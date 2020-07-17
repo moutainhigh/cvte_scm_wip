@@ -99,4 +99,17 @@ public class ReqInsInfoVO {
     @ApiModelProperty("是否回收")
     private String issueFlag;
 
+    @ApiModelProperty("工单号")
+    private String moNo;
+
+    private String rmk01;
+
+    private String rmk02;
+
+    private String rmk03;
+
+    private String rmk04;
+
+    private String rmk05;
+
 }
