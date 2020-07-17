@@ -108,7 +108,8 @@ public class WipReqLineService {
      * 添加多条投料单行数据。详情可参见KB文档：https://kb.cvte.com/pages/viewpage.action?pageId=168289967
      */
     public String[] addMany(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
-
+        // 手工新增限制物料类别
+        validateManualLimitItem(wipReqLineList, eMode, cMode);
         Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(
                 wipReqLineList, ChangedTypeEnum.ADD, this::validateAndGetAddedData);
         Consumer<WipReqLineEntity> complete = line -> completeAddedData(line, userId);
@@ -140,6 +141,28 @@ public class WipReqLineService {
         }
         addedData.add(wipReqLine.setItemId(itemId));
         return "";
+    }
+
+    private void validateManualLimitItem(List<WipReqLineEntity> reqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode) {
+        if (!ChangedModeEnum.MANUAL.equals(cMode)) {
+            return;
+        }
+        String[] errorMsg = new String[]{};
+        String organizationId = null;
+        for (WipReqLineEntity line : reqLineList) {
+            if (StringUtils.isNotBlank(line.getOrganizationId())) {
+                organizationId = line.getOrganizationId();
+                break;
+            }
+        }
+        List<String> itemNoList = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(toList());
+        List<String> outRangeItemNoList = new ArrayList<>();
+        List<String> limitItemClassList = wipReqLineRepository.selectOutRangeItemList(organizationId, itemNoList, outRangeItemNoList);
+        if (ListUtil.notEmpty(outRangeItemNoList)) {
+            String msg = String.format("只有【%s】类物料允许新增", String.join("、", limitItemClassList));
+            errorMsg = new String[]{msg};
+        }
+        handleErrorMessages(errorMsg, eMode);
     }
 
     /**

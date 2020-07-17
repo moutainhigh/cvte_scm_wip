@@ -12,9 +12,10 @@ import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLinesMapper;
+import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqManualLimitMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
+import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqManualLimitDO;
 import lombok.SneakyThrows;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.cvte.csb.toolkit.StringUtils.isNotEmpty;
 
@@ -44,9 +46,11 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     private static final int DRAFT_CONFIRMED_PREPARED_ISSUED = 15;
 
     private WipReqLinesMapper wipReqLinesMapper;
+    private WipReqManualLimitMapper wipReqManualLimitMapper;
 
-    public WipReqLineRepositoryImpl(WipReqLinesMapper wipReqLinesMapper) {
+    public WipReqLineRepositoryImpl(WipReqLinesMapper wipReqLinesMapper, WipReqManualLimitMapper wipReqManualLimitMapper) {
         this.wipReqLinesMapper = wipReqLinesMapper;
+        this.wipReqManualLimitMapper = wipReqManualLimitMapper;
     }
 
     @Override
@@ -183,6 +187,31 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
         criteria.andIn("lineStatus", CodeableEnumUtils.getCodesByOrdinalFlag(status, BillStatusEnum.class));
         List<WipReqLineDO> lineDOList = wipReqLinesMapper.selectByExample(example);
         return WipReqLineDO.batchBuildEntity(lineDOList);
+    }
+
+    @Override
+    public List<String> selectOutRangeItemList(String organization, List<String> itemNoList, List<String> outRangeItemNoList) {
+        Example example = new Example(WipReqManualLimitDO.class);
+        example.createCriteria().andEqualTo("organizationId", organization);
+        List<WipReqManualLimitDO> wipReqManualLimitDOList = wipReqManualLimitMapper.selectByExample(example);
+        List<String> limitItemClassList = wipReqManualLimitDOList.stream().map(WipReqManualLimitDO::getItemClass).collect(Collectors.toList());
+        filterOutRangeItemNoList(itemNoList, limitItemClassList, outRangeItemNoList);
+        return limitItemClassList;
+    }
+
+    private void filterOutRangeItemNoList(List<String> itemNoList, List<String> limitItemClassList, List<String> outRangeItemNoList) {
+        for (String itemNo : itemNoList) {
+            boolean outRangeFlag = true;
+            for (String limitItemClass : limitItemClassList) {
+                if (itemNo.startsWith(limitItemClass)) {
+                    outRangeFlag = false;
+                    break;
+                }
+            }
+            if (outRangeFlag) {
+                outRangeItemNoList.add(itemNo);
+            }
+        }
     }
 
     /**

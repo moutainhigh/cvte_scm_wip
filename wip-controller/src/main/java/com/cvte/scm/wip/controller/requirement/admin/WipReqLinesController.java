@@ -57,13 +57,13 @@ public class WipReqLinesController {
 
     @PostMapping("/addOne")
     public RestResponse add(@RequestBody WipReqLineEntity wipReqLine) {
-        wipReqLineService.addOne(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true);
+        wipReqLineService.addOne(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true);
         return ResponseFactory.getOkResponse("投料单行数据新增成功！");
     }
 
     @PostMapping("/addMany")
     public RestResponse add(@RequestBody List<WipReqLineEntity> wipReqLine) {
-        wipReqLineService.addMany(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+        wipReqLineService.addMany(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, EntityUtils.getWipUserId());
         return ResponseFactory.getOkResponse("投料单行数据新增成功！");
     }
 
