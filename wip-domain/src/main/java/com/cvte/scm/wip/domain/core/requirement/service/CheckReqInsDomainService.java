@@ -8,6 +8,7 @@ import com.cvte.scm.wip.common.base.domain.DomainService;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
+import com.cvte.scm.wip.domain.core.changebill.valueobject.enums.ChangeBillRecycleEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
@@ -20,6 +21,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTy
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,7 +128,10 @@ public class CheckReqInsDomainService implements DomainService {
             }
             List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
             try {
-                this.validateTargetLineIssued(reqLineList);
+                if (ChangeBillRecycleEnum.RECYCLE.getCode().equals(detailEntity.getIssueFlag())) {
+                    // 仅当 回收发料 时需要校验是否已领料
+                    this.validateTargetLineIssued(reqLineList, detailEntity.getItemQty());
+                }
             } catch (ServerException se) {
                 validateFailed = true;
                 detailEntity.setExecuteResult(se.getMessage());
@@ -137,9 +142,17 @@ public class CheckReqInsDomainService implements DomainService {
         }
     }
 
-    private void validateTargetLineIssued(List<WipReqLineEntity> reqLineList) {
+    private void validateTargetLineIssued(List<WipReqLineEntity> reqLineList, BigDecimal changeQty) {
         for (WipReqLineEntity reqLine : reqLineList) {
-            if (BillStatusEnum.ISSUED.getCode().equals(reqLine.getLineStatus())) {
+            // 状态为领料 或者 领料数量大于0, 认为已领料
+            boolean isIssued = BillStatusEnum.ISSUED.getCode().equals(reqLine.getLineStatus()) || (Objects.nonNull(reqLine.getIssuedQty()) && reqLine.getIssuedQty() > 0);
+            if (isIssued) {
+                int canChangeQty = Optional.ofNullable(reqLine.getReqQty()).orElse(0) - reqLine.getIssuedQty();
+                boolean enoughChangeQty = Objects.nonNull(changeQty) && canChangeQty >= changeQty.intValue();
+                if (enoughChangeQty) {
+                    // 已领料, 但是更改数量 < (需求数量-领料数量)(即可更改数量) 时 允许变更
+                    continue;
+                }
                 throw new ServerException(ReqInsErrEnum.TARGET_LINE_ISSUED.getCode(), ReqInsErrEnum.TARGET_LINE_ISSUED.getDesc());
             }
         }
