@@ -40,4 +40,16 @@ public interface WipReqLineRepository {
 
     List<WipReqLineEntity> selectByColumnAndStatus(WipReqLineEntity lineEntity, int status);
 
+    /**
+     *
+     * @since 2020/7/17 6:54 下午
+     * @author xueyuting
+     * @param changeType 变更类型
+     * @param organization 组织
+     * @param itemNoList 用于校验的物料编号
+     * @param outRangeItemNoList {out}筛选出的范围外的物料编号
+     * @return 允许手工变更的物料类别列表
+     */
+    List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, List<String> outRangeItemNoList);
+
 }

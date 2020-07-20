@@ -16,7 +16,7 @@ import lombok.Getter;
 public enum ReqInsErrEnum implements Codeable {
     INVALID_INS("4001001", "无效的指令"),
     TARGET_LINE_INVALID("4001002", "目标投料行不存在"),
-    TARGET_LINE_ISSUED("4001003", "目标投料行已领料"),
+    TARGET_LINE_ISSUED("4001003", "目标投料行已领料,请退料后重试"),
     PART_MIX("4001004", "不允许部分混料"),
     EXISTS_PRE_INS("4001005", "存在未执行的前置更改单"),
     ADD_VALID_QTY("4001006", "新增投料行单位用量不可为空"),

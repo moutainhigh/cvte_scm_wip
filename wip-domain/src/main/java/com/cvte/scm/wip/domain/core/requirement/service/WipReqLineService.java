@@ -108,7 +108,6 @@ public class WipReqLineService {
      * 添加多条投料单行数据。详情可参见KB文档：https://kb.cvte.com/pages/viewpage.action?pageId=168289967
      */
     public String[] addMany(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
-
         Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(
                 wipReqLineList, ChangedTypeEnum.ADD, this::validateAndGetAddedData);
         Consumer<WipReqLineEntity> complete = line -> completeAddedData(line, userId);
@@ -140,6 +139,25 @@ public class WipReqLineService {
         }
         addedData.add(wipReqLine.setItemId(itemId));
         return "";
+    }
+
+    private String[] validateManualLimitItem(List<WipReqLineEntity> reqLineList, ChangedTypeEnum type) {
+        String[] errorMsg = new String[]{};
+        String organizationId = null;
+        for (WipReqLineEntity line : reqLineList) {
+            if (StringUtils.isNotBlank(line.getOrganizationId())) {
+                organizationId = line.getOrganizationId();
+                break;
+            }
+        }
+        List<String> itemNoList = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(toList());
+        List<String> outRangeItemNoList = new ArrayList<>();
+        List<String> limitItemClassList = wipReqLineRepository.selectOutRangeItemList(type.getCode(), organizationId, itemNoList, outRangeItemNoList);
+        if (ListUtil.notEmpty(outRangeItemNoList)) {
+            String msg = String.format("只有【%s】类物料允许%s", String.join("、", limitItemClassList), type.getDesc());
+            errorMsg = new String[]{msg};
+        }
+        return errorMsg;
     }
 
     /**
@@ -284,6 +302,14 @@ public class WipReqLineService {
     private String[] change(ChangedParameters parameters) {
         List<WipReqLineEntity> changedLines = new ArrayList<>();
         String[] errorMessages = handleErrorMessages(parameters.validateAndGetData.apply(changedLines), parameters.eMode);
+
+        if (ChangedModeEnum.MANUAL.equals(parameters.cMode)) {
+            // 手工变更限制物料类别
+            List<String> errMsgList = Arrays.asList(errorMessages);
+            errMsgList.addAll(Arrays.asList(handleErrorMessages(validateManualLimitItem(changedLines, parameters.type), parameters.eMode)));
+            errorMessages = errMsgList.toArray(new String[0]);
+        }
+
         // 操作的数据可能重复，避免操作异常，故执行去重操作。
         changedLines = changedLines.stream().distinct().collect(toList());
         ChangedTypeEnum type = parameters.type;

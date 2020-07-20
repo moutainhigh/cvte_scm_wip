@@ -57,25 +57,25 @@ public class WipReqLinesController {
 
     @PostMapping("/addOne")
     public RestResponse add(@RequestBody WipReqLineEntity wipReqLine) {
-        wipReqLineService.addOne(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true);
+        wipReqLineService.addOne(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true);
         return ResponseFactory.getOkResponse("投料单行数据新增成功！");
     }
 
     @PostMapping("/addMany")
     public RestResponse add(@RequestBody List<WipReqLineEntity> wipReqLine) {
-        wipReqLineService.addMany(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+        wipReqLineService.addMany(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, EntityUtils.getWipUserId());
         return ResponseFactory.getOkResponse("投料单行数据新增成功！");
     }
 
     @PostMapping("/cancelByLineIds")
     public RestResponse cancel(@RequestBody String... lineIds) {
-        wipReqLineService.cancelledByLineIds(ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, lineIds);
+        wipReqLineService.cancelledByLineIds(ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, lineIds);
         return ResponseFactory.getOkResponse("投料单行数据删除成功！");
     }
 
     @PostMapping("/cancelByWipReqLines")
     public RestResponse cancel(@RequestBody List<WipReqLineEntity> wipReqLineList) {
-        wipReqLineService.cancelledByConditions(wipReqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+        wipReqLineService.cancelledByConditions(wipReqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, EntityUtils.getWipUserId());
         return ResponseFactory.getOkResponse("投料单行数据删除成功！");
     }
 
