@@ -63,6 +63,8 @@
         <result column="mtr_ready_time" property="mtrReadyTime"/>
         <result column="remark" property="remark"/>
         <result column="status" property="status"/>
+        <result column="source_line_id" property="sourceLineId"/>
+        <result column="crt_time" property="crtTime" />
     </resultMap>
 
 
@@ -279,11 +281,14 @@
             , Wmt.client
             , Wmt.mtr_ready_time
             , Wmt.remark
+            , Wmt.crt_time
             , Wmw.status
+            , Wmtl.source_line_id
         from wip_mc_task Wmt
-        join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
+        join wip_mc_task_line Wmtl
+        on Wmt.mc_task_id = Wmtl.mc_task_id
         join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
-        where 1=1
+        where Wmtl.line_status = '110'
         <if test="status != null and status != ''">
             and wmw.status = #{status}
         </if>
@@ -305,6 +310,7 @@
                 #{item}
             </foreach>
         </if>
+        order by Wmt.crt_time desc
     </select>
 
     <select id="listValidTaskIds" resultType="java.lang.String">

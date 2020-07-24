@@ -50,4 +50,7 @@ public class WipMcTaskView {
 
     private String status;
 
+    private String sourceLineId;
+    private Date crtTime;
+
 }

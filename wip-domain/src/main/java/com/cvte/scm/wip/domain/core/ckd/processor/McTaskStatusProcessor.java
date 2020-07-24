@@ -24,7 +24,7 @@ public class McTaskStatusProcessor implements BeanPostProcessor {
         McTaskStatusAnnotation mcTaskStatusAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), McTaskStatusAnnotation.class);
         if (ObjectUtils.isNotNull(mcTaskStatusAnnotation)) {
             if (!(bean instanceof McTaskStatusUpdateIHandler)) {
-                throw new ParamsIncorrectException("McTaskStatusAnnotation 标注的体征处理器必须实现 McTaskStatusUpdateIHandler");
+                throw new ParamsIncorrectException("McTaskStatusAnnotation 标注的处理器必须实现 McTaskStatusUpdateIHandler");
             }
 
             McTaskStatusEnum[] mcTaskStatusEnums = mcTaskStatusAnnotation.updateToStatusArr();
