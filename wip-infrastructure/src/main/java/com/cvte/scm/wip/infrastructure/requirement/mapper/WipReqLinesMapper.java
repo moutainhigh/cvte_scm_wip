@@ -16,4 +16,7 @@ public interface WipReqLinesMapper extends CommonMapper<WipReqLineDO> {
 
     /* 增量写入投料单行数据 */
     void writeIncrementalData(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
+
+    void writeLackLines(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
+
 }

@@ -30,6 +30,13 @@ public interface WipReqLineRepository {
     void writeIncrementalData(List<String> wipEntityIdList, List<Integer> organizationIdList);
 
     /**
+     * 更改单生成的非标工单会直接生成已发放的投料单, 投料行引入的EBS视图是每天两次, 会漏掉这些投料行, 所以额外增加一个补漏的方法
+     * @since 2020/7/24 3:22 下午
+     * @author xueyuting
+     */
+    void writeLackLines(List<String> wipEntityIdList, List<Integer> organizationIdList);
+
+    /**
      * 创建一个定制化的 {@link Example} 对象。包含了大批次号、组织、小批次号、工序号、位号、物料ID、物料编号以及行版本字段的查询条件。
      * <p>
      * 这些字段组成了投料单表{@code wip_req_lines}的索引

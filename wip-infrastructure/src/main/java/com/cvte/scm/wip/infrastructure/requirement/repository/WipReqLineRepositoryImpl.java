@@ -16,6 +16,8 @@ import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqManualLimitMappe
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqManualLimitDO;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
@@ -47,10 +49,12 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
 
     private WipReqLinesMapper wipReqLinesMapper;
     private WipReqManualLimitMapper wipReqManualLimitMapper;
+    private NamedParameterJdbcTemplate batchTemplate;
 
-    public WipReqLineRepositoryImpl(WipReqLinesMapper wipReqLinesMapper, WipReqManualLimitMapper wipReqManualLimitMapper) {
+    public WipReqLineRepositoryImpl(WipReqLinesMapper wipReqLinesMapper, WipReqManualLimitMapper wipReqManualLimitMapper, @Qualifier("pgParameterJdbcTemplate") NamedParameterJdbcTemplate batchTemplate) {
         this.wipReqLinesMapper = wipReqLinesMapper;
         this.wipReqManualLimitMapper = wipReqManualLimitMapper;
+        this.batchTemplate = batchTemplate;
     }
 
     @Override
@@ -114,6 +118,12 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public void writeIncrementalData(List<String> wipEntityIdList, List<Integer> organizationIdList) {
         wipReqLinesMapper.writeIncrementalData(wipEntityIdList, organizationIdList);
+    }
+
+    @Override
+    public void writeLackLines(List<String> wipEntityIdList, List<Integer> organizationIdList) {
+        batchTemplate.getJdbcOperations().execute("refresh materialized view wip.wip_req_lines_lack_mv");
+        wipReqLinesMapper.writeLackLines(wipEntityIdList, organizationIdList);
     }
 
     private Example createCustomExample(WipReqLineKeyQueryVO keyQueryVO, List<String> statusList) {
