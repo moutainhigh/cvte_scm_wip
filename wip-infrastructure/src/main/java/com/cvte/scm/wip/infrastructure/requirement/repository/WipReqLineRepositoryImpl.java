@@ -66,6 +66,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public List<WipReqLineEntity> selectList(WipReqLineEntity queryEntity) {
         WipReqLineDO queryDO = WipReqLineDO.buildDO(queryEntity);
+        queryDO.setSourceCode(null);
         List<WipReqLineDO> lineDOList = wipReqLinesMapper.select(queryDO);
         if (ListUtil.empty(lineDOList)) {
             throw new ParamsIncorrectException("投料行数据不存在");
