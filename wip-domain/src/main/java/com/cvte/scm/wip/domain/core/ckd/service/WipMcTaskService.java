@@ -127,6 +127,18 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
         List<WipMcTaskView> wipMcTaskViews = listWipMcTaskView(new WipMcTaskQuery().setSourceLineIds(wipMcTaskUpdateStatus.getSourceLineIds()));
 
+        wipMcTaskViews.sort(Comparator.comparing(WipMcTaskView::getCrtTime).reversed());
+        // 取销售订单行对应最新的配料任务行
+        Set<String> sourceLineIds = new HashSet<>();
+        Iterator<WipMcTaskView> iterator = wipMcTaskViews.iterator();
+        while (iterator.hasNext()) {
+            WipMcTaskView it = iterator.next();
+            if (sourceLineIds.contains(it.getSourceLineId())) {
+                iterator.remove();
+            }
+            sourceLineIds.add(it.getSourceLineId());
+        }
+
         OperatingUser operatingUser = new OperatingUser();
         operatingUser.setName(wipMcTaskUpdateStatus.getOptUser());
         operatingUser.setId(wipMcTaskUpdateStatus.getOptUser());
