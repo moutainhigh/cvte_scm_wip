@@ -2,8 +2,11 @@ package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -20,6 +23,8 @@ public interface WipReqLineRepository {
     List<WipReqLineEntity> selectList(WipReqLineEntity queryEntity);
 
     List<WipReqLineEntity> selectByExample(Example example);
+
+    List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO, Collection<BillStatusEnum> statusEnumSet);
 
     List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO, List<String> statusList);
 

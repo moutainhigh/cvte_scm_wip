@@ -14,6 +14,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ReqLineErrEnum {
     ORG_NON_NULL("4003001", "组织不可为空"),
+    SYNC_FAILED("4003002", "同步数据到EBS失败"),
     ;
 
     private String code, desc;

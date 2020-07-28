@@ -26,6 +26,7 @@ import javax.persistence.Transient;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -90,6 +91,12 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
             lineEntityList.add(lineEntity);
         }
         return lineEntityList;
+    }
+
+    @Override
+    public List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO, Collection<BillStatusEnum> statusEnumSet) {
+        List<String> statusList = statusEnumSet.stream().map(BillStatusEnum::getCode).collect(Collectors.toList());
+        return selectValidByKey(keyQueryVO, statusList);
     }
 
     @Override
