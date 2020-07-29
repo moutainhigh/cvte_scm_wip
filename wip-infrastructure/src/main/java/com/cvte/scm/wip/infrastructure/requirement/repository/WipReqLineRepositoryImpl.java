@@ -16,6 +16,8 @@ import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqManualLimitMappe
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqManualLimitDO;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
@@ -24,6 +26,7 @@ import javax.persistence.Transient;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -47,10 +50,12 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
 
     private WipReqLinesMapper wipReqLinesMapper;
     private WipReqManualLimitMapper wipReqManualLimitMapper;
+    private NamedParameterJdbcTemplate batchTemplate;
 
-    public WipReqLineRepositoryImpl(WipReqLinesMapper wipReqLinesMapper, WipReqManualLimitMapper wipReqManualLimitMapper) {
+    public WipReqLineRepositoryImpl(WipReqLinesMapper wipReqLinesMapper, WipReqManualLimitMapper wipReqManualLimitMapper, @Qualifier("pgParameterJdbcTemplate") NamedParameterJdbcTemplate batchTemplate) {
         this.wipReqLinesMapper = wipReqLinesMapper;
         this.wipReqManualLimitMapper = wipReqManualLimitMapper;
+        this.batchTemplate = batchTemplate;
     }
 
     @Override
@@ -62,6 +67,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public List<WipReqLineEntity> selectList(WipReqLineEntity queryEntity) {
         WipReqLineDO queryDO = WipReqLineDO.buildDO(queryEntity);
+        queryDO.setSourceCode(null);
         List<WipReqLineDO> lineDOList = wipReqLinesMapper.select(queryDO);
         if (ListUtil.empty(lineDOList)) {
             throw new ParamsIncorrectException("投料行数据不存在");
@@ -85,6 +91,12 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
             lineEntityList.add(lineEntity);
         }
         return lineEntityList;
+    }
+
+    @Override
+    public List<WipReqLineEntity> selectValidByKey(WipReqLineKeyQueryVO keyQueryVO, Collection<BillStatusEnum> statusEnumSet) {
+        List<String> statusList = statusEnumSet.stream().map(BillStatusEnum::getCode).collect(Collectors.toList());
+        return selectValidByKey(keyQueryVO, statusList);
     }
 
     @Override
@@ -114,6 +126,12 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public void writeIncrementalData(List<String> wipEntityIdList, List<Integer> organizationIdList) {
         wipReqLinesMapper.writeIncrementalData(wipEntityIdList, organizationIdList);
+    }
+
+    @Override
+    public void writeLackLines(List<String> wipEntityIdList, List<Integer> organizationIdList) {
+        batchTemplate.getJdbcOperations().execute("refresh materialized view wip.wip_req_lines_lack_mv");
+        wipReqLinesMapper.writeLackLines(wipEntityIdList, organizationIdList);
     }
 
     private Example createCustomExample(WipReqLineKeyQueryVO keyQueryVO, List<String> statusList) {

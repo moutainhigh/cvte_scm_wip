@@ -9,7 +9,6 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLotIssuedMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLotIssuedDO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
@@ -58,7 +57,24 @@ public class WipReqLotIssuedRepositoryImpl implements WipReqLotIssuedRepository 
     @Override
     public void insert(WipReqLotIssuedEntity lotIssuedEntity) {
         WipReqLotIssuedDO insertDO = WipReqLotIssuedDO.buildDO(lotIssuedEntity);
+        EntityUtils.writeStdCrtInfoToEntity(insertDO, EntityUtils.getWipUserId());
         wipReqLotIssuedMapper.insertSelective(insertDO);
+    }
+
+    @Override
+    public void update(WipReqLotIssuedEntity lotIssuedEntity) {
+        WipReqLotIssuedDO updateDO = WipReqLotIssuedDO.buildDO(lotIssuedEntity);
+        EntityUtils.writeStdUpdInfoToEntity(updateDO, EntityUtils.getWipUserId());
+        wipReqLotIssuedMapper.updateByPrimaryKeySelective(updateDO);
+    }
+
+    @Override
+    public void invalidById(String id) {
+        WipReqLotIssuedDO invalidDO = new WipReqLotIssuedDO();
+        invalidDO.setId(id)
+                .setStatus(StatusEnum.CLOSE.getCode());
+        EntityUtils.writeStdUpdInfoToEntity(invalidDO, EntityUtils.getWipUserId());
+        wipReqLotIssuedMapper.updateByPrimaryKeySelective(invalidDO);
     }
 
     @Override

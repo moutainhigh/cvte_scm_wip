@@ -133,6 +133,11 @@ public class WipDataSourceConfig {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 
+    @Bean(name = "pgParameterJdbcTemplate")
+    public NamedParameterJdbcTemplate pgParameterJdbcTemplate(@Qualifier("pgDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
     private DataSource createDataSource(String url, String driverClassName, String userName, String password) {
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setUrl(url);

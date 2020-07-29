@@ -12,14 +12,16 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLogRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
+import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 服务实现类
@@ -42,27 +44,25 @@ public class WipReqLotIssuedService {
         this.wipReqLogRepository = wipReqLogRepository;
     }
 
+    public WipReqLotIssuedEntity selectById(String id) {
+        return wipReqLotIssuedRepository.selectById(id);
+    }
+
     public void add(WipReqLotIssuedEntity wipReqLotIssued) {
         this.verifyIssuedQty(wipReqLotIssued);
-        // 初始化信息
-        EntityUtils.writeStdCrtInfoToEntity(wipReqLotIssued, CurrentContext.getCurrentOperatingUser().getId());
         if (StringUtils.isBlank(wipReqLotIssued.getId())) {
             // 新增
             wipReqLotIssued.setId(UUIDUtils.get32UUID())
                     .setStatus(StatusEnum.NORMAL.getCode());
             wipReqLotIssuedRepository.insert(wipReqLotIssued);
+        } else {
+            // 更新
+            wipReqLotIssuedRepository.update(wipReqLotIssued);
         }
-        log.info("新增领料批次成功,id = {}", wipReqLotIssued.getId());
-        this.generateLog(wipReqLotIssued, wipReqLotIssued, ChangedTypeEnum.ISSUED_ADD.getCode());
     }
 
-    public void invalid(List<String> idList) {
-        wipReqLotIssuedRepository.invalidById(idList);
-        for (String id : idList) {
-            WipReqLotIssuedEntity invalidedEntity = wipReqLotIssuedRepository.selectById(id);
-            this.generateLog(invalidedEntity, invalidedEntity, ChangedTypeEnum.ISSUED_INVALID.getCode());
-        }
-        log.info("失效领料批次成功,idList = {}", idList.toString());
+    public void invalid(String id) {
+        wipReqLotIssuedRepository.invalidById(id);
     }
 
     /**
@@ -80,20 +80,28 @@ public class WipReqLotIssuedService {
         if (lotIssuedList == null) {
             lotIssuedList = new ArrayList<>();
         }
-        // 新增:直接插入list;保存:更新数据
-        if (StringUtils.isEmpty(wipReqLotIssued.getId())) {
-            lotIssuedList.add(wipReqLotIssued);
-        } else {
-            lotIssuedList.forEach(issued -> {
-                if (wipReqLotIssued.getId().equals(issued.getId())) {
-                    issued.setIssuedQty(wipReqLotIssued.getIssuedQty());
-                }
-            });
+
+        // 替换旧的
+        Iterator<WipReqLotIssuedEntity> iterator = lotIssuedList.iterator();
+        while (iterator.hasNext()) {
+            WipReqLotIssuedEntity lotIssued = iterator.next();
+            if (lotIssued.getMtrLotNo().equals(wipReqLotIssued.getMtrLotNo())) {
+                // 更新ID, 用于保存
+                wipReqLotIssued.setId(lotIssued.getId());
+                iterator.remove();
+            }
         }
+        lotIssuedList.add(wipReqLotIssued);
+
         // 需求数据
-        WipReqLineEntity queryLinesEntity = new WipReqLineEntity().setHeaderId(wipReqLotIssued.getHeaderId())
-                .setOrganizationId(wipReqLotIssued.getOrganizationId()).setItemNo(wipReqLotIssued.getItemNo()).setWkpNo(wipReqLotIssued.getWkpNo());
-        List<WipReqLineEntity> reqLinesList = wipReqLineRepository.selectList(queryLinesEntity);
+        WipReqLineKeyQueryVO keyQueryVO = new WipReqLineKeyQueryVO();
+        keyQueryVO.setHeaderId(wipReqLotIssued.getHeaderId())
+                .setOrganizationId(wipReqLotIssued.getOrganizationId())
+                .setItemNo(wipReqLotIssued.getItemNo())
+                .setWkpNo(wipReqLotIssued.getWkpNo());
+        EnumSet<BillStatusEnum> statusList = BillStatusEnum.getValidStatusSet();
+        List<WipReqLineEntity> reqLinesList = wipReqLineRepository.selectValidByKey(keyQueryVO, statusList);
+
         int totalIssuedQty = lotIssuedList.stream().mapToInt(WipReqLotIssuedEntity::getIssuedQty).sum();
         int totalReqQty = reqLinesList.stream().mapToInt(WipReqLineEntity::getReqQty).sum();
         if (totalIssuedQty > totalReqQty) {
@@ -102,7 +110,7 @@ public class WipReqLotIssuedService {
         }
     }
 
-    private void generateLog(WipReqLotIssuedEntity beforeEntity, WipReqLotIssuedEntity afterEntity, String operationType) {
+    public void generateIssuedLog(WipReqLotIssuedEntity beforeEntity, WipReqLotIssuedEntity afterEntity, String operationType) {
         WipReqLogEntity wipReqLog = new WipReqLogEntity();
         wipReqLog.setLineId("lotIssuedId_" + afterEntity.getId())
                 .setLogId(UUIDUtils.get32UUID())

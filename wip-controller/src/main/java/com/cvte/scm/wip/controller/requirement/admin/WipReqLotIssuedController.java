@@ -1,16 +1,15 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.scm.wip.app.req.issue.ReqLotIssuedDeleteApplication;
+import com.cvte.scm.wip.app.req.issue.ReqLotIssuedSaveApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
-import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.List;
 
 /**
   * 
@@ -26,22 +25,23 @@ import java.util.List;
 @RequestMapping("/admin/req/lot")
 public class WipReqLotIssuedController {
 
-    private WipReqLotIssuedService wipReqLotIssuedService;
+    private ReqLotIssuedSaveApplication reqLotIssuedSaveApplication;
+    private ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication;
 
-    public WipReqLotIssuedController(WipReqLotIssuedService wipReqLotIssuedService) {
-        this.wipReqLotIssuedService = wipReqLotIssuedService;
+    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication) {
+        this.reqLotIssuedSaveApplication = reqLotIssuedSaveApplication;
+        this.reqLotIssuedDeleteApplication = reqLotIssuedDeleteApplication;
     }
 
     @PostMapping("/save")
     public RestResponse save(@Valid @RequestBody WipReqLotIssuedEntity wipReqLotIssued) {
-        wipReqLotIssuedService.add(wipReqLotIssued);
+        reqLotIssuedSaveApplication.doAction(wipReqLotIssued);
         return new RestResponse();
     }
 
     @DeleteMapping("/invalid/{idStr}")
     public RestResponse invalid(@PathVariable("idStr") String idStr) {
-        List<String> idList = Arrays.asList(idStr.split(","));
-        wipReqLotIssuedService.invalid(idList);
+        reqLotIssuedDeleteApplication.doAction(idStr);
         return new RestResponse();
     }
 }

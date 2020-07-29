@@ -103,4 +103,63 @@
             </otherwise>
         </choose>
     </insert>
+
+    <insert id="writeLackLines">
+        insert into wip.wip_req_lines
+             ( Line_Id
+             , Header_Id
+             , Organization_Id
+             , Lot_Number
+             , Pos_No
+             , Item_No
+             , Wkp_No
+             , Unit_Qty
+             , Req_Qty
+             , Issued_Qty
+             , Exceed_Reason
+             , Original_Line_Id
+             , Before_Line_Id
+             , Line_Status
+             , Change_Reason
+             , Crt_User
+             , Crt_Date
+             , Upd_User
+             , Upd_Date
+             , Item_Id)
+        SELECT Line_Id
+             , Header_Id
+             , Organization_Id
+             , Lot_Number
+             , Pos_No
+             , Item_No
+             , Wkp_No
+             , Unit_Qty
+             , Req_Qty
+             , Issued_Qty
+             , Exceed_Reason
+             , Original_Line_Id
+             , Before_Line_Id
+             , Line_Status
+             , Change_Reason
+             , Crt_User
+             , Crt_Date
+             , Upd_User
+             , Upd_Date
+             , Item_Id
+        FROM Wip.Wip_Req_Lines_Lack_Mv wrl
+        WHERE 1 = 1
+        <if test="wipEntityIdList != null and wipEntityIdList.size() > 0 ">
+          AND wrl.Header_Id IN
+            <foreach collection="wipEntityIdList" index="index" item="wipEntityId" open="(" separator="," close=")">
+                ${wipEntityId}
+            </foreach>
+        </if>
+        <if test="organizationIdList != null and organizationIdList.size() > 0 ">
+            AND wrl.Organization_Id IN
+            <foreach collection="organizationIdList" index="index" item="organizationId" open="(" separator="," close=")">
+                ${organizationId}
+            </foreach>
+        </if>
+    </insert>
+
 </mapper>

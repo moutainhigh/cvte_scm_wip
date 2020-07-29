@@ -4,6 +4,8 @@ import com.cvte.scm.wip.common.enums.Codeable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.EnumSet;
+
 /**
  * @author : jf
  * Date    : 2019.12.31
@@ -25,6 +27,10 @@ public enum BillStatusEnum implements Codeable {
 
     public static Boolean valid(String status) {
         return !CLOSED.getCode().equals(status) && !CANCELLED.getCode().equals(status);
+    }
+
+    public static EnumSet<BillStatusEnum> getValidStatusSet() {
+        return EnumSet.of(BillStatusEnum.DRAFT, BillStatusEnum.CONFIRMED, BillStatusEnum.PREPARED, BillStatusEnum.ISSUED);
     }
 
 }

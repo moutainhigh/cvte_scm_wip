@@ -19,6 +19,10 @@ public interface WipReqLotIssuedRepository {
 
     void insert(WipReqLotIssuedEntity lotIssuedEntity);
 
+    void update(WipReqLotIssuedEntity lotIssuedEntity);
+
+    void invalidById(String id);
+
     void invalidById(List<String> idList);
 
 }
