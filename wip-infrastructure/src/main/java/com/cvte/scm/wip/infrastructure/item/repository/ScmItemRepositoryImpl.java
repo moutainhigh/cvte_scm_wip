@@ -7,9 +7,7 @@ import com.cvte.scm.wip.infrastructure.item.mapper.dataobject.ScmItemDO;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
   * 
@@ -54,6 +52,19 @@ public class ScmItemRepositoryImpl implements ScmItemRepository {
             itemEntityList.add(itemEntity);
         }
         return itemEntityList;
+    }
+
+    @Override
+    public Map<String, String> selectNoById(String organizationId, Iterable<String> itemIds) {
+        Example example = new Example(ScmItemDO.class);
+        example.createCriteria().andEqualTo("organizationId", organizationId).andIn("itemId", itemIds);
+        List<ScmItemDO> itemDOList = scmItemMapper.selectByExample(example);
+
+        Map<String, String> resultMap = new HashMap<>();
+        for (ScmItemDO item : itemDOList) {
+            resultMap.put(item.getItemId(), item.getItemNo());
+        }
+        return resultMap;
     }
 
 }

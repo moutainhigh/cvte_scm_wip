@@ -117,6 +117,10 @@ public class ReqInsDetailEntity implements Entity<String> {
 
     private String issueFlag;
 
+    private String itemNoOld;
+
+    private String itemNoNew;
+
     public List<ReqInsDetailEntity> getByInstructionId(String insHeaderId) {
         return detailRepository.getByInsId(insHeaderId);
     }
