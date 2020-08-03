@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.item.repository;
 import com.cvte.scm.wip.domain.core.item.entity.ScmItemEntity;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,5 +25,7 @@ public interface ScmItemRepository {
     Set<String> getValidItemNos(String organizationId, String[] itemNos);
 
     List<ScmItemEntity> selectByItemNos(String organizationId, Iterable<String> itemNos);
+
+    Map<String, String> selectNoById(String organizationId, Iterable<String> itemIds);
 
 }

@@ -1,8 +1,10 @@
 package com.cvte.scm.wip.infrastructure.requirement.repository;
 
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.domain.core.item.repository.ScmItemRepository;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsDMapper;
@@ -10,7 +12,11 @@ import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsDe
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -23,9 +29,11 @@ import java.util.List;
 public class ReqInsDetailRepositoryImpl implements ReqInsDetailRepository {
 
     private WipReqInsDMapper insDMapper;
+    private ScmItemRepository scmItemRepository;
 
-    public ReqInsDetailRepositoryImpl(WipReqInsDMapper insDMapper) {
+    public ReqInsDetailRepositoryImpl(WipReqInsDMapper insDMapper, ScmItemRepository scmItemRepository) {
         this.insDMapper = insDMapper;
+        this.scmItemRepository = scmItemRepository;
     }
 
     @Override
@@ -52,7 +60,23 @@ public class ReqInsDetailRepositoryImpl implements ReqInsDetailRepository {
         if (ListUtil.empty(billDetailDOList)) {
             return null;
         }
-        return WipReqInsDetailDO.batchBuildEntity(billDetailDOList);
+
+        // 获取物料编码
+        Set<String> itemIdSet = new HashSet<>();
+        for (WipReqInsDetailDO detail : billDetailDOList) {
+            itemIdSet.add(detail.getItemIdOld());
+            itemIdSet.add(detail.getItemIdNew());
+        }
+        itemIdSet.removeIf(StringUtils::isBlank);
+        String organizationId = billDetailDOList.stream().map(WipReqInsDetailDO::getOrganizationId).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList()).get(0);
+        Map<String, String> itemNoMap = scmItemRepository.selectNoById(organizationId, itemIdSet);
+
+        List<ReqInsDetailEntity> insDetailEntityList = WipReqInsDetailDO.batchBuildEntity(billDetailDOList);
+        for (ReqInsDetailEntity detailEntity : insDetailEntityList) {
+            detailEntity.setItemNoOld(itemNoMap.get(detailEntity.getItemIdOld()));
+            detailEntity.setItemNoNew(itemNoMap.get(detailEntity.getItemIdNew()));
+        }
+        return insDetailEntityList;
     }
 
 }

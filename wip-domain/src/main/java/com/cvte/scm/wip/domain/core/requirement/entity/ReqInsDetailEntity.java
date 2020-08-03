@@ -55,12 +55,10 @@ public class ReqInsDetailEntity implements Entity<String> {
     private ReqInsDetailEntityFactory detailEntityFactory;
 
     private ReqInsDetailRepository detailRepository;
-    private ScmItemService itemService;
     private WipLotRepository wipLotRepository;
 
-    public ReqInsDetailEntity(ReqInsDetailRepository detailRepository, ScmItemService itemService, WipLotRepository wipLotRepository) {
+    public ReqInsDetailEntity(ReqInsDetailRepository detailRepository, WipLotRepository wipLotRepository) {
         this.detailRepository = detailRepository;
-        this.itemService = itemService;
         this.wipLotRepository = wipLotRepository;
     }
 
@@ -116,6 +114,10 @@ public class ReqInsDetailEntity implements Entity<String> {
     private String aimReqLotNo;
 
     private String issueFlag;
+
+    private String itemNoOld;
+
+    private String itemNoNew;
 
     public List<ReqInsDetailEntity> getByInstructionId(String insHeaderId) {
         return detailRepository.getByInsId(insHeaderId);
@@ -253,7 +255,7 @@ public class ReqInsDetailEntity implements Entity<String> {
                 .setWkpNo(this.getWkpNo())
                 .setPosNo(this.getPosNo())
                 .setItemId(this.getItemIdNew())
-                .setItemNo(itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew()))
+                .setItemNo(this.getItemNoNew())
                 .setUnitQty(0.0)
                 .setReqQty(0)
                 .setLotNumber(wipLotVO.getLotNumber())
@@ -295,10 +297,9 @@ public class ReqInsDetailEntity implements Entity<String> {
         if (StringUtils.isBlank(this.getItemIdNew())) {
             throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "替换后物料不可为空");
         }
-        String afterItemNo = itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew());
         reqLineList.forEach(line ->
                 line.setBeforeItemNo(line.getItemNo())
-                .setItemNo(afterItemNo)
+                .setItemNo(this.getItemNoNew())
                 .setChangeType(ChangedTypeEnum.REPLACE.getCode()));
         return reqLineList;
     }
@@ -475,13 +476,9 @@ public class ReqInsDetailEntity implements Entity<String> {
                 fieldPrintList.add(p + "=" + v);
             }
         };
-        String itemNoNew = null;
-        if (StringUtils.isNotBlank(this.getItemIdNew())) {
-            itemNoNew = itemService.getItemNo(this.getOrganizationId(), this.getItemIdNew());
-        }
         addNonNull.accept("批次", this.getMoLotNo());
         addNonNull.accept("工序", this.getWkpNo());
-        addNonNull.accept("物料", itemNoNew);
+        addNonNull.accept("物料", this.getItemNoNew());
         addNonNull.accept("位号", this.getPosNo());
         addNonNull.accept("变更类型", this.getOperationTypeDesc());
         return String.join(",", fieldPrintList);
