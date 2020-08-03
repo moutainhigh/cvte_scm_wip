@@ -51,6 +51,7 @@ public class WipReqLineKeyQueryVO {
                 .setLotNumber(entity.getMoLotNo())
                 .setWkpNo(entity.getWkpNo())
                 .setItemId(entity.getItemIdOld())
+                .setItemNo(entity.getItemNoOld())
                 .setPosNo(entity.getPosNo());
         return keyQueryVO;
     }

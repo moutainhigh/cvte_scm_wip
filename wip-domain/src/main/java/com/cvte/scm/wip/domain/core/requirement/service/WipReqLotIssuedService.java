@@ -99,7 +99,7 @@ public class WipReqLotIssuedService {
                 .setOrganizationId(wipReqLotIssued.getOrganizationId())
                 .setItemNo(wipReqLotIssued.getItemNo())
                 .setWkpNo(wipReqLotIssued.getWkpNo());
-        EnumSet<BillStatusEnum> statusList = BillStatusEnum.getValidStatusSet();
+        Set<BillStatusEnum> statusList = BillStatusEnum.getValidStatusSet();
         List<WipReqLineEntity> reqLinesList = wipReqLineRepository.selectValidByKey(keyQueryVO, statusList);
 
         int totalIssuedQty = lotIssuedList.stream().mapToInt(WipReqLotIssuedEntity::getIssuedQty).sum();

@@ -13,7 +13,6 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
-import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
@@ -34,12 +33,12 @@ import java.util.stream.Collectors;
 @Service
 public class CheckReqInsDomainService implements DomainService {
 
-    private WipReqLineRepository lineRepository;
     private ReqInsRepository insRepository;
+    private QueryReqLineService queryReqLineService;
 
-    public CheckReqInsDomainService(WipReqLineRepository lineRepository, ReqInsRepository insRepository) {
-        this.lineRepository = lineRepository;
+    public CheckReqInsDomainService(ReqInsRepository insRepository, QueryReqLineService queryReqLineService) {
         this.insRepository = insRepository;
+        this.queryReqLineService = queryReqLineService;
     }
 
     /**
@@ -72,14 +71,9 @@ public class CheckReqInsDomainService implements DomainService {
                 WipReqLineKeyQueryVO keyQueryVO = WipReqLineKeyQueryVO.build(detailEntity);
                 if (!InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())) {
                     // 非新增或增加(因为增加对象不存在时新增), 获取指令的目标投料行
-                    List<String> statusList = new ArrayList<>();
-                    statusList.add(BillStatusEnum.DRAFT.getCode());
-                    statusList.add(BillStatusEnum.CONFIRMED.getCode());
-                    statusList.add(BillStatusEnum.PREPARED.getCode());
-                    statusList.add(BillStatusEnum.ISSUED.getCode());
-                    List<WipReqLineEntity> reqLineList = lineRepository.selectValidByKey(keyQueryVO, statusList);
+                    List<WipReqLineEntity> reqLineList = queryReqLineService.getValidLine(keyQueryVO);
                     if (!InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
-                        this.validateTargetLine(reqLineList);
+                        this.validateTargetLine(keyQueryVO, reqLineList);
                     }
                     reqLineMap.put(detailEntity.getInsDetailId(), reqLineList);
                 } else {
@@ -96,9 +90,15 @@ public class CheckReqInsDomainService implements DomainService {
         return reqLineMap;
     }
 
-    private void validateTargetLine(List<WipReqLineEntity> reqLineList) {
+    private void validateTargetLine(WipReqLineKeyQueryVO keyQueryVO, List<WipReqLineEntity> reqLineList) {
         if (ListUtil.empty(reqLineList)) {
-            throw new ServerException(ReqInsErrEnum.TARGET_LINE_INVALID.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc());
+            // 当主料查询不到对应要 删除/减少/替换前 的投料行时, 尝试用替代料查询
+            List<WipReqLineEntity> mtrsItemLineList = queryReqLineService.getReqLinesByMtrsItem(keyQueryVO);
+            reqLineList.addAll(mtrsItemLineList);
+            if (ListUtil.empty(reqLineList)) {
+                // 如果都查询不到, 则报错
+                throw new ServerException(ReqInsErrEnum.TARGET_LINE_INVALID.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc());
+            }
         }
     }
 

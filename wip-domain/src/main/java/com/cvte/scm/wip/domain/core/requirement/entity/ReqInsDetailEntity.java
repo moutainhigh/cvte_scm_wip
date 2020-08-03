@@ -348,7 +348,7 @@ public class ReqInsDetailEntity implements Entity<String> {
                 }
             }
             if (CollectionUtils.isEmpty(wipLotMap)) {
-                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LINE_INVALID.getDesc());
+                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LOT_INVALID.getDesc());
             }
 
             // 用量为空时取 小批次数量之和(工单数量) * 单位用量

@@ -9,4 +9,61 @@
         <result column="wkp_no" property="wkpNo"/>
         <result column="item_id" property="itemId"/>
     </resultMap>
+
+    <select id="selectMtrsItemNo" resultType="java.lang.String">
+        select wrms.item_no as mtrs_item_no
+        from wip_req_mtrs wrm
+        inner join wip_req_mtrs wrms
+             on wrm.organization_id = wrms.organization_id
+            and wrm.header_id = wrms.header_id
+            and wrm.wkp_no = wrms.wkp_no
+            and wrm.item_group = wrms.item_group
+        where wrm.header_id = #{headerId}
+          and wrm.item_no = #{itemNo}
+          and wrms.item_no <![CDATA[ <> ]]> #{itemNo}
+    </select>
+
+    <select id="selectSubRuleMtrsItemNo" resultType="java.lang.String">
+        /* 联络函替换 */
+        select mtr.item_no as mtrs_item_no
+        from (
+                 select wrm.item_id,
+                        max(wrm.item_no)         as          item_no,
+                        max(wrm.organization_id) as          organization_id,
+                        wrm.header_id,
+                        max(wrm.wkp_no)          as          wkp_no,
+                        max(wrh.factory_id)      as          factory_id,
+                        case
+                            when Sri.before_item_id = wrm.item_id then max(Sri.after_item_id)
+                            else max(Sri.before_item_id) end mtrs_item_id,
+                        case
+                            when max(imi.item_type) like '%CKD%'
+                                then 'Y'
+                            else 'N'
+                            end                  as          ckd_flag /* 工单CKD标识 */
+                 from wip_req_lines wrm
+                          inner join wip_req_header wrh
+                                     on wrm.organization_id = wrh.organization_id
+                                         and wrm.header_id = wrh.header_id
+                          left join scm.md_item imi
+                                    on wrh.product_id = imi.inventory_item_id
+                          inner join (
+                     select Wsr.organization_id,
+                            Wsri.before_item_id,
+                            Wsri.after_item_id
+                     from wip_sub_rule Wsr
+                              join wip_sub_rule_item Wsri on Wsri.rule_id = Wsr.rule_id
+                     where Wsr.rule_reason_type = 'contact_letter_replace'
+                       and Wsr.rule_status = 'effective'
+                 ) Sri on Sri.organization_id = Wrm.organization_id and
+                          (Sri.before_item_id = wrm.item_id or Sri.after_item_id = wrm.item_id)
+                 group by wrm.item_id, Sri.after_item_id, Sri.before_item_id, wrm.header_id
+             ) Mtr
+                 left join scm.md_item mi
+                           on Mtr.mtrs_item_id = mi.inventory_item_id
+        where Mtr.header_id = #{headerId}
+          and Mtr.mtrs_item_id= #{itemId}
+          and Mtr.ckd_flag = 'N' /* CKD工单不显示联络函 */
+    </select>
+
 </mapper>
