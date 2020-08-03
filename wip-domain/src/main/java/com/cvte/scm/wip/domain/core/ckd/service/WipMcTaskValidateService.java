@@ -134,6 +134,21 @@ public class WipMcTaskValidateService {
                         throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
                     }
                     break;
+                case RETURN_MATERIAL:
+                    // 退料单不存在/已取消，才可以创建
+                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineStatus())
+                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryRmLineStatus())) {
+                        throw new ParamsIncorrectException("含有退料单已存在的行，请检查");
+                    }
+
+                    // 出库单全部过账，且未创建入库单才允许创建退料单
+                    if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
+                    } else if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
+                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
+                    }
+                    break;
                 default:
                     throw new ParamsIncorrectException("不支持的调拨类型");
             }

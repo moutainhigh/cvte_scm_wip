@@ -39,6 +39,14 @@
         <result column="delivery_in_line_status" property="deliveryInLineStatus"/>
         <result column="delivery_in_qty" property="deliveryInQty"/>
         <result column="delivery_in_post_qty" property="deliveryInPostQty"/>
+
+        <result column="delivery_rm_no" property="deliveryRmNo"/>
+        <result column="delivery_rm_line_no" property="deliveryRmLineNo"/>
+        <result column="delivery_rm_status" property="deliveryRmStatus"/>
+        <result column="delivery_rm_line_status" property="deliveryRmLineStatus"/>
+        <result column="delivery_rm_qty" property="deliveryRmQty"/>
+        <result column="delivery_rm_post_qty" property="deliveryRmPostQty"/>
+
         <result column="factory_code" property="factoryCode"/>
         <result column="factory_id" property="factoryId"/>
         <result column="factory_name" property="factoryName"/>
@@ -71,6 +79,7 @@
         , Wmtl.source_line_no
         , Wmtl.source_line_id
         , Wmtl.mc_qty
+        -- 调出单
         , Out_View.header_no delivery_out_no
         , Out_View.header_status delivery_out_status
         , Out_View.inout_stock_line_id delivery_out_stock_line_id
@@ -78,6 +87,7 @@
         , Out_View.status delivery_out_line_status
         , Out_View.qty delivery_out_qty
         , Out_View.post_qty delivery_out_post_qty
+        -- 调入单
         , In_View.header_no delivery_in_no
         , In_View.header_status delivery_in_status
         , In_View.inout_stock_line_id delivery_in_stock_line_id
@@ -85,6 +95,15 @@
         , In_View.status delivery_in_line_status
         , In_View.qty delivery_in_qty
         , In_View.post_qty delivery_in_post_qty
+        -- 退料单
+        , Rm_View.header_no delivery_rm_no
+        , Rm_View.header_status delivery_rm_status
+        , Rm_View.inout_stock_line_id delivery_rm_stock_line_id
+        , Rm_View.line_no delivery_rm_line_no
+        , Rm_View.status delivery_rm_line_status
+        , Rm_View.qty delivery_rm_qty
+        , Rm_View.post_qty delivery_rm_post_qty
+
         , Mi.item_code
         , Sofv.factory_code
         , sofv.factory_id
@@ -104,6 +123,8 @@
         on In_View.mc_task_id = wmt.mc_task_id and In_view.mc_task_line_id = Wmtl.line_id and In_View.Rn = 1 and In_View.type = 'IN'
         left join Inout_Stock_View Out_View
         on Out_View.mc_task_id = wmt.mc_task_id and Out_View.mc_task_line_id = Wmtl.line_id and Out_View.Rn = 1 and Out_View.type = 'OUT'
+        left join Inout_Stock_View Rm_View
+        on Rm_View.mc_task_id = wmt.mc_task_id and Rm_View.mc_task_line_id = Wmtl.line_id and Rm_View.Rn = 1 and Rm_View.type = 'RETURN_MATERIAL'
         where 1=1
         <if test="lineStatus != null and lineStatus != ''">
             AND Wmtl.line_status = #{lineStatus}

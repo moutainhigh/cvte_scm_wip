@@ -299,62 +299,51 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         repository.updateList(updateList);
     }
 
-    
     public void inoutStock(TransactionTypeNameEnum transactionTypeNameEnum, String taskId, String versionId, List<String> mcTaskLineIds) {
 
         if (StringUtils.isBlank(taskId, versionId)) {
             throw new ParamsRequiredException("配料任务id/版本id不能为空");
         }
-
-        if (CollectionUtils.isEmpty(mcTaskLineIds)) {
-            throw new ParamsRequiredException("请先勾选需要调拨的配料任务行");
-        }
-
         McTaskInfoView mcTaskInfoView = getMcTaskInfoView(taskId);
         if (ObjectUtils.isNull(mcTaskInfoView)) {
             throw new SourceNotFoundException("获取配料任务信息错误");
         }
-
         if (!versionId.equals(mcTaskInfoView.getVersionId())) {
             throw new ParamsIncorrectException("只能调拨最新版本的配料清单");
         }
-
         String inoutStockId = UUIDUtils.getUUID();
         List<WipMcTaskLineView> wipMcTaskLineViews = wipMcTaskLineService.listWipMcTaskLineView(
                 new WipMcTaskLineQuery()
                         .setTaskIds(Arrays.asList(taskId))
                         .setTaskLineIds(mcTaskLineIds)
                         .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
-
         if (CollectionUtils.isEmpty(wipMcTaskLineViews)) {
             throw new ParamsIncorrectException("请选择需要调拨的行");
         }
-        wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView, wipMcTaskLineViews);
 
+        // 创建调拨单
+        wipMcTaskValidateService.validateInoutStock(transactionTypeNameEnum, mcTaskInfoView, wipMcTaskLineViews);
         EbsInoutStockDTO ebsInoutStockDTO = generateEbsInoutStockDTO(transactionTypeNameEnum, inoutStockId, mcTaskInfoView, wipMcTaskLineViews);
         EbsInoutStockResponse ebsInoutStockResponse = ebsInvokeService.inoutStockImport(ebsInoutStockDTO);
-
-        if (ObjectUtils.isNull(ebsInoutStockResponse) || ObjectUtils.isNull(ebsInoutStockResponse.getReturnInfo())) {
-            return;
+        if (ObjectUtils.isNull(ebsInoutStockResponse)
+                || ObjectUtils.isNull(ebsInoutStockResponse.getReturnInfo())
+                || CollectionUtils.isEmpty(ebsInoutStockResponse.getRtLines())) {
+            log.error("[inoutStock] 调拨单创建异常，请及时处理！response={}", JSONObject.toJSONString(ebsInoutStockResponse));
+            throw new ParamsIncorrectException("调拨单创建异常，请联系管理员处理");
         }
 
+        // 回写调拨单头
         WipMcInoutStockEntity wipMcInoutStock = generateWipMcInoutStockByInoutStock(transactionTypeNameEnum,
                 mcTaskInfoView.getMcTaskId(),
                 ebsInoutStockResponse.getReturnInfo().getHeaderId(),
                 ebsInoutStockResponse.getReturnInfo().getTicketNo());
         wipMcInoutStock.setInoutStockId(inoutStockId);
 
-        if (CollectionUtils.isEmpty(ebsInoutStockResponse.getRtLines())) {
-            return;
-        }
-
+        // 回写调拨行
         Map<String, EbsInoutStockDTO.LineDTO> lineDTOMap = ebsInoutStockDTO.getImportLnJson()
-                .stream()
-                .collect(Collectors.toMap(EbsInoutStockDTO.LineDTO::getInterfaceOrigSourceId, Function.identity()));
-
+                .stream().collect(Collectors.toMap(EbsInoutStockDTO.LineDTO::getInterfaceOrigSourceId, Function.identity()));
         List<WipMcInoutStockLineEntity> wipMcInoutStockLines = new ArrayList<>();
         for (EbsInoutStockResponse.StockLine stockLine : ebsInoutStockResponse.getRtLines()) {
-
             wipMcInoutStockLines.add(generateWipMcInoutStockLineByInoutStock(transactionTypeNameEnum,
                     inoutStockId, stockLine, lineDTOMap.get(stockLine.getInterfaceOrigSourceId())));
         }
@@ -368,13 +357,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         repository.updateSelectiveById(wipMcTask);
 
         wipMcTaskVersionService.sync(taskId, false);
-
-
-        String operation = TransactionTypeNameEnum.IN.equals(transactionTypeNameEnum) ?
-                "调拨入库" : "调拨出库";
         wipOperationLogService.addLog(new WipLogDTO(LogModuleConstant.CKD,
                 taskId,
-                operation));
+                transactionTypeNameEnum.getOptName()));
 
     }
 
@@ -423,7 +408,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 .setHeaderId(headerId)
                 .setHeaderNo(deliveryNo)
                 .setStatus(EbsDeliveryStatusEnum.ENTER.getCode())
-                .setType(transactionTypeNameEnum.name());
+                .setType(transactionTypeNameEnum.getCode());
         EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcInoutStock);
         return wipMcInoutStock;
     }
@@ -446,16 +431,8 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         return wipMcInoutStockLine;
     }
 
-    
-    public List<McTaskDeliveringStockView> listMcTaskDeliveringOutStockView() {
-
-        return repository.listMcTaskDeliveringOutStockView();
-    }
-
-    
-    public List<McTaskDeliveringStockView> listMcTaskDeliveringInStockView() {
-
-        return repository.listMcTaskDeliveringInStockView();
+    public List<McTaskDeliveringStockView> listMcTaskDeliveringView(String type) {
+        return repository.listMcTaskDeliveringView(type);
     }
 
 
@@ -522,7 +499,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         ebsInoutStockDTO.setInterfaceOrigSourceId(inoutStockId)
                 .setInterfaceAction(InterfaceActionEnum.INSERT.name())
                 .setTxnSourceTypeName(TxnSourceTypeNameEnum.INV.getName())
-                .setTransactionTypeName(transactionTypeNameEnum.getName())
+                .setTransactionTypeName(transactionTypeNameEnum.getEbsOptName())
                 .setBuName(mcTaskInfoView.getBuName())
                 .setDeptName(mcTaskInfoView.getDeptName())
                 .setOrganizationName(WipMcTaskConstant.PREFIX_INV + mcTaskInfoView.getEbsOrganizationCode())
@@ -537,6 +514,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
      * 对应的目的仓库是XX-257
      * 2、调拨入库：在制仓（XX-257）---》散料仓（XX-54）
      * 对应的目的仓库是XX-54
+     * 3. 生产退料单：在制仓 ---》物料仓
      *
      * @param
      * @param transactionTypeNameEnum
@@ -549,23 +527,32 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                                                         EbsInoutStockDTO.LineDTO lineDTO) {
         switch (transactionTypeNameEnum) {
             case IN:
-                lineDTO.setSubinventory(getInventoryPrefix(wipMcTaskLineView.getFactoryCode())
-                                + WipMcTaskConstant.FACTORY_CODE_SEPARATOR +  WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE)
-                        .setToSubinventory(getInventoryPrefix(wipMcTaskLineView.getFactoryCode())
-                                + WipMcTaskConstant.FACTORY_CODE_SEPARATOR + WipMcTaskConstant.DEFAULT_STOREHOUSE_CKD_CODE)
-                        .setLocatorCode(getLocatorCode(lineDTO.getSubinventory(), wipMcTaskLineView.getFactoryCode()));
+                setSubinventory(lineDTO,
+                        wipMcTaskLineView.getFactoryCode(),
+                        WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE,
+                        WipMcTaskConstant.DEFAULT_STOREHOUSE_CKD_CODE);
                 break;
             case OUT:
-                lineDTO.setSubinventory(getInventoryPrefix(wipMcTaskLineView.getFactoryCode())
-                                + WipMcTaskConstant.FACTORY_CODE_SEPARATOR + WipMcTaskConstant.DEFAULT_STOREHOUSE_METRIC_CODE)
-                        .setToSubinventory(getInventoryPrefix(wipMcTaskLineView.getFactoryCode())
-                                + WipMcTaskConstant.FACTORY_CODE_SEPARATOR + WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE)
-                        .setLocatorCode(getLocatorCode(lineDTO.getSubinventory(), wipMcTaskLineView.getFactoryCode()));
+                setSubinventory(lineDTO,
+                        wipMcTaskLineView.getFactoryCode(),
+                        WipMcTaskConstant.DEFAULT_STOREHOUSE_METRIC_CODE,
+                        WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE);
+                break;
+            case RETURN_MATERIAL:
+                setSubinventory(lineDTO,
+                        wipMcTaskLineView.getFactoryCode(),
+                        WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE,
+                        WipMcTaskConstant.DEFAULT_STOREHOUSE_METRIC_CODE);
                 break;
             default:
                 throw new ParamsIncorrectException("调拨类型错误");
         }
+    }
 
+    private void setSubinventory(EbsInoutStockDTO.LineDTO lineDTO, String factoryCode, String fromCode, String toCode) {
+        lineDTO.setSubinventory(getInventoryPrefix(factoryCode) + WipMcTaskConstant.FACTORY_CODE_SEPARATOR + fromCode)
+                .setToSubinventory(getInventoryPrefix(factoryCode) + WipMcTaskConstant.FACTORY_CODE_SEPARATOR + toCode)
+                .setLocatorCode(getLocatorCode(lineDTO.getSubinventory(), factoryCode));
     }
 
     /**

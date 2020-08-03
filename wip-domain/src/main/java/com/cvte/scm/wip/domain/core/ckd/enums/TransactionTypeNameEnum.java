@@ -13,9 +13,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TransactionTypeNameEnum {
 
-    IN("厂内调拨"),
+    IN("IN", "调拨入库", "厂内调拨"),
 
-    OUT("厂内调拨");
+    OUT("OUT", "调拨出库", "厂内调拨"),
 
-    private String name;
+    RETURN_MATERIAL("RETURN_MATERIAL", "生产退料", "厂内调拨");
+
+
+    private String code;
+    private String optName;
+    private String ebsOptName;
 }

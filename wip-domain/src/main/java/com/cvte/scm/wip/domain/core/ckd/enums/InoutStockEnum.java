@@ -8,5 +8,7 @@ import lombok.Getter;
  **/
 @Getter
 public enum InoutStockEnum {
-    IN, OUT;
+    IN,
+    OUT,
+    RETURN_MATERIAL;
 }

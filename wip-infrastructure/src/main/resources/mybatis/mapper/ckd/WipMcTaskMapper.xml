@@ -173,49 +173,9 @@
         where Wmt.mc_task_id = #{mcTaskId}
     </select>
 
-    <select id="listMcTaskDeliveringInStockView"
-            resultType="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView">
-       select Wmtl.line_id mcTaskLineId
-            , Wmtl.mc_task_id mcTaskId
-            , Wmis.inout_stock_line_id inoutStockLineId
-            , Wmis.line_id deliveryLineId
-            , Wmis.line_no deliveryLineNo
-            , Wmis.header_no deliveryNo
-            , Wmis.header_id deliveryId
-            , Wmis.inout_stock_id inoutStockId
-        from wip_mc_task Wmt
-        join wip_mc_task_line Wmtl on Wmt.mc_task_id = Wmtl.mc_task_id
-        join wip_mc_wf Wmw on Wmw.wf_id = Wmt.mc_wf_id
-       join (
-            select Wmis."type"
-            , Wmis.header_no
-            , Wmis.header_id
-            , Wmis.mc_task_id
-            , Wmis.status header_status
-            , Wmisl.*
-            , row_number() OVER( partition by Wmis."type", Wmisl.mc_task_line_id order by Wmisl.crt_time desc) Rn
-            from wip_mc_inout_stock Wmis
-            left join wip_mc_inout_stock_line Wmisl on Wmisl.inout_stock_id = Wmis.inout_stock_id
-        ) Wmis on Wmis.mc_task_id = Wmt.mc_task_id and Wmis.mc_task_line_id = Wmtl.line_id and Wmis.type = 'IN' and Wmis.Rn = 1
-        where Wmtl.line_status = '110'
-        and (
-            -- 行数据中含有未过账数据 或 头数据含 非终止状态数据
-            Wmis.header_status not in  ('POSTED', 'CANCELLED')
-            or Wmt.mc_task_id in (
-                select Wmis.mc_task_id
-                from wip_mc_inout_stock Wmis
-                join wip_mc_inout_stock_line Wmisl on Wmis.inout_stock_id = Wmisl.inout_stock_id
-                where Wmis.status = 'POSTED'
-                and wmisl.status = 'UN_POST'
-                group by Wmis.mc_task_id
-            )
-        )
-    </select>
 
-
-    <select id="listMcTaskDeliveringOutStockView"
-            resultType="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView">
-        select Wmtl.line_id mcTaskLineId
+    <select id="listMcTaskDeliveringView" resultType="com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView">
+                select Wmtl.line_id mcTaskLineId
             , Wmtl.mc_task_id mcTaskId
             , Wmis.inout_stock_line_id inoutStockLineId
             , Wmis.line_id deliveryLineId
@@ -236,8 +196,8 @@
             , row_number() OVER( partition by Wmis."type", Wmisl.mc_task_line_id order by Wmisl.crt_time desc) Rn
             from wip_mc_inout_stock Wmis
             left join wip_mc_inout_stock_line Wmisl on Wmisl.inout_stock_id = Wmis.inout_stock_id
-        ) Wmis on Wmis.mc_task_id = Wmt.mc_task_id and Wmis.mc_task_line_id = Wmtl.line_id and Wmis.type = 'OUT' and Wmis.Rn = 1
-        where Wmtl.line_status = '110'
+        ) Wmis on Wmis.mc_task_id = Wmt.mc_task_id and Wmis.mc_task_line_id = Wmtl.line_id and Wmis.Rn = 1
+        where Wmtl.line_status = '110' and Wmis.type = #{type}
         and (
             -- 行数据中含有未过账数据 或 头数据含 非终止状态数据
             Wmis.header_status not in  ('POSTED', 'CANCELLED')

@@ -204,7 +204,7 @@ public class WipMcInoutStockWriteBackServiceTest extends BaseMcTaskTest {
                 .setHeaderId(deliveryOutHeaderId)
                 .setHeaderNo(deliveryOutHeaderNo)
                 .setStatus(EbsDeliveryStatusEnum.ENTER.getCode())
-                .setType(TransactionTypeNameEnum.OUT.name());
+                .setType(TransactionTypeNameEnum.OUT.getCode());
         EntityUtils.writeCurUserStdCrtInfoToEntity(wipMcInoutStock);
         wipMcInoutStockService.insert(wipMcInoutStock);
 
