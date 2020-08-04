@@ -34,6 +34,9 @@ public class McTaskStatusUtils {
         // 变更中/取消中 -> 变更中/取消中。其他特殊场景通过条校验处理，不放入生命周期中判断
         STATUS_FLOW_MAP.put(McTaskStatusEnum.CHANGE.getCode(), Arrays.asList(McTaskStatusEnum.CHANGE.getCode()));
 
+        // 已关闭 -> 已驳回
+        STATUS_FLOW_MAP.put(McTaskStatusEnum.CLOSE.getCode(), Arrays.asList(McTaskStatusEnum.REJECT.getCode()));
+
     }
 
 
