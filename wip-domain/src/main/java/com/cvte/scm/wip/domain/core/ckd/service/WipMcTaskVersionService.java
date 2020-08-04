@@ -130,14 +130,12 @@ public class WipMcTaskVersionService extends WipBaseService<WipMcTaskVersionEnti
             lineVersionDeleteIdList.add(deleteView.getId());
         }
 
-
         wipMcTaskVersion.setVersionDate(new Date());
         EntityUtils.writeStdUpdInfoToEntity(wipMcTaskVersion, CurrentContextUtils.getOrDefaultUserId("SCM-WIP"));
-
         repository.updateSelectiveById(wipMcTaskVersion);
         wipMcTaskLineVersionService.insertList(lineVersionInsertList);
         wipMcTaskLineVersionService.updateListForce(lineVersionUpdateList);
-
+        wipMcTaskLineService.refreshUpdTime(wipMcTaskLineViews.stream().map(WipMcTaskLineView::getLineId).collect(Collectors.toList()));
         if (CollectionUtils.isNotEmpty(lineVersionDeleteIdList)) {
             wipMcTaskLineVersionService.deleteListByIds(lineVersionDeleteIdList.toArray(new String[0]));
         }
