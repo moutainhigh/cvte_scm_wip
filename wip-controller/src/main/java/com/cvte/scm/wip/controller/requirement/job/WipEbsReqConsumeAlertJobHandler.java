@@ -47,7 +47,7 @@ public class WipEbsReqConsumeAlertJobHandler extends IJobHandler {
         List<WipEbsReqLogEntity> ebsReqLogList = ebsReqLogRepository.selectBetweenTimeInStatus(thirtyMinutesFromNow, now, EbsReqProcessStatusEnum.FAILED.getCode());
         List<WipReqInterfaceEntity> reqInterfaceList = reqInterfaceRepository.selectBetweenTimeInStatus(thirtyMinutesFromNow, now, ProcessingStatusEnum.PENDING.getCode(), ProcessingStatusEnum.EXCEPTION.getCode());
         if (ListUtil.empty(ebsReqLogList) && ListUtil.empty(reqInterfaceList)) {
-            return ReturnT.SUCCESS;
+            return new ReturnT<>(null);
         }
         StringBuilder alertMsg = new StringBuilder();
         alertMsg.append("EBS->WIP消费数据出现异常,请排查!\n");
@@ -61,8 +61,6 @@ public class WipEbsReqConsumeAlertJobHandler extends IJobHandler {
             alertMsg.append("(").append(reqInterfaceList.parallelStream().map(log -> "'" + log.getInterfaceInId() + "'").collect(Collectors.joining(","))).append(")");
         }
         alertMsg.append("\n ");
-        ReturnT<String> returnT = ReturnT.FAIL;
-        returnT.setMsg(alertMsg.toString());
-        return returnT;
+        return new ReturnT<>(ReturnT.FAIL_CODE, alertMsg.toString());
     }
 }

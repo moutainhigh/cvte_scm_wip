@@ -33,11 +33,11 @@ public class WipIncrementalWritingJobHandler extends IJobHandler {
 
     @Override
     public ReturnT<String> execute(Map<String, Object> map) {
-        ReturnT<String> returnT = ReturnT.SUCCESS;
+        ReturnT<String> returnT = new ReturnT<>(null);
         try {
             reqLineSyncApplication.doAction(map);
         } catch (RuntimeException re) {
-            returnT = ReturnT.FAIL;
+            returnT.setCode(ReturnT.FAIL_CODE);
             returnT.setMsg(re.getMessage());
         }
         return returnT;

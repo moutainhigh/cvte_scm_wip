@@ -38,10 +38,10 @@ public class SyncChangeBillJobHandler extends IJobHandler {
     @Override
     public ReturnT<String> execute(Map<String, Object> map) throws Exception {
         ChangeBillQueryVO changeBillQueryVO = new ChangeBillQueryVO();
-        ReturnT<String> returnT = ReturnT.SUCCESS;
+        ReturnT<String> returnT = new ReturnT<>(null);
         String organizationId = (String)map.get(ORGANIZATION_ID);
         if (StringUtils.isBlank(organizationId)) {
-            returnT = ReturnT.FAIL;
+            returnT.setCode(ReturnT.FAIL_CODE);
             returnT.setMsg("组织ID不可为空");
             return returnT;
         }
