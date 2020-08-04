@@ -17,7 +17,7 @@ public enum TransactionTypeNameEnum {
 
     OUT("OUT", "调拨出库", "厂内调拨"),
 
-    RETURN_MATERIAL("RETURN_MATERIAL", "生产退料", "厂内调拨");
+    RETURN_OUT_MATERIAL("RETURN_OUT_MATERIAL", "生产退料", "厂内调拨");
 
 
     private String code;

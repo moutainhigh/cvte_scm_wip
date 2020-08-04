@@ -348,6 +348,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                     inoutStockId, stockLine, lineDTOMap.get(stockLine.getInterfaceOrigSourceId())));
         }
 
+        initInoutLineSource(transactionTypeNameEnum, wipMcInoutStockLines, wipMcTaskLineViews);
         wipMcInoutStockLineService.insertList(wipMcInoutStockLines);
         wipMcInoutStockService.insertSelective(wipMcInoutStock);
 
@@ -361,6 +362,38 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                 taskId,
                 transactionTypeNameEnum.getOptName()));
 
+    }
+
+    /**
+     * 初始化调拨单行inoutLineSource字段，建立调拨之间的业务上关联关系
+     *
+     * @param transactionTypeNameEnum
+     * @param wipMcInoutStockLines
+     * @param wipMcTaskLineViews
+     * @return void
+     **/
+    private void initInoutLineSource(TransactionTypeNameEnum transactionTypeNameEnum, List<WipMcInoutStockLineEntity> wipMcInoutStockLines, List<WipMcTaskLineView> wipMcTaskLineViews) {
+        if (transactionTypeNameEnum.equals(TransactionTypeNameEnum.OUT)) {
+            return;
+        }
+        if (transactionTypeNameEnum.equals(TransactionTypeNameEnum.IN) || transactionTypeNameEnum.equals(TransactionTypeNameEnum.OUT)) {
+            // 优先保持双方系统的数据一致, 不抛异常
+            log.error("inoutLineSource字段暂不支持其他类型调拨单的初始化");
+            return;
+        }
+
+        Map<String, WipMcTaskLineView> map = new HashMap<>();
+        for (WipMcTaskLineView view : wipMcTaskLineViews) {
+            map.put(view.getLineId(), view);
+        }
+
+        for (WipMcInoutStockLineEntity entity : wipMcInoutStockLines) {
+            WipMcTaskLineView view = map.get(entity.getMcTaskLineId());
+            if (ObjectUtils.isNull(view)) {
+                continue;
+            }
+            entity.setInoutStockLineSource(view.getDeliveryOutStockLineId());
+        }
     }
 
     public void saveBatchAttachment(List<AttachmentDTO> attachmentSaveDTOList) {
@@ -538,7 +571,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
                         WipMcTaskConstant.DEFAULT_STOREHOUSE_METRIC_CODE,
                         WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE);
                 break;
-            case RETURN_MATERIAL:
+            case RETURN_OUT_MATERIAL:
                 setSubinventory(lineDTO,
                         wipMcTaskLineView.getFactoryCode(),
                         WipMcTaskConstant.DEFAULT_STOREHOUSE_MAKE_CODE,

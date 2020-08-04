@@ -88,7 +88,7 @@ public class WipMcTaskController {
     public RestResponse returnMaterial(@PathVariable String mcTaskId,
                                  @PathVariable String versionId,
                                  @RequestBody List<String> mcTaskLineIds) {
-        wipMcTaskService.inoutStock(TransactionTypeNameEnum.RETURN_MATERIAL, mcTaskId, versionId, mcTaskLineIds);
+        wipMcTaskService.inoutStock(TransactionTypeNameEnum.RETURN_OUT_MATERIAL, mcTaskId, versionId, mcTaskLineIds);
         return ResponseFactory.getOkResponse(null);
     }
 

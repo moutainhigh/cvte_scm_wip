@@ -56,7 +56,7 @@ public class McTaskInoutStockJob extends IJobHandler {
         writeBackService.writeBackInoutStock(new WriteBackHook() {
             @Override
             public List<McTaskDeliveringStockView> listMcTaskDeliveringStockView() {
-                return wipMcTaskService.listMcTaskDeliveringView(TransactionTypeNameEnum.RETURN_MATERIAL.getCode());
+                return wipMcTaskService.listMcTaskDeliveringView(TransactionTypeNameEnum.RETURN_OUT_MATERIAL.getCode());
             }
 
             @Override

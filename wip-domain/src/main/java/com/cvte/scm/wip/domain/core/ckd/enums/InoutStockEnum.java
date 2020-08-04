@@ -10,5 +10,5 @@ import lombok.Getter;
 public enum InoutStockEnum {
     IN,
     OUT,
-    RETURN_MATERIAL;
+    RETURN_OUT_MATERIAL;
 }

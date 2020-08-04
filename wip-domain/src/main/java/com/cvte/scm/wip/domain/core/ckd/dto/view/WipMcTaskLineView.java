@@ -68,6 +68,8 @@ public class WipMcTaskLineView {
     @ApiModelProperty(value = "调拨入库过账数量")
     private Integer deliveryInPostQty;
 
+    private String deliveryInLineSource;
+
 
     private String deliveryRmLineNo;
 
@@ -85,6 +87,8 @@ public class WipMcTaskLineView {
 
     @ApiModelProperty(value = "退料过账数量")
     private Integer deliveryRmPostQty;
+
+    private String deliveryRmLineSource;
 
     @ApiModelProperty(value = "行状态")
     private String lineStatus;

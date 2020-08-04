@@ -134,7 +134,7 @@ public class WipMcTaskValidateService {
                         throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
                     }
                     break;
-                case RETURN_MATERIAL:
+                case RETURN_OUT_MATERIAL:
                     // 退料单不存在/已取消，才可以创建
                     if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineStatus())
                             && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryRmLineStatus())) {

@@ -26,8 +26,8 @@ public class McTaskStatusUtils {
         STATUS_FLOW_MAP.put(McTaskStatusEnum.VERIFY.getCode(), Arrays.asList(McTaskStatusEnum.REJECT.getCode(), McTaskStatusEnum.CONFIRM.getCode(), McTaskStatusEnum.CANCEL.getCode(), McTaskStatusEnum.CHANGE.getCode()));
         // 工厂已确认 -> 已驳回、已完成、已取消
         STATUS_FLOW_MAP.put(McTaskStatusEnum.CONFIRM.getCode(), Arrays.asList(McTaskStatusEnum.FINISH.getCode(), McTaskStatusEnum.REJECT.getCode(), McTaskStatusEnum.CANCEL.getCode()));
-        // 已完成 -> 已关闭
-        STATUS_FLOW_MAP.put(McTaskStatusEnum.FINISH.getCode(), Arrays.asList(McTaskStatusEnum.CLOSE.getCode()));
+        // 已完成 -> 已关闭、驳回、已取消（驳回、取消需要退料单全部过账)
+        STATUS_FLOW_MAP.put(McTaskStatusEnum.FINISH.getCode(), Arrays.asList(McTaskStatusEnum.CLOSE.getCode(), McTaskStatusEnum.CANCEL.getCode(), McTaskStatusEnum.REJECT.getCode()));
         // 已驳回 -> 已审批、变更中/取消中、已取消
         STATUS_FLOW_MAP.put(McTaskStatusEnum.REJECT.getCode(), Arrays.asList(McTaskStatusEnum.VERIFY.getCode(), McTaskStatusEnum.CHANGE.getCode(), McTaskStatusEnum.CANCEL.getCode()));
 

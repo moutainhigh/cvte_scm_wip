@@ -25,9 +25,9 @@ import java.util.List;
  * @date 2020-05-08 15:30
  **/
 @Component
-@McTaskStatusAnnotation(curStatus = McTaskStatusEnum.CONFIRM, updateToStatusArr = McTaskStatusEnum.CANCEL)
+@McTaskStatusAnnotation(curStatus = McTaskStatusEnum.FINISH, updateToStatusArr = {McTaskStatusEnum.CANCEL, McTaskStatusEnum.REJECT})
 @Transactional(transactionManager = "pgTransactionManager")
-public class McTaskConfirmUpdateToCancelHandler implements McTaskStatusUpdateIHandler {
+public class McTaskFinishUpdateToCancelHandler implements McTaskStatusUpdateIHandler {
 
     @Autowired
     private WipMcTaskLineService wipMcTaskLineService;
@@ -54,14 +54,24 @@ public class McTaskConfirmUpdateToCancelHandler implements McTaskStatusUpdateIHa
                 .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
 
         for (WipMcTaskLineView wipMcTaskLineView : wipMcTaskLineViews) {
-            if ((StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
-                    && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus()))
-                    || (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
-                    && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus()))
-            ) {
-                throw new ParamsIncorrectException("必须作废已创建的调拨单才可进行取消操作");
+            if (!isCancelled(wipMcTaskLineView.getDeliveryOutLineStatus()) && !isReturnMaterial(wipMcTaskLineView)) {
+                throw new ParamsIncorrectException("调拨单需已作废或已退料才可进行该操作");
             }
         }
-
     }
+
+
+    private boolean isCancelled(String status) {
+        return StringUtils.isNotBlank(status) && McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(status);
+    }
+
+    private boolean isReturnMaterial(WipMcTaskLineView wipMcTaskLineView) {
+        return StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineStatus())
+                && McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryRmLineStatus())
+                && StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineSource())
+                && wipMcTaskLineView.getDeliveryRmLineSource().equals(wipMcTaskLineView.getDeliveryOutStockLineId());
+    }
+
+
+
 }
