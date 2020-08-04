@@ -94,29 +94,19 @@ public class ReqInsConfirmResultDTO {
                 // 操作类型
                 String operationType = firstElement.getOperationType();
                 InsOperationTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(operationType, InsOperationTypeEnum.class);
-                // 更改目标物料
-                String targetItemNo = "";
+                // 目标更改物料
+                String targetItemNo = firstElement.getActualItemNo();
                 // 更改后物料
-                String suffixItemNo = "";
-                switch (typeEnum) {
-                    case REPLACE:
-                        // 只有替换类型需要改后物料
-                        suffixItemNo = firstElement.getItemNoNew();
-                    case ADD:
-                    case INCREASE:
-                        targetItemNo = firstElement.getItemNoOld();
-                        break;
-                    case DELETE:
-                    case REDUCE:
-                        targetItemNo = firstElement.getItemNoNew();
-                        break;
+                String afterItemNo = "";
+                if (InsOperationTypeEnum.REPLACE.equals(typeEnum)) {
+                    afterItemNo = firstElement.getItemNoNew();
                 }
 
                 StringBuilder successMsgBuilder = new StringBuilder();
                 successMsgBuilder.append(String.join("//", moLotNo, targetItemNo))
                         .append("//").append(StringUtils.isBlank(posNo) ? "空位号" : posNo)
                         .append(" ").append(typeEnum.getDesc())
-                        .append(suffixItemNo)
+                        .append(afterItemNo)
                         .append(ExecutionResultEnum.SUCCESS.getDesc());
 
                 successMsgList.add(successMsgBuilder.toString());

@@ -217,6 +217,12 @@ public class WipReqInsDetailDO extends BaseEntity {
     @Column(name = "issue_flag")
     @ApiModelProperty(value = "是否回收")
     private String issueFlag;
+    /**
+     * 实际更改物料
+     */
+    @Column(name = "actual_item_no")
+    @ApiModelProperty(value = "实际更改物料")
+    private String actualItemNo;
 
     public static ReqInsDetailEntity buildEntity(WipReqInsDetailDO detailDO) {
         ReqInsDetailEntity detailEntity = ReqInsDetailEntity.get();

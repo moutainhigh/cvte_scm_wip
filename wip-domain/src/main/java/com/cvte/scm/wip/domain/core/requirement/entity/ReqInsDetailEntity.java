@@ -11,7 +11,6 @@ import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
-import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsDetailEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipLotRepository;
@@ -114,6 +113,9 @@ public class ReqInsDetailEntity implements Entity<String> {
     private String aimReqLotNo;
 
     private String issueFlag;
+
+    // 实际更改物料
+    private String actualItemNo;
 
     private String itemNoOld;
 
@@ -233,6 +235,11 @@ public class ReqInsDetailEntity implements Entity<String> {
         Map<String, WipLotVO> wipLotMap = new HashMap<>();
         wipLotList.forEach(lot -> wipLotMap.put(lot.getLotNumber(), lot));
         List<WipReqLineEntity> reqLineList = reqLineMap.get(this.getInsDetailId());
+
+        // 记录实际更改物料
+        String actualItemNo = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(Collectors.joining(","));
+        this.setActualItemNo(Optional.ofNullable(actualItemNo).orElse(this.getItemNoOld()));
+
         switch (typeEnum) {
             case ADD:
                 return this.parseAddType(wipLotMap);
