@@ -89,7 +89,6 @@ public class WipMcTaskVersionService extends WipBaseService<WipMcTaskVersionEnti
 
         List<WipMcTaskLineVersionView> wipMcTaskLineVersionViews = wipMcTaskLineVersionService
                 .listWipMcTaskLineVersionView(new WipMcTaskLineVersionQuery().setVersionId(wipMcTaskVersion.getVersionId()));
-
         Map<String, WipMcTaskLineVersionView> wipMcTaskLineVersionViewMap = wipMcTaskLineVersionViews.stream()
                 .collect(Collectors.toMap(WipMcTaskLineVersionView::getSoLineId, Function.identity()));
 
@@ -114,7 +113,10 @@ public class WipMcTaskVersionService extends WipBaseService<WipMcTaskVersionEnti
                 EntityUtils.writeStdCrtInfoToEntity(wipMcTaskLineVersion, CurrentContextUtils.getOrDefaultUserId("SCM-WIP"));
                 lineVersionInsertList.add(wipMcTaskLineVersion);
             } else {
-                wipMcTaskLineVersion.setId(wipMcTaskLineVersionView.getId());
+                wipMcTaskLineVersion.setId(wipMcTaskLineVersionView.getId())
+                    .setCrtTime(wipMcTaskLineVersionView.getCrtTime())
+                    .setCrtHost(wipMcTaskLineVersionView.getCrtHost())
+                    .setCrtUser(wipMcTaskLineVersionView.getCrtUser());
                 EntityUtils.writeStdUpdInfoToEntity(wipMcTaskLineVersionView, CurrentContextUtils.getOrDefaultUserId("SCM-WIP"));
                 lineVersionUpdateList.add(wipMcTaskLineVersion);
 
@@ -134,7 +136,7 @@ public class WipMcTaskVersionService extends WipBaseService<WipMcTaskVersionEnti
 
         repository.updateSelectiveById(wipMcTaskVersion);
         wipMcTaskLineVersionService.insertList(lineVersionInsertList);
-        wipMcTaskLineVersionService.updateList(lineVersionUpdateList);
+        wipMcTaskLineVersionService.updateListForce(lineVersionUpdateList);
 
         if (CollectionUtils.isNotEmpty(lineVersionDeleteIdList)) {
             wipMcTaskLineVersionService.deleteListByIds(lineVersionDeleteIdList.toArray(new String[0]));

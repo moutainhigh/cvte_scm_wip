@@ -130,7 +130,12 @@
         left join Inout_Stock_View Out_View
         on Out_View.mc_task_id = wmt.mc_task_id and Out_View.mc_task_line_id = Wmtl.line_id and Out_View.Rn = 1 and Out_View.type = 'OUT'
         left join Inout_Stock_View Rm_View
-        on Rm_View.mc_task_id = wmt.mc_task_id and Rm_View.mc_task_line_id = Wmtl.line_id and Rm_View.Rn = 1 and Rm_View.type = 'RETURN_OUT_MATERIAL'
+        on Rm_View.mc_task_id = wmt.mc_task_id
+        and Rm_View.mc_task_line_id = Wmtl.line_id
+        and Rm_View.Rn = 1
+        and Rm_View.type = 'RETURN_OUT_MATERIAL'
+        -- 退料单跟出库单绑定，同一配料任务行产生新出库单时取消就退料单数据显示
+        and Rm_View.inout_stock_line_source = Out_View.inout_stock_line_id
         where 1=1
         <if test="lineStatus != null and lineStatus != ''">
             AND Wmtl.line_status = #{lineStatus}

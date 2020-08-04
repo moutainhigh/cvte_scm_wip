@@ -111,6 +111,7 @@ package scm系统{
             STATUS VC(36) --调拨单行状态(UN_POST, POSTED, CANCELLED)
             QTY --调拨数量
             POST_QTY --调拨过账数量
+            INOUT_STOCK_LINE_SOURCE --原调拨单id
         }
         WIP_MC_TASK "1"--"N" WIP_MC_TASK_LINE
         WIP_MC_TASK "1" -- "N" WIP_MC_REQ_TO_TASK

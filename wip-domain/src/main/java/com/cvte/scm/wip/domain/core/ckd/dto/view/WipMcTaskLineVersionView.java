@@ -38,4 +38,10 @@ public class WipMcTaskLineVersionView {
     @ApiModelProperty(value = "数量")
     private Integer qty;
 
+    private Date crtTime;
+
+    private String crtUser;
+
+    private String crtHost;
+
 }
