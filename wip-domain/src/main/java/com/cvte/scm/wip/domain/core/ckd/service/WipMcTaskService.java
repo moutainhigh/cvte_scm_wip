@@ -376,7 +376,7 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         if (transactionTypeNameEnum.equals(TransactionTypeNameEnum.OUT)) {
             return;
         }
-        if (transactionTypeNameEnum.equals(TransactionTypeNameEnum.IN) || transactionTypeNameEnum.equals(TransactionTypeNameEnum.OUT)) {
+        if (!transactionTypeNameEnum.equals(TransactionTypeNameEnum.IN) && !transactionTypeNameEnum.equals(TransactionTypeNameEnum.RETURN_OUT_MATERIAL)) {
             // 优先保持双方系统的数据一致, 不抛异常
             log.error("inoutLineSource字段暂不支持其他类型调拨单的初始化");
             return;

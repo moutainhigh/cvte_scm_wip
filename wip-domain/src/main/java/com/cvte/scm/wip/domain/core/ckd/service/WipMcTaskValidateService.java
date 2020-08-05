@@ -127,7 +127,7 @@ public class WipMcTaskValidateService {
                     if (hasDeliveryBill(wipMcTaskLineView.getDeliveryInLineStatus())) {
                         throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
                     }
-                    if (isReturnMaterial(wipMcTaskLineView)) {
+                    if (hasReturnMaterial(wipMcTaskLineView) && !isCancelled(wipMcTaskLineView.getDeliveryRmLineStatus())) {
                         throw new ParamsIncorrectException("含有生产退料单的行，请检查");
                     }
                     if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
@@ -158,14 +158,20 @@ public class WipMcTaskValidateService {
         return StringUtils.isNotBlank(status) && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(status);
     }
 
+    public boolean isCancelled(String status) {
+        return McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(status);
+    }
     public boolean isReturnMaterial(WipMcTaskLineView wipMcTaskLineView) {
-        return StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineStatus())
-                && McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryRmLineStatus())
-                && StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineSource())
-                && wipMcTaskLineView.getDeliveryRmLineSource().equals(wipMcTaskLineView.getDeliveryOutStockLineId());
+        return hasReturnMaterial(wipMcTaskLineView)
+                && McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryRmLineStatus());
     }
 
 
+    public boolean hasReturnMaterial(WipMcTaskLineView wipMcTaskLineView) {
+        return StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineStatus())
+                && StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineSource())
+                && wipMcTaskLineView.getDeliveryRmLineSource().equals(wipMcTaskLineView.getDeliveryOutStockLineId());
+    }
     /**
      * 判断是否有销管上传的唛头
      *
