@@ -247,6 +247,18 @@ public class WipRwkBillHDO extends BaseEntity {
     @ApiModelProperty(value = "来源系统")
     private String sourceCode;
 
+    @Column(name = "error_caused_by")
+    @ApiModelProperty(value = "失误造成者")
+    private String errorCausedBy;
+
+    @Column(name = "first_discoverer")
+    @ApiModelProperty(value = "第一发现人")
+    private String firstDiscoverer;
+
+    @Column(name = "top_management")
+    @ApiModelProperty(value = "参与该失误处理的最高管理层")
+    private String topManagement;
+
     public static WipReworkBillHeaderEntity buildEntity(WipRwkBillHDO billHDO) {
         WipReworkBillHeaderEntity billHeaderEntity = new WipReworkBillHeaderEntity();
         BeanUtils.copyProperties(billHDO, billHeaderEntity);

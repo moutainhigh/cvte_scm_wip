@@ -1,17 +1,10 @@
 package com.cvte.scm.wip.domain.core.rework.entity;
 
 
-import com.cvte.csb.validator.entity.BaseEntity;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import java.util.Date;
 
 /**
@@ -123,5 +116,14 @@ public class WipReworkBillHeaderEntity {
 
     @ApiModelProperty(value = "来源系统")
     private String sourceCode;
+
+    @ApiModelProperty(value = "失误造成者")
+    private String errorCausedBy;
+
+    @ApiModelProperty(value = "第一发现人")
+    private String firstDiscoverer;
+
+    @ApiModelProperty(value = "参与该失误处理的最高管理层")
+    private String topManagement;
 
 }
