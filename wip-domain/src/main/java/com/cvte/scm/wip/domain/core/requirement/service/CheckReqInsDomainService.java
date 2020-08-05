@@ -128,10 +128,10 @@ public class CheckReqInsDomainService implements DomainService {
             }
             List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
             try {
-                if (ChangeBillRecycleEnum.RECYCLE.getCode().equals(detailEntity.getIssueFlag())) {
+//                if (ChangeBillRecycleEnum.RECYCLE.getCode().equals(detailEntity.getIssueFlag())) {
                     // 仅当 回收发料 时需要校验是否已领料
-                    this.validateTargetLineIssued(reqLineList, detailEntity.getItemQty());
-                }
+                this.validateTargetLineIssued(reqLineList, detailEntity.getItemQty());
+//                }
             } catch (ServerException se) {
                 validateFailed = true;
                 detailEntity.setExecuteResult(se.getMessage());
