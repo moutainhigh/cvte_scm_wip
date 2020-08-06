@@ -247,9 +247,9 @@ public class WipRwkBillHDO extends BaseEntity {
     @ApiModelProperty(value = "来源系统")
     private String sourceCode;
 
-    @Column(name = "error_caused_by")
+    @Column(name = "fault_maker")
     @ApiModelProperty(value = "失误造成者")
-    private String errorCausedBy;
+    private String faultMaker;
 
     @Column(name = "first_discoverer")
     @ApiModelProperty(value = "第一发现人")

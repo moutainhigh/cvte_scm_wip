@@ -38,6 +38,9 @@
         <result column="upd_date" property="updDate" />
         <result column="source_order_id" property="sourceOrderId" />
         <result column="source_code" property="sourceCode" />
+        <result column="fault_maker" property="faultMaker" />
+        <result column="first_discoverer" property="firstDiscoverer" />
+        <result column="top_management" property="topManagement" />
     </resultMap>
     <select id="selectOrgByEbsCode" resultType="com.cvte.csb.sys.base.entity.SysOrg" >
         select so.*
@@ -73,7 +76,11 @@
                rbh.crt_user,
                rbh.crt_date,
                rbh.upd_user,
-               rbh.upd_date
+               rbh.upd_date,
+               rbh.source_code,
+               rbh.fault_maker,
+               rbh.first_discoverer,
+               rbh.top_management
         from wip_rwk_bill_h rbh
                  inner join (
             select rl.bill_id

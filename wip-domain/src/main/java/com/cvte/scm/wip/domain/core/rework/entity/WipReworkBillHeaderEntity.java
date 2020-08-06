@@ -118,7 +118,7 @@ public class WipReworkBillHeaderEntity {
     private String sourceCode;
 
     @ApiModelProperty(value = "失误造成者")
-    private String errorCausedBy;
+    private String faultMaker;
 
     @ApiModelProperty(value = "第一发现人")
     private String firstDiscoverer;

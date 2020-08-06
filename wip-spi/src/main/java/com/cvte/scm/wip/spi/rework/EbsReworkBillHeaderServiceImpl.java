@@ -115,8 +115,13 @@ public class EbsReworkBillHeaderServiceImpl implements EbsReworkBillHeaderServic
             FeignResult<UserBaseDTO> feignResult = sysUserApiClient.getSysUserDetail(billHeader.getCrtUser());
             account = feignResult.getData().getAccount();
         }
+
+        // 传递客户到EBS单据头的备注中, https://kb.cvte.com/pages/viewpage.action?pageId=195241969, 第4点
+        String remark = billHeader.getRemark() + " 客户：" + billHeader.getConsumerName();
+
         ebsRwkBillCreateDTO.setUserNo(account)
-                .setImportLnJson(currentBillLList);
+                .setImportLnJson(currentBillLList)
+                .setRemark(remark);
         return creatEbsBill(ebsRwkBillCreateDTO);
     }
 

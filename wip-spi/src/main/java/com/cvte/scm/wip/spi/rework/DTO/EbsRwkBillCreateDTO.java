@@ -62,4 +62,10 @@ public class EbsRwkBillCreateDTO {
     private String userNo;
 
     private List<WipReworkBillLineEntity> importLnJson;
+
+    private String faultMaker;
+
+    private String firstDiscoverer;
+
+    private String topManagement;
 }
