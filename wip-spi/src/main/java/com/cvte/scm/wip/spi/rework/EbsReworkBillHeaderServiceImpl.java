@@ -121,7 +121,8 @@ public class EbsReworkBillHeaderServiceImpl implements EbsReworkBillHeaderServic
 
         ebsRwkBillCreateDTO.setUserNo(account)
                 .setImportLnJson(currentBillLList)
-                .setRemark(remark);
+                .setRemark(remark)
+                .setChangeCode(billHeader.getReworkReasonType());
         return creatEbsBill(ebsRwkBillCreateDTO);
     }
 

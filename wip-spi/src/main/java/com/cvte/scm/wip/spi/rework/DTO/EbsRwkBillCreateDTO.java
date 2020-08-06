@@ -68,4 +68,6 @@ public class EbsRwkBillCreateDTO {
     private String firstDiscoverer;
 
     private String topManagement;
+
+    private String changeCode;
 }
