@@ -240,13 +240,17 @@ public class ReqInsDetailEntity implements Entity<String> {
         String actualItemNo = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(Collectors.joining(","));
         this.setActualItemNo(Optional.ofNullable(actualItemNo).orElse(this.getItemNoOld()));
 
+        return this.parseByType(reqLineList, wipLotMap, typeEnum);
+    }
+
+    private List<WipReqLineEntity> parseByType(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap, InsOperationTypeEnum typeEnum) {
         switch (typeEnum) {
             case ADD:
                 return this.parseAddType(wipLotMap);
             case DELETE:
                 return this.parseDeleteType(reqLineList);
             case REPLACE:
-                return this.parseReplaceType(reqLineList);
+                return this.parseReplaceType(reqLineList, wipLotMap);
             case REDUCE:
                 return this.parseReduceType(reqLineList, wipLotMap);
             case INCREASE:
@@ -300,14 +304,48 @@ public class ReqInsDetailEntity implements Entity<String> {
         return reqLineList;
     }
 
-    private List<WipReqLineEntity> parseReplaceType(List<WipReqLineEntity> reqLineList) {
+    private List<WipReqLineEntity> parseReplaceType(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap) {
         if (StringUtils.isBlank(this.getItemIdNew())) {
             throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + "替换后物料不可为空");
         }
-        reqLineList.forEach(line ->
-                line.setBeforeItemNo(line.getItemNo())
-                .setItemNo(this.getItemNoNew())
-                .setChangeType(ChangedTypeEnum.REPLACE.getCode()));
+        // 获取除了物料ID和物料编码外其他主键均相同的投料行，这是因为这些投料行的替换后物料相同，第一个新增以后，后面的会报主键重复错误
+        List<WipReqLineEntity> dupLineList = WipReqLineEntity.retrieveDuplicateExceptItem(reqLineList);
+        if (ListUtil.notEmpty(dupLineList)) {
+            reqLineList.removeAll(dupLineList);
+        }
+        if (ListUtil.notEmpty(reqLineList)) {
+            reqLineList.forEach(line ->
+                    line.setBeforeItemNo(line.getItemNo())
+                            .setItemNo(this.getItemNoNew())
+                            .setChangeType(ChangedTypeEnum.REPLACE.getCode()));
+        }
+
+        String originTypeEnum = this.getOperationType();
+        WipReqLineEntity increaseLine = null;
+        for (int i = 0; i < dupLineList.size(); i++) {
+            WipReqLineEntity dupLine = dupLineList.get(i);
+            // 减少
+            WipReqLineEntity reduceLine = new WipReqLineEntity();
+            BeanUtils.copyProperties(dupLine, reduceLine);
+            this.setOperationType(InsOperationTypeEnum.REDUCE.getCode());
+            reqLineList.addAll(this.parseByType(Collections.singletonList(dupLine), wipLotMap, InsOperationTypeEnum.REDUCE));
+            // 增加
+            this.setOperationType(InsOperationTypeEnum.INCREASE.getCode());
+            List<WipReqLineEntity> increaseLineList = null;
+            if (Objects.nonNull(increaseLine)) {
+                increaseLine.setChangeType(null);
+                increaseLineList = Collections.singletonList(increaseLine);
+            }
+            List<WipReqLineEntity> increasedLineList = this.parseByType(increaseLineList, wipLotMap, InsOperationTypeEnum.INCREASE);
+            WipReqLineEntity increasedLine = increasedLineList.stream()
+                    .filter(line -> ChangedTypeEnum.ADD.getCode().equals(line.getChangeType()) || ChangedTypeEnum.INCREASE.getCode().equals(line.getChangeType()))
+                    .collect(Collectors.toList())
+                    .get(0);
+            increaseLine = new WipReqLineEntity();
+            BeanUtils.copyProperties(increasedLine, increaseLine);
+            reqLineList.addAll(increasedLineList);
+        }
+        this.setOperationType(originTypeEnum);
         return reqLineList;
     }
 
