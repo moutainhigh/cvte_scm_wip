@@ -70,4 +70,6 @@ public class EbsRwkBillCreateDTO {
     private String topManagement;
 
     private String changeCode;
+
+    private String customerName;
 }

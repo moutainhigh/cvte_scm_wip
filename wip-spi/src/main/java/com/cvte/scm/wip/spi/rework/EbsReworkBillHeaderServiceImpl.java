@@ -116,13 +116,10 @@ public class EbsReworkBillHeaderServiceImpl implements EbsReworkBillHeaderServic
             account = feignResult.getData().getAccount();
         }
 
-        // 传递客户到EBS单据头的备注中, https://kb.cvte.com/pages/viewpage.action?pageId=195241969, 第4点
-        String remark = billHeader.getRemark() + " 客户：" + billHeader.getConsumerName();
-
         ebsRwkBillCreateDTO.setUserNo(account)
                 .setImportLnJson(currentBillLList)
-                .setRemark(remark)
-                .setChangeCode(billHeader.getReworkReasonType());
+                .setChangeCode(billHeader.getReworkReasonType())
+                .setCustomerName(billHeader.getConsumerName());
         return creatEbsBill(ebsRwkBillCreateDTO);
     }
 
