@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.spi.rework.DTO;
+package com.cvte.scm.wip.spi.rework.dto;
 
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkBillLineEntity;
 import io.swagger.annotations.ApiModel;
@@ -61,7 +61,7 @@ public class EbsRwkBillCreateDTO {
 
     private String userNo;
 
-    private List<WipReworkBillLineEntity> importLnJson;
+    private List<EbsRwkBillLineCreateDTO> importLnJson;
 
     private String faultMaker;
 

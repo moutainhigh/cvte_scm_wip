@@ -21,7 +21,8 @@ import com.cvte.scm.wip.infrastructure.client.common.dto.EbsResponse;
 import com.cvte.scm.wip.infrastructure.client.common.dto.FeignResult;
 import com.cvte.scm.wip.infrastructure.client.sys.base.SysUserApiClient;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.UserBaseDTO;
-import com.cvte.scm.wip.spi.rework.DTO.EbsRwkBillCreateDTO;
+import com.cvte.scm.wip.spi.rework.dto.EbsRwkBillCreateDTO;
+import com.cvte.scm.wip.spi.rework.dto.EbsRwkBillLineCreateDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -117,7 +118,7 @@ public class EbsReworkBillHeaderServiceImpl implements EbsReworkBillHeaderServic
         }
 
         ebsRwkBillCreateDTO.setUserNo(account)
-                .setImportLnJson(currentBillLList)
+                .setImportLnJson(EbsRwkBillLineCreateDTO.batchBuildDTO(currentBillLList))
                 .setChangeCode(billHeader.getReworkReasonType())
                 .setCustomerName(billHeader.getConsumerName());
         return creatEbsBill(ebsRwkBillCreateDTO);
