@@ -32,6 +32,6 @@ public class WipInterfaceJobHandle extends IJobHandler {
         XxlJobLogger.log("开始执行接口遗漏数据执行的定时任务");
         wipReqInterfaceService.executeOmissionData();
         XxlJobLogger.log("接口遗漏数据执行的定时任务执行结束");
-        return ReturnT.SUCCESS;
+        return new ReturnT<>(null);
     }
 }

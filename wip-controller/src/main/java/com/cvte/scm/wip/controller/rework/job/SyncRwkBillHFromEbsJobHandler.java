@@ -40,8 +40,6 @@ public class SyncRwkBillHFromEbsJobHandler extends IJobHandler {
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(timeRange);
         Date date = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
         String message = wipReworkBillSyncService.syncBillFromEbs(date, null);
-        ReturnT<String> returnT = ReturnT.SUCCESS;
-        returnT.setMsg(message);
-        return returnT;
+        return new ReturnT<>(ReturnT.SUCCESS_CODE, message);
     }
 }

@@ -31,6 +31,6 @@ public class RefreshSubRuleExpiredStatusJobHandle extends IJobHandler {
         /* 过了失效时间的临时代用单规则，状态自动变成"已失效" */
         int rowsAffected = ruleRepository.expire();
         XxlJobLogger.log(String.format("成功设置了 %d 条临时代用单的状态为已失效！", rowsAffected));
-        return ReturnT.SUCCESS;
+        return new ReturnT<>(null);
     }
 }
