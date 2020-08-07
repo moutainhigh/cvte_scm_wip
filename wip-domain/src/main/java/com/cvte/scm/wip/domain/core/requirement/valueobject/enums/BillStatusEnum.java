@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * @author : jf
@@ -29,7 +30,7 @@ public enum BillStatusEnum implements Codeable {
         return !CLOSED.getCode().equals(status) && !CANCELLED.getCode().equals(status);
     }
 
-    public static EnumSet<BillStatusEnum> getValidStatusSet() {
+    public static Set<BillStatusEnum> getValidStatusSet() {
         return EnumSet.of(BillStatusEnum.DRAFT, BillStatusEnum.CONFIRMED, BillStatusEnum.PREPARED, BillStatusEnum.ISSUED);
     }
 

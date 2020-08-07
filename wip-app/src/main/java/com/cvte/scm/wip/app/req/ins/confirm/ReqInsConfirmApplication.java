@@ -12,6 +12,7 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService;
+import com.cvte.scm.wip.domain.core.requirement.service.QueryReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +41,16 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
     private CheckReqInsDomainService checkReqInsDomainService;
     private WipReqLineService wipReqLineService;
+    private QueryReqLineService queryReqLineService;
     private DataSourceTransactionManager pgTransactionManager;
     private TransactionTemplate transactionTemplate;
 
     public ReqInsConfirmApplication(CheckReqInsDomainService checkReqInsDomainService, WipReqLineService wipReqLineService
-            , @Qualifier("pgTransactionManager")DataSourceTransactionManager pgTransactionManager
+            , QueryReqLineService queryReqLineService, @Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager
             , TransactionTemplate transactionTemplate) {
         this.checkReqInsDomainService = checkReqInsDomainService;
         this.wipReqLineService = wipReqLineService;
+        this.queryReqLineService = queryReqLineService;
         this.pgTransactionManager = pgTransactionManager;
         this.transactionTemplate = transactionTemplate;
     }

@@ -6,6 +6,8 @@ import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqMtrsMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqMtrsDO;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -27,4 +29,15 @@ public class WipReqMtrsRepositoryImpl implements WipReqMtrsRepository {
         WipReqMtrsDO mtrsDO = WipReqMtrsDO.buildDO(mtrsEntity);
         return wipReqMtrsMapper.selectCount(mtrsDO);
     }
+
+    @Override
+    public List<String> selectMtrsItemNo(String headerId, String itemNo) {
+        return wipReqMtrsMapper.selectMtrsItemNo(headerId, itemNo);
+    }
+
+    @Override
+    public List<String> selectSubRuleMtrsItemNo(String headerId, String itemId) {
+        return wipReqMtrsMapper.selectSubRuleMtrsItemNo(headerId, itemId);
+    }
+
 }

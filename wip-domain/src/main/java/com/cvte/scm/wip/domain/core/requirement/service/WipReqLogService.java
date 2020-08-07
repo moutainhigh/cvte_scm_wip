@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * 投料单行数据日志实现类
  *
@@ -28,7 +30,7 @@ public class WipReqLogService {
     }
 
     public void addWipReqLog(WipReqLineEntity beforeLine, WipReqLineEntity afterLine, ChangedTypeEnum type) {
-        WipReqLogEntity wipReqLog = new WipReqLogEntity().setLogId(UUIDUtils.getUUID()).setLineId(beforeLine.getLineId())
+        WipReqLogEntity wipReqLog = new WipReqLogEntity().setLogId(UUIDUtils.getUUID()).setLineId(Optional.ofNullable(beforeLine.getLineId()).orElse("null"))
                 .setBeforeItemNo(beforeLine.getItemNo()).setAfterItemNo(afterLine.getItemNo())
                 .setBeforeItemQty(beforeLine.getReqQty()).setAfterItemQty(afterLine.getReqQty())
                 .setBeforeWkpNo(beforeLine.getWkpNo()).setAfterWkpNo(afterLine.getWkpNo())
