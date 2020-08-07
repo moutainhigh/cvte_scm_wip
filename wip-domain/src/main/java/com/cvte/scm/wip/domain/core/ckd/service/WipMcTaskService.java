@@ -172,6 +172,13 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
 
         McTaskInfoView mcTaskInfoView = getMcTaskInfoView(taskId);
 
+        // 锁定已完成的配料任务，不做处理
+        if (McTaskStatusEnum.CHANGE.equals(updateToStatusEnum)
+                && McTaskStatusEnum.FINISH.getCode().equals(mcTaskInfoView.getStatus())) {
+            log.error("[updateStatus] 配料任务{}已完成，不可进行锁定操作", taskId);
+            return;
+        }
+
         if (validateUpdateTO) {
             wipMcTaskValidateService.validateUpdStatusTo(mcTaskInfoView.getStatus(), updateToStatus);
         }
