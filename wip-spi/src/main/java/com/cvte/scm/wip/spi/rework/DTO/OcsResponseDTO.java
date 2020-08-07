@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.spi.rework.DTO;
+package com.cvte.scm.wip.spi.rework.dto;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -89,4 +89,16 @@ public class ApiReworkBillVO {
     @ApiModelProperty(value = "返工数量")
     private String moReworkQty;
 
+    @ApiModelProperty(value = "来源系统")
+    private String sourceCode;
+
+    @ApiModelProperty(value = "失误造成者")
+    private String faultMaker;
+
+    @ApiModelProperty(value = "第一发现人")
+    private String firstDiscoverer;
+
+    @ApiModelProperty(value = "参与该失误处理的最高管理层")
+    private String topManagement;
+
 }

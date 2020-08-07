@@ -84,4 +84,13 @@ public class WipRwkBillVO {
     @ApiModelProperty(value = "单据行列表")
     private List<MoLotVO> billLines;
 
+    @ApiModelProperty(value = "失误造成者")
+    private String faultMaker;
+
+    @ApiModelProperty(value = "第一发现人")
+    private String firstDiscoverer;
+
+    @ApiModelProperty(value = "参与该失误处理的最高管理层")
+    private String topManagement;
+
 }

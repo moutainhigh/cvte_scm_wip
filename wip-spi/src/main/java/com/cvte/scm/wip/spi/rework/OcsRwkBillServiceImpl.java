@@ -12,7 +12,7 @@ import com.cvte.scm.wip.domain.core.rework.valueobject.WipRwkAvailableQtyVO;
 import com.cvte.scm.wip.domain.core.rework.valueobject.WipRwkMoVO;
 import com.cvte.scm.wip.domain.core.rework.valueobject.enums.WipMoReworkLotStatusEnum;
 import com.cvte.scm.wip.infrastructure.boot.config.api.OcsApiInfoConfiguration;
-import com.cvte.scm.wip.spi.rework.DTO.OcsResponseDTO;
+import com.cvte.scm.wip.spi.rework.dto.OcsResponseDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
