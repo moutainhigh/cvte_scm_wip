@@ -8,13 +8,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.beans.BeanUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Transient;
 import javax.validation.constraints.DecimalMin;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author jf
@@ -188,4 +187,31 @@ public class WipReqLineEntity {
         result = 31 * result + Objects.hashCode(this.changeType);
         return result;
     }
+
+    /**
+     * 挑选出除了物料ID和物料编码外其他主键均相同的投料行
+     * @since 2020/8/6 5:44 下午
+     * @author xueyuting
+     * @return 被挑选出来的投料行
+     */
+    public static List<WipReqLineEntity> retrieveDuplicateExceptItem(List<WipReqLineEntity> lineList) {
+        Map<WipReqLineEntity, List<WipReqLineEntity>> lineMap = new HashMap<>();
+        for (WipReqLineEntity line : lineList) {
+            WipReqLineEntity keyLine = new WipReqLineEntity();
+            BeanUtils.copyProperties(line, keyLine);
+            keyLine.setItemId(null).setItemNo(null);
+            // 把改后主键相同的投料行放在集合中
+            List<WipReqLineEntity> dupLineList = lineMap.computeIfAbsent(keyLine, k -> new ArrayList<>());
+            dupLineList.add(line);
+        }
+
+        List<WipReqLineEntity> resultList = new ArrayList<>();
+        for (List<WipReqLineEntity> dupLineList : lineMap.values()) {
+            if (dupLineList.size() > 1) {
+                resultList.addAll(dupLineList);
+            }
+        }
+        return resultList;
+    }
+
 }

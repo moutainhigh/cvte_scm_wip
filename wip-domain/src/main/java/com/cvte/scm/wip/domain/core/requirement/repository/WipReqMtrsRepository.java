@@ -2,6 +2,8 @@ package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqMtrsEntity;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -12,5 +14,9 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqMtrsEntity;
 public interface WipReqMtrsRepository {
 
     Integer selectCount(WipReqMtrsEntity mtrsEntity);
+
+    List<String> selectMtrsItemNo(String headerId, String itemNo);
+
+    List<String> selectSubRuleMtrsItemNo(String headerId, String itemId);
 
 }
