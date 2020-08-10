@@ -231,6 +231,7 @@ public class WipReworkBillHeaderService {
                     .setOrderReservedQty(orderReservedQty)
                     .setOcsReservedQty(ocsReservedQty)
                     .setAvailableQty(moAvailableQty);
+            moLotVO.generateId();
             moLotVOList.add(moLotVO);
         }
         page.setList(moLotVOList);

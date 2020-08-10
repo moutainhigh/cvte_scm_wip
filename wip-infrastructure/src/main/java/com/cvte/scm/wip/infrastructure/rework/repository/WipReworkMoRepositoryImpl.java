@@ -6,17 +6,17 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkMoEntity;
 import com.cvte.scm.wip.domain.core.rework.repository.WipReworkMoRepository;
 import com.cvte.scm.wip.domain.core.rework.valueobject.WipRwkMoVO;
+import com.cvte.scm.wip.domain.core.rework.valueobject.enums.ReworkTypeEnum;
 import com.cvte.scm.wip.domain.core.rework.valueobject.enums.WipMoReworkLotStatusEnum;
+import com.cvte.scm.wip.infrastructure.rework.mapper.WipRwkItemMapper;
 import com.cvte.scm.wip.infrastructure.rework.mapper.WipRwkMoMapper;
+import com.cvte.scm.wip.infrastructure.rework.mapper.dataobject.WipRwkItemDO;
 import com.cvte.scm.wip.infrastructure.rework.mapper.dataobject.WipRwkMoDO;
 import com.github.pagehelper.PageHelper;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
   * 
@@ -29,9 +29,11 @@ import java.util.Objects;
 public class WipReworkMoRepositoryImpl implements WipReworkMoRepository {
 
     private WipRwkMoMapper wipRwkMoMapper;
+    private WipRwkItemMapper wipRwkItemMapper;
 
-    public WipReworkMoRepositoryImpl(WipRwkMoMapper wipRwkMoMapper) {
+    public WipReworkMoRepositoryImpl(WipRwkMoMapper wipRwkMoMapper, WipRwkItemMapper wipRwkItemMapper) {
         this.wipRwkMoMapper = wipRwkMoMapper;
+        this.wipRwkItemMapper = wipRwkItemMapper;
     }
 
     @Override
@@ -43,19 +45,35 @@ public class WipReworkMoRepositoryImpl implements WipReworkMoRepository {
 
     @Override
     public List<WipReworkMoEntity> selectByParam(WipRwkMoVO moParam) {
-        Example example = createMoLotExample(moParam);
-        List<WipRwkMoDO> doList = wipRwkMoMapper.selectByExample(example);
-        return WipRwkMoDO.batchBuildEntity(doList);
+        List<WipReworkMoEntity> reworkMoList;
+        if (ReworkTypeEnum.isItemRework(moParam.getReworkType())) {
+            Example example = createItemExample(moParam);
+            List<WipRwkItemDO> doList = wipRwkItemMapper.selectByExample(example);
+            reworkMoList = WipRwkItemDO.batchBuildEntity(doList);
+        } else {
+            Example example = createMoLotExample(moParam);
+            List<WipRwkMoDO> doList = wipRwkMoMapper.selectByExample(example);
+            reworkMoList = WipRwkMoDO.batchBuildEntity(doList);
+        }
+        for (WipReworkMoEntity wipReworkMoEntity : reworkMoList) {
+            if (null == wipReworkMoEntity.getSourceLotNo()) {
+                wipReworkMoEntity.setSourceLotNo("");
+            }
+            if (null == wipReworkMoEntity.getLotStatus()) {
+                wipReworkMoEntity.setLotStatus(WipMoReworkLotStatusEnum.IN_STOCK.getDesc());
+            }
+        }
+        return reworkMoList;
     }
 
-    private Example createMoLotExample(WipRwkMoVO rwkMoDTO) {
+    private Example createMoLotExample(WipRwkMoVO rwkMoVO) {
         Example example = new Example(WipRwkMoDO.class);
-        if (StringUtils.isBlank(rwkMoDTO.getLotStatus())) {
+        if (StringUtils.isBlank(rwkMoVO.getLotStatus())) {
             throw new ParamsIncorrectException("批次状态不可为空");
         }
-        WipMoReworkLotStatusEnum lotStatusEnum = WipMoReworkLotStatusEnum.getMode(rwkMoDTO.getLotStatus());
+        WipMoReworkLotStatusEnum lotStatusEnum = WipMoReworkLotStatusEnum.getMode(rwkMoVO.getLotStatus());
         if (Objects.isNull(lotStatusEnum)) {
-            throw new ParamsIncorrectException(String.format("不支持的批次状态【%s】", rwkMoDTO.getLotStatus()));
+            throw new ParamsIncorrectException(String.format("不支持的批次状态【%s】", rwkMoVO.getLotStatus()));
         }
         // lot_status = 1 or lot_status = "库存"
         Example.Criteria criteria = example.createCriteria();
@@ -63,43 +81,62 @@ public class WipReworkMoRepositoryImpl implements WipReworkMoRepository {
         lotStatusList.add(lotStatusEnum.getCode());
         lotStatusList.add(lotStatusEnum.getDesc());
         criteria.andIn("lotStatus", lotStatusList);
-        if (StringUtils.isNotBlank(rwkMoDTO.getProductNo())) {
-            List<String> productArr = Arrays.asList(rwkMoDTO.getProductNo().split(","));
+        if (StringUtils.isNotBlank(rwkMoVO.getProductNo())) {
+            List<String> productArr = Arrays.asList(rwkMoVO.getProductNo().split(","));
             if (productArr.size() > 1) {
                 criteria.andIn("productNo", productArr);
             } else {
-                criteria.andLike("productNo", "%" + rwkMoDTO.getProductNo() + "%");
+                criteria.andLike("productNo", "%" + rwkMoVO.getProductNo() + "%");
             }
         }
-        if (StringUtils.isNotBlank(rwkMoDTO.getConsumerName())) {
-            criteria.andLike("consumerName", "%" + rwkMoDTO.getConsumerName() + "%");
+        if (StringUtils.isNotBlank(rwkMoVO.getConsumerName())) {
+            criteria.andLike("consumerName", "%" + rwkMoVO.getConsumerName() + "%");
         }
-        if (StringUtils.isNotBlank(rwkMoDTO.getCustItemNum())) {
-            criteria.andLike("custItemNum", "%" + rwkMoDTO.getCustItemNum() + "%");
+        if (StringUtils.isNotBlank(rwkMoVO.getCustItemNum())) {
+            criteria.andLike("custItemNum", "%" + rwkMoVO.getCustItemNum() + "%");
         }
-        if (StringUtils.isNotBlank(rwkMoDTO.getSourceLotNo())) {
-            criteria.andLike("sourceLotNo", "%" + rwkMoDTO.getSourceLotNo() + "%");
+        if (StringUtils.isNotBlank(rwkMoVO.getSourceLotNo())) {
+            criteria.andLike("sourceLotNo", "%" + rwkMoVO.getSourceLotNo() + "%");
         }
-        if (StringUtils.isNotBlank(rwkMoDTO.getFactoryId())) {
-            criteria.andEqualTo("factoryId", Integer.parseInt(rwkMoDTO.getFactoryId()));
-        }
-        if (StringUtils.isNotBlank(rwkMoDTO.getShipOrgId())) {
-            criteria.andEqualTo("organizationId", rwkMoDTO.getShipOrgId());
-        }
+        createRwkCriteria(rwkMoVO, criteria);
+        return example;
+    }
 
-        if (Objects.isNull(rwkMoDTO.getPageNum())) {
-            rwkMoDTO.setPageNum(1);
-        }
-        if (Objects.isNull(rwkMoDTO.getPageSize())) {
-            rwkMoDTO.setPageSize(30);
-        }
-        if (rwkMoDTO.isNeedPage()) {
-            PageHelper.startPage(rwkMoDTO.getPageNum(), rwkMoDTO.getPageSize());
-            if (StringUtils.isNotBlank(rwkMoDTO.getOrderBy())) {
-                PageHelper.orderBy(rwkMoDTO.getOrderBy() + " " + (Objects.isNull(rwkMoDTO.getOrder()) ? OrderTypeEnum.DESC : rwkMoDTO.getOrder()).toString());
+    private Example createItemExample(WipRwkMoVO rwkMoVO) {
+        Example example = new Example(WipRwkItemDO.class);
+        Example.Criteria criteria = example.createCriteria();
+        if (StringUtils.isNotBlank(rwkMoVO.getProductNo())) {
+            List<String> productArr = Arrays.asList(rwkMoVO.getProductNo().split(","));
+            if (productArr.size() > 1) {
+                criteria.andIn("itemNo", productArr);
+            } else {
+                criteria.andLike("itemNo", "%" + rwkMoVO.getProductNo() + "%");
             }
+            createRwkCriteria(rwkMoVO, criteria);
         }
         return example;
+    }
+
+    private void createRwkCriteria(WipRwkMoVO rwkMoVO, Example.Criteria criteria) {
+        if (StringUtils.isNotBlank(rwkMoVO.getFactoryId())) {
+            criteria.andEqualTo("factoryId", Integer.parseInt(rwkMoVO.getFactoryId()));
+        }
+        if (StringUtils.isNotBlank(rwkMoVO.getShipOrgId())) {
+            criteria.andEqualTo("organizationId", rwkMoVO.getShipOrgId());
+        }
+
+        if (Objects.isNull(rwkMoVO.getPageNum())) {
+            rwkMoVO.setPageNum(1);
+        }
+        if (Objects.isNull(rwkMoVO.getPageSize())) {
+            rwkMoVO.setPageSize(30);
+        }
+        if (rwkMoVO.isNeedPage()) {
+            PageHelper.startPage(rwkMoVO.getPageNum(), rwkMoVO.getPageSize());
+            if (StringUtils.isNotBlank(rwkMoVO.getOrderBy())) {
+                PageHelper.orderBy(rwkMoVO.getOrderBy() + " " + (Objects.isNull(rwkMoVO.getOrder()) ? OrderTypeEnum.DESC : rwkMoVO.getOrder()).toString());
+            }
+        }
     }
 
 }

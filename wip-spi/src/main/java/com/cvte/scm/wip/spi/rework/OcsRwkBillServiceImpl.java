@@ -10,12 +10,14 @@ import com.cvte.scm.wip.domain.core.rework.entity.WipReworkMoEntity;
 import com.cvte.scm.wip.domain.core.rework.service.OcsRwkBillService;
 import com.cvte.scm.wip.domain.core.rework.valueobject.WipRwkAvailableQtyVO;
 import com.cvte.scm.wip.domain.core.rework.valueobject.WipRwkMoVO;
+import com.cvte.scm.wip.domain.core.rework.valueobject.enums.ReworkTypeEnum;
 import com.cvte.scm.wip.domain.core.rework.valueobject.enums.WipMoReworkLotStatusEnum;
 import com.cvte.scm.wip.infrastructure.boot.config.api.OcsApiInfoConfiguration;
 import com.cvte.scm.wip.spi.rework.dto.OcsResponseDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,6 +40,9 @@ public class OcsRwkBillServiceImpl implements OcsRwkBillService {
 
     @Override
     public List<WipRwkAvailableQtyVO> getAvailableQty(WipRwkMoVO rwkMoDTO, List<WipReworkMoEntity> rwkMoList) {
+        if (ReworkTypeEnum.isItemRework(rwkMoDTO.getReworkType())) {
+            return Collections.emptyList();
+        }
         String token;
         try {
             token = accessTokenService.getAccessToken();
