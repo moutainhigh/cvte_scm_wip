@@ -13,7 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -34,28 +37,33 @@ public class WipMcTaskLineRepositoryImpl
     }
 
 
-
     @Override
     public List<WipMcTaskLineEntity> listWipMcTaskLine(WipMcTaskLineQuery query) {
 
         Example example = new Example(WipMcTaskLineDO.class);
         Example.Criteria criteria = example.createCriteria();
-
         criteria.andEqualTo("lineStatus", query.getLineStatus());
-
         if (CollectionUtils.isNotEmpty(query.getTaskIds())) {
-
             criteria.andIn("mcTaskId", query.getTaskIds());
         }
-
         if (CollectionUtils.isNotEmpty(query.getSourceLineIds())) {
             criteria.andIn("sourceLineId", query.getSourceLineIds());
         }
+        example.orderBy("crtTime").desc();
+        List<WipMcTaskLineDO> wipMcTaskLineDOS = wipMcTaskLineMapper.selectByExample(example);
+        List<WipMcTaskLineDO> afterFilters = new ArrayList<>();
+        Set<String> existSet = new HashSet<>();
+        for (WipMcTaskLineDO wipMcTaskLineDO : wipMcTaskLineDOS) {
+            if (existSet.contains(wipMcTaskLineDO.getSourceLineId())) {
+                continue;
+            }
+            existSet.add(wipMcTaskLineDO.getSourceLineId());
+            afterFilters.add(wipMcTaskLineDO);
+        }
 
-
-        return modelMapper.map(wipMcTaskLineMapper.selectByExample(example),
-                new TypeToken<List<WipMcTaskLineEntity>>(){}.getType());
+        return modelMapper.map(afterFilters, new TypeToken<List<WipMcTaskLineEntity>>(){}.getType());
     }
+
 
     @Override
     protected Class<WipMcTaskLineEntity> getEntityClass() {
