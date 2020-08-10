@@ -278,6 +278,7 @@ public class WipReworkBillHeaderService {
                 .setFactoryId(bill.getFactoryId())
                 .setProductModel(billLineList.get(0).getProductModel())
                 .setLotStatus(billLineList.get(0).getMoLotStatus())
+                .setReworkType(bill.getReworkType())
                 .setNeedPage(false);
         List<MoLotVO> moLotVOList = (List<MoLotVO>)this.getMoLotList(queryMo).getList();
         if (ListUtil.empty(moLotVOList)) {
