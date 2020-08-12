@@ -385,7 +385,7 @@ public class WipReworkBillHeaderService {
         // 校验是否有重复录入的生产批次
         List<String> lotNoList = billLines.stream().collect(Collectors.groupingBy(WipReworkBillLineEntity::getMoLotNo, Collectors.counting()))
                 .entrySet().stream()
-                .filter(item -> item.getValue() > 1)
+                .filter(item -> StringUtils.isNotBlank(item.getKey()) && item.getValue() > 1)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         if (ListUtil.notEmpty(lotNoList)) {
