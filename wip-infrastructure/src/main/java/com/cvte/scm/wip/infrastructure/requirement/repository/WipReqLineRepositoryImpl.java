@@ -24,10 +24,7 @@ import tk.mybatis.mapper.entity.Example;
 import javax.persistence.Column;
 import javax.persistence.Transient;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -208,17 +205,33 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     }
 
     @Override
-    public List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, List<String> outRangeItemNoList) {
+    public List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, List<String> roleCodeList, List<String> outRangeItemNoList) {
+        if (ListUtil.empty(roleCodeList)) {
+            return Collections.emptyList();
+        }
         Example example = new Example(WipReqManualLimitDO.class);
         Example.Criteria criteria = example.createCriteria().andEqualTo("organizationId", organization);
         criteria.andEqualTo("changeType", changeType);
+        criteria.andIn("roleCode", roleCodeList);
         List<WipReqManualLimitDO> wipReqManualLimitDOList = wipReqManualLimitMapper.selectByExample(example);
         List<String> limitItemClassList = wipReqManualLimitDOList.stream().map(WipReqManualLimitDO::getItemClass).collect(Collectors.toList());
         filterOutRangeItemNoList(itemNoList, limitItemClassList, outRangeItemNoList);
         return limitItemClassList;
     }
 
+    /**
+     * 找出变更范围外的物料
+     * @since 2020/8/11 4:33 下午
+     * @author xueyuting
+     * @param itemNoList 变更物料列表
+     * @param limitItemClassList 限制范围
+     * @param outRangeItemNoList 变更范围外的物料
+     */
     private void filterOutRangeItemNoList(List<String> itemNoList, List<String> limitItemClassList, List<String> outRangeItemNoList) {
+        if (limitItemClassList.contains("all")) {
+            // 变更范围内包含all, 则变更无限制
+            return;
+        }
         for (String itemNo : itemNoList) {
             boolean outRangeFlag = true;
             for (String limitItemClass : limitItemClassList) {
