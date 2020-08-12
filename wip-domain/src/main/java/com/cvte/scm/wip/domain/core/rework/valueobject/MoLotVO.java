@@ -14,6 +14,9 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class MoLotVO {
+
+    private String id;
+
     @ApiModelProperty(value = "库存组织ID")
     private String organizationId;
 
@@ -82,4 +85,12 @@ public class MoLotVO {
 
     @ApiModelProperty(value = "批次备注")
     private String remark;
+
+    public void generateId() {
+        StringBuilder sb = new StringBuilder();
+        this.id = sb.append(this.organizationId).append("_")
+                .append(this.factoryId).append("_")
+                .append(this.moLotNo).append("_")
+                .append(this.productNo).toString();
+    }
 }
