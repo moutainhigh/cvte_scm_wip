@@ -75,6 +75,7 @@
              , source_id
              , bom_version
              , source_lot_no
+             , '3' as status_type
         from wip.xxwip_mo_v x
         where x.date_released > now()::timestamp + '-1 hour'
           and x.organization_id in

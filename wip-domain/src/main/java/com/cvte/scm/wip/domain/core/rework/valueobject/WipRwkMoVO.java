@@ -53,4 +53,7 @@ public class WipRwkMoVO {
     @ApiModelProperty(value = "发货组织")
     private String shipOrgId;
 
+    @ApiModelProperty(value = "返工类型")
+    private String reworkType;
+
 }

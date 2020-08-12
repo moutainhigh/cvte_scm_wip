@@ -52,15 +52,12 @@ public class WipReqLineEntity {
     private String itemId;
 
     @ApiModelProperty(value = "单位用量")
-    @DecimalMin(value = "0.0", message = "单位用量必须大于等于零")
     private Double unitQty;
 
     @ApiModelProperty(value = "需求数量")
-    @DecimalMin(value = "0", message = "需求数量必须大于等于零")
     private Integer reqQty;
 
     @ApiModelProperty(value = "已发料数量")
-    @DecimalMin(value = "0", message = "已发料数量必须大于等于零")
     private Integer issuedQty;
 
     @ApiModelProperty(value = "超发原因")

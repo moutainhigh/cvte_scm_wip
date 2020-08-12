@@ -13,6 +13,8 @@ import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.ValidateUtils;
+import com.cvte.scm.wip.domain.common.context.GlobalContext;
+import com.cvte.scm.wip.domain.common.user.entity.RoleEntity;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
@@ -141,18 +143,25 @@ public class WipReqLineService {
         return "";
     }
 
+    /**
+     * 校验手工变更限制的物料
+     * @since 2020/8/11 4:17 下午
+     * @author xueyuting
+     */
     private String[] validateManualLimitItem(List<WipReqLineEntity> reqLineList, ChangedTypeEnum type) {
         String[] errorMsg = new String[]{};
-        String organizationId = null;
-        for (WipReqLineEntity line : reqLineList) {
-            if (StringUtils.isNotBlank(line.getOrganizationId())) {
-                organizationId = line.getOrganizationId();
-                break;
-            }
-        }
+        String organizationId = Optional.ofNullable(reqLineList.get(0).getOrganizationId()).orElse("275");
         List<String> itemNoList = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(toList());
+        List<String> roleCodeList = GlobalContext.getRoleList().stream().map(RoleEntity::getRoleCode).collect(Collectors.toList());
+
+        // 不在变更范围内的物料列表
         List<String> outRangeItemNoList = new ArrayList<>();
-        List<String> limitItemClassList = wipReqLineRepository.selectOutRangeItemList(type.getCode(), organizationId, itemNoList, outRangeItemNoList);
+        List<String> limitItemClassList = wipReqLineRepository.selectOutRangeItemList(type.getCode(), organizationId, itemNoList, roleCodeList, outRangeItemNoList);
+        if (ListUtil.empty(limitItemClassList)) {
+            // 防止新加入的角色没有限制
+            String msg = String.format("您的角色【%s】无变更权限", String.join("/", roleCodeList));
+            errorMsg = new String[]{msg};
+        }
         if (ListUtil.notEmpty(outRangeItemNoList)) {
             String msg = String.format("只有【%s】类物料允许%s", String.join("、", limitItemClassList), type.getDesc());
             errorMsg = new String[]{msg};
@@ -665,10 +674,10 @@ public class WipReqLineService {
                     line.setLineStatus(BillStatusEnum.ISSUED.getCode());
                 }
             }
-            if (Objects.nonNull(line.getIssuedQty()) && line.getIssuedQty() == 0 && BillStatusEnum.ISSUED.getCode().equals(line.getLineStatus())) {
+            if (Objects.nonNull(line.getIssuedQty()) && line.getIssuedQty() <= 0 && BillStatusEnum.ISSUED.getCode().equals(line.getLineStatus())) {
                 line.setLineStatus(BillStatusEnum.PREPARED.getCode());
             }
-            if (Objects.nonNull(line.getReqQty()) && line.getReqQty() <= 0) {
+            if (Objects.nonNull(line.getReqQty()) && line.getReqQty() == 0) {
                 // 需求数量减少为0, 则更新状态为取消
                 completeCancelledData(line, userId);
             }

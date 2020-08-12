@@ -112,4 +112,8 @@ public class WipReqManualLimitDO extends BaseEntity {
     @ApiModelProperty(value = "${field.comment}")
     private String updHost;
 
+    @Column(name = "role_code")
+    @ApiModelProperty(value = "角色编码")
+    private String roleCode;
+
 }

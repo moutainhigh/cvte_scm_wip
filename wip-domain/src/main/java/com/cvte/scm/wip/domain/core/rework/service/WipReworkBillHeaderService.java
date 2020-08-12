@@ -231,6 +231,7 @@ public class WipReworkBillHeaderService {
                     .setOrderReservedQty(orderReservedQty)
                     .setOcsReservedQty(ocsReservedQty)
                     .setAvailableQty(moAvailableQty);
+            moLotVO.generateId();
             moLotVOList.add(moLotVO);
         }
         page.setList(moLotVOList);
@@ -277,6 +278,7 @@ public class WipReworkBillHeaderService {
                 .setFactoryId(bill.getFactoryId())
                 .setProductModel(billLineList.get(0).getProductModel())
                 .setLotStatus(billLineList.get(0).getMoLotStatus())
+                .setReworkType(bill.getReworkType())
                 .setNeedPage(false);
         List<MoLotVO> moLotVOList = (List<MoLotVO>)this.getMoLotList(queryMo).getList();
         if (ListUtil.empty(moLotVOList)) {
@@ -383,7 +385,7 @@ public class WipReworkBillHeaderService {
         // 校验是否有重复录入的生产批次
         List<String> lotNoList = billLines.stream().collect(Collectors.groupingBy(WipReworkBillLineEntity::getMoLotNo, Collectors.counting()))
                 .entrySet().stream()
-                .filter(item -> item.getValue() > 1)
+                .filter(item -> StringUtils.isNotBlank(item.getKey()) && item.getValue() > 1)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         if (ListUtil.notEmpty(lotNoList)) {
