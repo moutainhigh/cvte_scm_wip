@@ -674,10 +674,10 @@ public class WipReqLineService {
                     line.setLineStatus(BillStatusEnum.ISSUED.getCode());
                 }
             }
-            if (Objects.nonNull(line.getIssuedQty()) && line.getIssuedQty() == 0 && BillStatusEnum.ISSUED.getCode().equals(line.getLineStatus())) {
+            if (Objects.nonNull(line.getIssuedQty()) && line.getIssuedQty() <= 0 && BillStatusEnum.ISSUED.getCode().equals(line.getLineStatus())) {
                 line.setLineStatus(BillStatusEnum.PREPARED.getCode());
             }
-            if (Objects.nonNull(line.getReqQty()) && line.getReqQty() <= 0) {
+            if (Objects.nonNull(line.getReqQty()) && line.getReqQty() == 0) {
                 // 需求数量减少为0, 则更新状态为取消
                 completeCancelledData(line, userId);
             }
