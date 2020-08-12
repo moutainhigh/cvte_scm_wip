@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.spi.rework.dto;
 
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.core.rework.entity.WipReworkBillLineEntity;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -60,12 +61,18 @@ public class EbsRwkBillLineCreateDTO {
 
     private Date updDate;
 
+    private String itemCode;
+
     public static List<EbsRwkBillLineCreateDTO> batchBuildDTO(List<WipReworkBillLineEntity> lineEntityList) {
         List<EbsRwkBillLineCreateDTO> ebsRwkBillLineCreateDTOList = new ArrayList<>();
         for (WipReworkBillLineEntity lineEntity : lineEntityList) {
             EbsRwkBillLineCreateDTO billLineCreateDTO = new EbsRwkBillLineCreateDTO();
             BeanUtils.copyProperties(lineEntity, billLineCreateDTO);
             billLineCreateDTO.setLRemark(lineEntity.getRemark());
+            if (StringUtils.isBlank(lineEntity.getMoLotNo())) {
+                // 生产批次为空的时候, 传递物料编码(01仓物料返工)
+                billLineCreateDTO.setItemCode(lineEntity.getSubProductNo());
+            }
             ebsRwkBillLineCreateDTOList.add(billLineCreateDTO);
         }
         return ebsRwkBillLineCreateDTOList;
