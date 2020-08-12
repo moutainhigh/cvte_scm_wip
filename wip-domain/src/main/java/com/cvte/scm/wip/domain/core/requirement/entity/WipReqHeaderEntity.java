@@ -119,6 +119,9 @@ public class WipReqHeaderEntity {
     @ApiModelProperty(value = "客户ID")
     private String customerId;
 
+    @ApiModelProperty(value = "工单状态")
+    private String statusType;
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
