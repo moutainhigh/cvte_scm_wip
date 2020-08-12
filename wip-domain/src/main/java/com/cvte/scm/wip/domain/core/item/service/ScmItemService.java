@@ -31,19 +31,19 @@ public class ScmItemService {
         this.scmItemRepository = scmItemRepository;
     }
 
-    public String getItemId(String organizationId, String itemNo) {
-        return getOrEmpty.apply(scmItemRepository.getItemId(organizationId, itemNo));
+    public String getItemId(String itemNo) {
+        return getOrEmpty.apply(scmItemRepository.getItemId(itemNo));
     }
 
-    public String getItemNo(String organizationId, String itemId) {
-        return getOrEmpty.apply(scmItemRepository.getItemNo(organizationId, itemId));
+    public String getItemNo(String itemId) {
+        return getOrEmpty.apply(scmItemRepository.getItemNo(itemId));
     }
 
-    public boolean hasInvalidItemNo(String organizationId, String[] itemNos) {
-        if (StringUtils.isEmpty(organizationId) || ArrayUtil.isEmpty(itemNos)) {
+    public boolean hasInvalidItemNo(String[] itemNos) {
+        if (ArrayUtil.isEmpty(itemNos)) {
             return true;
         }
-        Set<String> validItemNos = scmItemRepository.getValidItemNos(organizationId, itemNos);
+        Set<String> validItemNos = scmItemRepository.getValidItemNos(itemNos);
         return validItemNos.isEmpty() || validItemNos.size() < itemNos.length;
     }
 

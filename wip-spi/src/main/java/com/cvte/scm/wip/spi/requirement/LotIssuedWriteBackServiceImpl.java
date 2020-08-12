@@ -38,7 +38,7 @@ public class LotIssuedWriteBackServiceImpl implements LotIssuedWriteBackService 
 
     @Override
     public void writeBack(LotIssuedOpTypeEnum opType, WipReqLotIssuedEntity reqLotIssued) {
-        String itemId = scmItemMapper.getItemId(reqLotIssued.getOrganizationId(), reqLotIssued.getItemNo());
+        String itemId = scmItemMapper.getItemId(reqLotIssued.getItemNo());
 
         LotIssuedWriteBackDTO lotIssuedWriteBackDTO = new LotIssuedWriteBackDTO();
         lotIssuedWriteBackDTO.setHeaderId(reqLotIssued.getHeaderId())

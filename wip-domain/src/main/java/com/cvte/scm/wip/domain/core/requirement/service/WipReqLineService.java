@@ -132,7 +132,7 @@ public class WipReqLineService {
             return "添加失败，您填写的工序号错误，请您修改无误后再添加；";
         } else if (CollectionUtils.isNotEmpty(wipReqLineRepository.selectByExample(wipReqLineRepository.createCustomExample(wipReqLine)))) {
             return "抱歉，您添加的投料单行已存在；";
-        } else if (StringUtils.isEmpty(itemId = scmItemService.getItemId(wipReqLine.getOrganizationId(), wipReqLine.getItemNo()))) {
+        } else if (StringUtils.isEmpty(itemId = scmItemService.getItemId(wipReqLine.getItemNo()))) {
             return "添加失败，您填写的组织或物料编码错误，请您修改无误后再添加；";
         } else if (StringUtils.isEmpty(wipReqHeaderRepository.getSourceId(wipReqLine.getHeaderId()))) {
             return "添加失败，您填写的投料单头ID错误，请您修改无误后再添加；";

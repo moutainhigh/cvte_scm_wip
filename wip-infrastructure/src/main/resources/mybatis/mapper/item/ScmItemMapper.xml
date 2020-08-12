@@ -2,31 +2,30 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cvte.scm.wip.infrastructure.item.mapper.ScmItemMapper">
     <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.item.mapper.dataobject.ScmItemDO">
-        <result column="organization_id" property="organizationId"/>
         <result column="item_id" property="itemId"/>
         <result column="item_no" property="itemNo"/>
     </resultMap>
 
     <select id="getItemId" resultType="java.lang.String">
-        select item_Id
-        from scm.scm_item_v
-        where item_no = #{itemNo}
-          and organization_id = #{organizationId}
+        select inventory_item_id
+        from scm.md_item
+        where item_code = #{itemNo}
     </select>
 
     <select id="getItemNo" resultType="java.lang.String">
-        select item_no
-        from scm.scm_item_v
-        where item_id = #{itemId}
-          and organization_id = #{organizationId}
+        select item_code
+        from scm.md_item
+        where inventory_item_id = #{itemId}
     </select>
 
     <select id="getValidItemNos" resultType="java.lang.String">
-        select item_no from scm.scm_item_v
-        where organization_id = #{organizationId} and
+        select item_code
+        from scm.md_item
+        where 1 = 1
+        and
         <choose>
             <when test="itemNos != null and itemNos.size() > 0">
-                item_no in
+                item_code in
                 <foreach collection="itemNos" item="itemNo" index="index" open="(" close=")" separator=",">
                     #{itemNo}
                 </foreach>
