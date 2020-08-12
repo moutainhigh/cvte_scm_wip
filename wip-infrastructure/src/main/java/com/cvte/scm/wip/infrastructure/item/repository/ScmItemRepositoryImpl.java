@@ -26,38 +26,38 @@ public class ScmItemRepositoryImpl implements ScmItemRepository {
     }
 
     @Override
-    public String getItemId(String organizationId, String itemNo) {
-        return scmItemMapper.getItemId(organizationId, itemNo);
+    public String getItemId(String itemNo) {
+        return scmItemMapper.getItemId(itemNo);
     }
 
     @Override
-    public String getItemNo(String organizationId, String itemId) {
-        return scmItemMapper.getItemNo(organizationId, itemId);
+    public String getItemNo(String itemId) {
+        return scmItemMapper.getItemNo(itemId);
     }
 
     @Override
-    public Set<String> getValidItemNos(String organizationId, String[] itemNos) {
-        return scmItemMapper.getValidItemNos(organizationId, itemNos);
+    public Set<String> getValidItemNos(String[] itemNos) {
+        return scmItemMapper.getValidItemNos(itemNos);
     }
 
     @Override
     public List<ScmItemEntity> selectByItemNos(String organizationId, Iterable<String> itemNos) {
         Example example = new Example(ScmItemDO.class);
-        example.createCriteria().andEqualTo("organizationId", organizationId).andIn("itemNo", itemNos);
+        example.createCriteria().andIn("itemNo", itemNos);
         List<ScmItemDO> itemDOList = scmItemMapper.selectByExample(example);
 
         List<ScmItemEntity> itemEntityList = new ArrayList<>();
         for (ScmItemDO itemDO : itemDOList) {
-            ScmItemEntity itemEntity = ScmItemDO.buildEntity(itemDO);
+            ScmItemEntity itemEntity = ScmItemDO.buildEntity(itemDO, organizationId);
             itemEntityList.add(itemEntity);
         }
         return itemEntityList;
     }
 
     @Override
-    public Map<String, String> selectNoById(String organizationId, Iterable<String> itemIds) {
+    public Map<String, String> selectNoById(Iterable<String> itemIds) {
         Example example = new Example(ScmItemDO.class);
-        example.createCriteria().andEqualTo("organizationId", organizationId).andIn("itemId", itemIds);
+        example.createCriteria().andIn("itemId", itemIds);
         List<ScmItemDO> itemDOList = scmItemMapper.selectByExample(example);
 
         Map<String, String> resultMap = new HashMap<>();

@@ -12,22 +12,20 @@ import javax.persistence.Table;
 @Data
 @EqualsAndHashCode
 @Accessors(chain = true)
-@Table(name = "scm.scm_item_v")
+@Table(name = "scm.md_item")
 public class ScmItemDO {
 
-    @Column(name = "organization_id")
-    private String organizationId;
-
-    @Column(name = "item_id")
+    @Column(name = "inventory_item_id")
     private String itemId;
 
-    @Column(name = "item_no")
+    @Column(name = "item_code")
     private String itemNo;
 
-    public static ScmItemEntity buildEntity(ScmItemDO issuedDO) {
-        ScmItemEntity issuedEntity = new ScmItemEntity();
-        BeanUtils.copyProperties(issuedDO, issuedEntity);
-        return issuedEntity;
+    public static ScmItemEntity buildEntity(ScmItemDO issuedDO, String organizationId) {
+        ScmItemEntity itemEntity = new ScmItemEntity();
+        BeanUtils.copyProperties(issuedDO, itemEntity);
+        itemEntity.setOrganizationId(organizationId);
+        return itemEntity;
     }
 
     public static ScmItemDO buildDO(ScmItemEntity issuedEntity) {

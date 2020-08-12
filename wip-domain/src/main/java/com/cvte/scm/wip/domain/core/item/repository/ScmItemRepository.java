@@ -16,16 +16,16 @@ import java.util.Set;
 public interface ScmItemRepository {
 
     /* 根据指定组织和物料编码获取物料ID */
-    String getItemId(String organizationId, String itemNo);
+    String getItemId(String itemNo);
 
     /* 根据指定组织和物料ID获取物料编码 */
-    String getItemNo(String organizationId, String itemId);
+    String getItemNo(String itemId);
 
     /* 根据组织ID以及物料编码列表，获取数据库中存在的数据 */
-    Set<String> getValidItemNos(String organizationId, String[] itemNos);
+    Set<String> getValidItemNos(String[] itemNos);
 
     List<ScmItemEntity> selectByItemNos(String organizationId, Iterable<String> itemNos);
 
-    Map<String, String> selectNoById(String organizationId, Iterable<String> itemIds);
+    Map<String, String> selectNoById(Iterable<String> itemIds);
 
 }

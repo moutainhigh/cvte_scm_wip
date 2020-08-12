@@ -100,7 +100,7 @@ class ReqInsEntitySpec extends BaseJunitTest {
                 ReqInsDetailEntity.get().setInsDetailId("d1").setOperationType(InsOperationTypeEnum.REPLACE.code).setItemIdNew("111")
         ])
         def reqLineMap = ["d1": [new WipReqLineEntity(itemNo: "004.001")]]
-        when(scmItemService.getItemNo(anyObject(), anyObject())).thenReturn("004.002")
+        when(scmItemService.getItemNo(anyObject())).thenReturn("004.002")
         when:
         def reqLineList = insEntity.parse(reqLineMap)
         then:

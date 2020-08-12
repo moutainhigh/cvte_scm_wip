@@ -68,8 +68,7 @@ public class ReqInsDetailRepositoryImpl implements ReqInsDetailRepository {
             itemIdSet.add(detail.getItemIdNew());
         }
         itemIdSet.removeIf(StringUtils::isBlank);
-        String organizationId = billDetailDOList.stream().map(WipReqInsDetailDO::getOrganizationId).filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList()).get(0);
-        Map<String, String> itemNoMap = scmItemRepository.selectNoById(organizationId, itemIdSet);
+        Map<String, String> itemNoMap = scmItemRepository.selectNoById(itemIdSet);
 
         List<ReqInsDetailEntity> insDetailEntityList = WipReqInsDetailDO.batchBuildEntity(billDetailDOList);
         for (ReqInsDetailEntity detailEntity : insDetailEntityList) {
