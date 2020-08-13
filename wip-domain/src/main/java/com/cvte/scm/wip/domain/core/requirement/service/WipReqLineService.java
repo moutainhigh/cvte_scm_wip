@@ -291,8 +291,6 @@ public class WipReqLineService {
     private String validateAndGetPreparedData(WipReqLineEntity line, List<WipReqLineEntity> preparedData) {
         if (isNull(line)) {
             return "备料失败，投料单行查询条件为空；";
-        } else if (StringUtils.isEmpty(wipReqHeaderRepository.getSourceId(line.getHeaderId()))) {
-            return "备料失败，投料单行查询条件中头ID错误；";
         }
         line.setSourceCode(null);
         List<WipReqLineEntity> reqLineEntityList;
@@ -365,7 +363,11 @@ public class WipReqLineService {
             return;
         }
         String wipEntityId = moInterfaceList.get(0).getWipEntityId();
-        if (moInterfaceList.stream().anyMatch(s -> !wipEntityId.equals(s.getWipEntityId()))) {
+        if (moInterfaceList.stream().anyMatch(s -> {
+            // 更新类型跳过校验, SCM-2548 3.
+            boolean isUpdateType = ChangedTypeEnum.UPDATE.getCode().equals(s.getOperationType());
+            return !isUpdateType && !wipEntityId.equals(s.getWipEntityId());
+        })) {
             throw new ParamsIncorrectException("变更数据中不能存在不同的投料单头 ID 。");
         }
         xxwipMoInterfaceRepository.batchInsert(moInterfaceList);
