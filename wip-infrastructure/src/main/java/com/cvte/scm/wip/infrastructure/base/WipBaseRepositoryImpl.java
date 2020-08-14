@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends BaseModel, E extends BaseModel>
+        extends RepositoryTypeReference<T, E>
         implements WipBaseRepository<E> {
 
     @Autowired
@@ -37,9 +38,13 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
     @Autowired
     protected ModelMapper modelMapper;
 
-    protected abstract Class<E> getEntityClass();
+    protected Class<E> getEntityClass() {
+        return (Class<E>) getFromRawType();
+    }
 
-    protected abstract Class<T> getDomainClass();
+    protected Class<T> getDomainClass() {
+        return (Class<T>) getToRawType();
+    }
 
     protected List<T> batchBuildDO(List<E> entityList) {
         return entityList.stream().map(el -> buildDO(el)).collect(Collectors.toList());
