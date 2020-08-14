@@ -10,6 +10,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
   * 更改单的平铺数据结构
@@ -129,8 +130,8 @@ public class SourceChangeBillDTO {
                 .setMotLotNo(changeBillDTO.getMoLotNo())
                 .setSourceNo(changeBillDTO.getBillSourceNo())
                 .setToMoLotNo(changeBillDTO.getToMoLotNo())
-                .setFactoryId(changeBillDTO.getFactoryId().toString())
-                .setStatusType(changeBillDTO.getStatusType().toString())
+                .setFactoryId(Optional.ofNullable(changeBillDTO.getFactoryId()).orElse(0).toString())
+                .setStatusType(Optional.ofNullable(changeBillDTO.getStatusType()).orElse(1).toString())
                 .setTypeCode(changeBillDTO.getTypeCode());
         if (StringUtils.isBlank(billBuildVO.getBillStatus())) {
             billBuildVO.setBillStatus(StatusEnum.NORMAL.getCode());
