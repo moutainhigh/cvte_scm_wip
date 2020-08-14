@@ -218,6 +218,18 @@ public class ReqInsEntity implements Entity<String> {
         return sb.toString();
     }
 
+    public void revertStatus() {
+        this.setStatus(ProcessingStatusEnum.PENDING.getCode())
+                .setConfirmedBy("").setExecuteResult("")
+                .setInvalidBy("").setInvalidReason("");
+        headerRepository.update(this);
+        this.getDetailList().forEach(ReqInsDetailEntity::revertStatus);
+    }
+
+    public void revertIns() {
+        this.getDetailList().forEach(ReqInsDetailEntity::revertItem);
+    }
+
     public void notifyEntity() {
         domainEventPublisher.publish(new ReqInsProcessNotifyEvent(this), false);
     }

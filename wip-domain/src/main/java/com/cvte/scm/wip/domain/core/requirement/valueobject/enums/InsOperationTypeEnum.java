@@ -21,5 +21,20 @@ public enum InsOperationTypeEnum implements Codeable {
     INCREASE("5", "增加"),
     ;
 
+    public static InsOperationTypeEnum getOpposite(InsOperationTypeEnum operationTypeEnum) {
+        switch (operationTypeEnum) {
+            case ADD:
+                return InsOperationTypeEnum.DELETE;
+            case DELETE:
+                return InsOperationTypeEnum.ADD;
+            case INCREASE:
+                return InsOperationTypeEnum.REDUCE;
+            case REDUCE:
+                return InsOperationTypeEnum.INCREASE;
+            default:
+                return operationTypeEnum;
+        }
+    }
+
     private String code, desc;
 }

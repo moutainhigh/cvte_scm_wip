@@ -44,7 +44,6 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
         WipReqInsHeaderDO insDO = WipReqInsHeaderDO.buildDO(entity);
         EntityUtils.writeStdUpdInfoToEntity(insDO, EntityUtils.getWipUserId());
         insHMapper.updateByPrimaryKeySelective(insDO);
-
     }
 
     @Override
