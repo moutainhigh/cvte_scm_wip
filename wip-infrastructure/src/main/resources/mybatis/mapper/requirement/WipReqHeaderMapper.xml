@@ -85,6 +85,9 @@
           and not exists(
                 select 1 from wip.wip_req_header wrh where wrh.bill_no = x.bill_no
             )
+          <if test="factoryId != null">
+          and x.factory_id = to_number(#{factoryId})
+          </if>
     </select>
 
     <select id="existLotNumber" resultType="java.lang.Boolean">
