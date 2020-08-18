@@ -4,6 +4,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.req.ins.confirm.ReqInsConfirmApplication;
 import com.cvte.scm.wip.app.req.ins.invalid.ReqInsInvalidApplication;
+import com.cvte.scm.wip.app.req.ins.revert.ReqInsRevertApplication;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService;
@@ -32,12 +33,14 @@ public class ReqInsController {
     private WipReqLinePageService wipReqLinePageService;
     private ReqInsInvalidApplication reqInsInvalidApplication;
     private CheckReqInsDomainService checkReqInsDomainService;
+    private ReqInsRevertApplication reqInsRevertApplication;
 
-    public ReqInsController(ReqInsConfirmApplication reqInsConfirmApplication, WipReqLinePageService wipReqLinePageService, ReqInsInvalidApplication reqInsInvalidApplication, CheckReqInsDomainService checkReqInsDomainService) {
+    public ReqInsController(ReqInsConfirmApplication reqInsConfirmApplication, WipReqLinePageService wipReqLinePageService, ReqInsInvalidApplication reqInsInvalidApplication, CheckReqInsDomainService checkReqInsDomainService, ReqInsRevertApplication reqInsRevertApplication) {
         this.reqInsConfirmApplication = reqInsConfirmApplication;
         this.wipReqLinePageService = wipReqLinePageService;
         this.reqInsInvalidApplication = reqInsInvalidApplication;
         this.checkReqInsDomainService = checkReqInsDomainService;
+        this.reqInsRevertApplication = reqInsRevertApplication;
     }
 
     @PostMapping("/confirm")
@@ -73,6 +76,11 @@ public class ReqInsController {
             msg = pie.getMessage();
         }
         return new RestResponse().setData(msg);
+    }
+
+    @PostMapping("/revert")
+    public RestResponse revert(@RequestBody String... insHeaderId) {
+        return new RestResponse().setData(reqInsRevertApplication.doAction(insHeaderId));
     }
 
 }

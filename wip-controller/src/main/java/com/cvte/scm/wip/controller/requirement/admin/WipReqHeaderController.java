@@ -2,6 +2,7 @@ package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
+import com.cvte.scm.wip.app.req.line.ReqLineSyncApplication;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderPageService;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author : xueyuting
@@ -26,10 +28,12 @@ public class WipReqHeaderController {
 
     private WipReqHeaderService wipReqHeaderService;
     private WipReqHeaderPageService wipReqHeaderPageService;
+    private ReqLineSyncApplication reqLineSyncApplication;
 
-    public WipReqHeaderController(WipReqHeaderService wipReqHeaderService, WipReqHeaderPageService wipReqHeaderPageService) {
+    public WipReqHeaderController(WipReqHeaderService wipReqHeaderService, WipReqHeaderPageService wipReqHeaderPageService, ReqLineSyncApplication reqLineSyncApplication) {
         this.wipReqHeaderService = wipReqHeaderService;
         this.wipReqHeaderPageService = wipReqHeaderPageService;
+        this.reqLineSyncApplication = reqLineSyncApplication;
     }
 
     @PostMapping("/update")
@@ -42,6 +46,12 @@ public class WipReqHeaderController {
     public RestResponse headerInfo(@PathVariable("headerId") String headerId) {
         WipReqHeaderEntity reqHeader = wipReqHeaderPageService.getDetail(headerId);
         return new RestResponse().setData(reqHeader);
+    }
+
+    @PostMapping("/sync")
+    public RestResponse sync(@RequestBody Map<String, Object> map) {
+        reqLineSyncApplication.doAction(map);
+        return new RestResponse();
     }
 
 }

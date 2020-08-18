@@ -513,6 +513,30 @@ public class ReqInsDetailEntity implements Entity<String> {
         }
     }
 
+    public void revertStatus() {
+        this.setInsStatus(ProcessingStatusEnum.PENDING.getCode())
+                .setExecuteResult("")
+                .setConfirmedBy("");
+        if (StringUtils.isNotBlank(this.getInvalidBy())) {
+            // 只还原用户作废的单据
+            this.setInvalidBy("").setInvalidReason("");
+        }
+        detailRepository.update(this);
+    }
+
+    public void revertItem() {
+        InsOperationTypeEnum operationTypeEnum = CodeableEnumUtils.getCodeableEnumByCode(this.getOperationType(), InsOperationTypeEnum.class);
+        this.setOperationType(InsOperationTypeEnum.getOpposite(operationTypeEnum).getCode());
+        if (InsOperationTypeEnum.REPLACE.equals(operationTypeEnum)) {
+            String tempItemIdOld = this.getItemIdOld();
+            String tempItemNoOld = this.getItemNoOld();
+            this.setItemIdOld(this.getItemIdNew())
+                    .setItemIdNew(tempItemIdOld)
+                    .setItemNoOld(this.getItemNoNew())
+                    .setItemNoNew(tempItemNoOld);
+        }
+    }
+
     @Override
     public String toString() {
         List<String> fieldPrintList = new ArrayList<>();
