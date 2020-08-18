@@ -113,7 +113,7 @@ class ReqInsEntitySpec extends BaseJunitTest {
         ReqInsEntity reqIns = ReqInsEntity.get().setDetailList([
                 ReqInsDetailEntity.get()
         ])
-        doNothing().when(headerRepository).update(anyObject())
+        doNothing().when(headerRepository).updateSelective(anyObject())
         doNothing().when(detailRepository).update(anyObject())
         when:
         reqIns.processSuccess()
