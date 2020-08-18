@@ -8,6 +8,7 @@ import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.InsOperationTypeEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum
@@ -33,12 +34,12 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
                 .setDetailList([ReqInsDetailEntity.get()])
         def reqLineList = []
-        when(lineRepository.selectValidByKey(anyObject(), anyObject())).thenReturn(reqLineList)
+        when(lineRepository.selectValidByKey(anyObject() as WipReqLineKeyQueryVO, anyList())).thenReturn(reqLineList)
         when:
         checkReqInsDomainService.validAndGetLine(reqIns)
         then:
         ServerException ie = thrown()
-        ie.getMessage() == ReqInsErrEnum.TARGET_LINE_INVALID.desc
+        ie.getMessage() == "投料行不存在或用量为空"
     }
 
     def "one of lines is issued"() {
@@ -47,7 +48,7 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
                 .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1")])
         def reqLineList = [
                 new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode()),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode())
+                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), reqQty: 100, issuedQty: 100)
         ]
         def reqLineMap = new HashMap()
         reqLineMap.put("detail1", reqLineList)
@@ -87,7 +88,7 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         checkReqInsDomainService.checkPartMix(reqIns, reqLineMap)
         then:
         ServerException ie = thrown()
-        ie.getMessage() == ReqInsErrEnum.PART_MIX.desc + reqIns.getDetailList().get(0).toString()
+        ie.getMessage() == ReqInsErrEnum.PART_MIX.desc
     }
 
     def "pre ins exists"() {
@@ -95,11 +96,11 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         def df = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS")
         def reqIns = ReqInsEntity.get().setStatus(ProcessingStatusEnum.PENDING.code).setAimHeaderId("header1").setAimReqLotNo("XX1").setEnableDate(df.parse("2020-06-02 00:00:00"))
         def existsReqIns = [new ReqInsEntity().setInsHeaderId("insHead1").setEnableDate(df.parse("2020-06-01 00:00:00"))]
-        when(headerRepository.selectByAimHeaderId(anyObject(), anyObject())).thenReturn(existsReqIns)
+        when(headerRepository.selectByAimHeaderId(anyString(), anyList())).thenReturn(existsReqIns)
         when:
         checkReqInsDomainService.checkPreInsExists(reqIns)
         then:
         ServerException ie = thrown()
-        ie.getMessage() == ReqInsErrEnum.EXISTS_PRE_INS.desc + "XX1"
+        ie.getMessage() == ReqInsErrEnum.EXISTS_PRE_INS.desc + ","
     }
 }
