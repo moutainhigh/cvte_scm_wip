@@ -16,7 +16,7 @@ public interface WipReqHeaderMapper extends CommonMapper<WipReqHeaderDO> {
     String getSourceId(@Param("headerId") String headerId);
 
     /* 获取工单信息，主要用投料单头的增量写入。 */
-    List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList);
+    List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId);
 
     /* 判断货位信息在投料单头下是否存在 */
     boolean existLotNumber(@Param("headerId") Integer headerId, @Param("lotNumber") String lotNumber);

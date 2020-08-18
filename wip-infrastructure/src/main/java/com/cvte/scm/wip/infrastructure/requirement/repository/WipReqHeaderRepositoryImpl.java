@@ -100,8 +100,8 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
     }
 
     @Override
-    public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList) {
-        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectAddedData(organizationIdList);
+    public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId) {
+        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectAddedData(organizationIdList, factoryId);
         return WipReqHeaderDO.batchBuildEntity(headerDOList);
     }
 

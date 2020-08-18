@@ -27,7 +27,7 @@ public interface WipReqHeaderRepository {
     List<WipReqHeaderEntity> selectByExample(Example example);
 
     /* 获取工单信息，主要用投料单头的增量写入。 */
-    List<WipReqHeaderEntity> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList);
+    List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId);
 
     String validateAndGetUpdateDataHelper(WipReqHeaderEntity header, List<WipReqHeaderEntity> updateWipReqHeaders);
 
