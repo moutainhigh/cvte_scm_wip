@@ -28,6 +28,9 @@
         <result column="qty" property="qty"/>
         <result column="item_code" property="itemCode"/>
         <result column="qty" property="qty"/>
+        <result column="crt_time" property="crtTime" />
+        <result column="crtHost" property="crtHost" />
+        <result column="crtUser" property="crtUser" />
     </resultMap>
 
 
@@ -40,6 +43,9 @@
             , Wmtlv.so_line_id
             , coalesce(Wmtlv.qty, 0) qty
             , Mi.item_code
+            , wmtlv.crt_host
+            , wmtlv.crt_time
+            , wmtlv.crt_user
         from wip_mc_task_version Wmtv
         join wip_mc_task_line_version Wmtlv on Wmtv.version_id = Wmtlv.version_id
         left join scm.md_item Mi on Mi.inventory_item_id = Wmtlv.item_id

@@ -1,7 +1,12 @@
 package com.cvte.scm.wip.infrastructure;
 
+import com.cvte.scm.wip.domain.common.serial.SerialNoGenerationService;
 import com.cvte.scm.wip.domain.common.user.service.*;
 import com.cvte.scm.wip.domain.common.view.service.ViewService;
+import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillWriteBackService;
+import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
+import com.cvte.scm.wip.domain.core.rework.service.EbsReworkBillHeaderService;
+import com.cvte.scm.wip.domain.core.rework.service.OcsRwkBillService;
 import com.cvte.scm.wip.domain.core.thirdpart.ebs.service.EbsInvokeService;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -54,4 +59,29 @@ public class TestConfiguration {
         return Mockito.mock(ViewService.class);
     }
 
+    @Bean
+    public ChangeBillWriteBackService changeBillWriteBackService() {
+        return Mockito.mock(ChangeBillWriteBackService.class);
+    }
+
+    @Bean
+    public SourceChangeBillService sourceChangeBillService() {
+        return Mockito.mock(SourceChangeBillService.class);
+    }
+
+    @Bean
+    public SerialNoGenerationService serialNoGenerationService() {
+        return Mockito.mock(SerialNoGenerationService.class);
+    }
+
+
+    @Bean
+    public OcsRwkBillService ocsRwkBillService() {
+        return Mockito.mock(OcsRwkBillService.class);
+    }
+
+    @Bean
+    public EbsReworkBillHeaderService ebsReworkBillHeaderService() {
+        return Mockito.mock(EbsReworkBillHeaderService.class);
+    }
 }

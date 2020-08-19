@@ -6,7 +6,6 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -59,10 +58,10 @@ public interface WipReqLineRepository {
      * @param changeType 变更类型
      * @param organization 组织
      * @param itemNoList 用于校验的物料编号
-     * @param roleCodeList 角色编码列表
+     * @param dimensionId 组织维度
      * @param outRangeItemNoList {out}筛选出的范围外的物料编号
      * @return 允许手工变更的物料类别列表
      */
-    List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, List<String> roleCodeList, List<String> outRangeItemNoList);
+    List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, String dimensionId, List<String> outRangeItemNoList);
 
 }

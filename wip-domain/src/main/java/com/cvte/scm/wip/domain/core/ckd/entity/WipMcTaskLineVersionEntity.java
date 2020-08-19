@@ -104,6 +104,15 @@ public class WipMcTaskLineVersionEntity extends BaseModel {
 
     private String deliveryOutLineNo;
 
+
+    /* 退料单 */
+    private String deliveryRmStatus;
+    private String deliveryRmLineStatus;
+    private String deliveryRmNo;
+    private String deliveryRmLineNo;
+    private Integer deliveryRmQty;
+    private Integer deliveryRMPostQty;
+
     /**
      * ${field.comment}
      */

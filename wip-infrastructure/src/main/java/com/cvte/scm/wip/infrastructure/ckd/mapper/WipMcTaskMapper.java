@@ -22,9 +22,7 @@ public interface WipMcTaskMapper extends CommonMapper<WipMcTaskDO> {
 
     McTaskInfoView getMcTaskInfoView(@Param("mcTaskId") String mcTaskId);
 
-    List<McTaskDeliveringStockView> listMcTaskDeliveringOutStockView();
-
-    List<McTaskDeliveringStockView> listMcTaskDeliveringInStockView();
+    List<McTaskDeliveringStockView> listMcTaskDeliveringView(@Param("type") String type);
 
     List<WipLineStatusView> listWipLineStatusView(WipMcLineStatusQuery query);
 

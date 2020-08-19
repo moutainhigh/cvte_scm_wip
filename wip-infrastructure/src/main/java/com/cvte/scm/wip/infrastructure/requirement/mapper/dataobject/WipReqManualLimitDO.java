@@ -116,4 +116,8 @@ public class WipReqManualLimitDO extends BaseEntity {
     @ApiModelProperty(value = "角色编码")
     private String roleCode;
 
+    @Column(name = "dimension_id")
+    @ApiModelProperty(value = "组织维度ID")
+    private String dimensionId;
+
 }

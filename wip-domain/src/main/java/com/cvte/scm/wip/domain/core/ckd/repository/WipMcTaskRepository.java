@@ -24,10 +24,7 @@ public interface WipMcTaskRepository extends WipBaseRepository<WipMcTaskEntity> 
 
     McTaskInfoView getMcTaskInfoView(String mcTaskId);
 
-    List<McTaskDeliveringStockView> listMcTaskDeliveringOutStockView();
-
-    List<McTaskDeliveringStockView> listMcTaskDeliveringInStockView();
-
+    List<McTaskDeliveringStockView> listMcTaskDeliveringView(String type);
 
     List<WipLineStatusView> listWipLineStatusView(WipMcLineStatusQuery query);
 

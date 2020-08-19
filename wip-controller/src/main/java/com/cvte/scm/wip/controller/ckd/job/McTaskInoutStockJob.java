@@ -4,6 +4,7 @@ import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskDeliveringStockView;
+import com.cvte.scm.wip.domain.core.ckd.enums.TransactionTypeNameEnum;
 import com.cvte.scm.wip.domain.core.ckd.hook.WriteBackHook;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcInoutStockWriteBackService;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskService;
@@ -42,7 +43,7 @@ public class McTaskInoutStockJob extends IJobHandler {
         writeBackService.writeBackInoutStock(new WriteBackHook() {
             @Override
             public List<McTaskDeliveringStockView> listMcTaskDeliveringStockView() {
-                return wipMcTaskService.listMcTaskDeliveringOutStockView();
+                return wipMcTaskService.listMcTaskDeliveringView(TransactionTypeNameEnum.OUT.getCode());
             }
 
             @Override
@@ -51,12 +52,24 @@ public class McTaskInoutStockJob extends IJobHandler {
             }
         });
 
+        // 回写生产退料数据
+        writeBackService.writeBackInoutStock(new WriteBackHook() {
+            @Override
+            public List<McTaskDeliveringStockView> listMcTaskDeliveringStockView() {
+                return wipMcTaskService.listMcTaskDeliveringView(TransactionTypeNameEnum.RETURN_OUT_MATERIAL.getCode());
+            }
+
+            @Override
+            public boolean needUpdateFinishStatusToFinish() {
+                return false;
+            }
+        });
 
         // 回写调拨入库数据
         writeBackService.writeBackInoutStock(new WriteBackHook() {
             @Override
             public List<McTaskDeliveringStockView> listMcTaskDeliveringStockView() {
-                return wipMcTaskService.listMcTaskDeliveringInStockView();
+                return wipMcTaskService.listMcTaskDeliveringView(TransactionTypeNameEnum.IN.getCode());
             }
 
             @Override

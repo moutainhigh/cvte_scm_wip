@@ -63,6 +63,9 @@ public class WipMcInoutStockLineEntity extends BaseModel {
 
     @ApiModelProperty(value = "调拨过账数量")
     private Integer postQty;
+
+    @ApiModelProperty(value = "原调拨行id")
+    private String inoutStockLineSource;
     /**
      * ${field.comment}
      */

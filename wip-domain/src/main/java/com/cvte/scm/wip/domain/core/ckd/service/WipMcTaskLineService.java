@@ -8,6 +8,7 @@ import com.cvte.csb.core.exception.client.params.SourceNotFoundException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.base.WipBaseService;
@@ -244,6 +245,21 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
             wipMcTaskService.updateStatus(cancelTaskId, McTaskStatusEnum.CANCEL.getCode(), false);
         }
         return copyMcTaskIds;
+    }
+
+
+    public void refreshUpdTime(List<String> mcTaskLineIds) {
+        if (CollectionUtils.isEmpty(mcTaskLineIds)) {
+            return;
+        }
+        List<WipMcTaskLineEntity> updList = new ArrayList<>();
+        for (String mcTaskLineId : mcTaskLineIds) {
+            WipMcTaskLineEntity entity = new WipMcTaskLineEntity();
+            entity.setLineId(mcTaskLineId);
+            EntityUtils.writeStdUpdInfoToEntity(entity, CurrentContextUtils.getOrDefaultUserId(CommonUserConstant.SCM_WIP));
+            updList.add(entity);
+        }
+        updateList(updList);
     }
 
     private void validateSourceLine(List<WipMcTaskSaveDTO.McLine> mcLines) {

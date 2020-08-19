@@ -126,6 +126,21 @@ public class WipMcTaskLineVersionDO extends BaseModel {
     @Column(name = "delivery_out_line_no")
     private String deliveryOutLineNo;
 
+    /* 退料单 */
+    @Column(name = "delivery_rm_status")
+    private String deliveryRmStatus;
+    @Column(name = "delivery_rm_line_status")
+    private String deliveryRmLineStatus;
+    @Column(name = "delivery_rm_no")
+    private String deliveryRmNo;
+    @Column(name = "delivery_rm_line_no")
+    private String deliveryRmLineNo;
+    @Column(name = "delivery_rm_qty")
+    private Integer deliveryRmQty;
+    @Column(name = "delivery_rm_post_qty")
+    private Integer deliveryRMPostQty;
+
+
     /**
      * ${field.comment}
      */

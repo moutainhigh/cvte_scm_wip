@@ -205,14 +205,11 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     }
 
     @Override
-    public List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, List<String> roleCodeList, List<String> outRangeItemNoList) {
-        if (ListUtil.empty(roleCodeList)) {
-            return Collections.emptyList();
-        }
+    public List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, String dimensionId, List<String> outRangeItemNoList) {
         Example example = new Example(WipReqManualLimitDO.class);
         Example.Criteria criteria = example.createCriteria().andEqualTo("organizationId", organization);
         criteria.andEqualTo("changeType", changeType);
-        criteria.andIn("roleCode", roleCodeList);
+        criteria.andEqualTo("dimensionId", dimensionId);
         List<WipReqManualLimitDO> wipReqManualLimitDOList = wipReqManualLimitMapper.selectByExample(example);
         List<String> limitItemClassList = wipReqManualLimitDOList.stream().map(WipReqManualLimitDO::getItemClass).collect(Collectors.toList());
         filterOutRangeItemNoList(itemNoList, limitItemClassList, outRangeItemNoList);
