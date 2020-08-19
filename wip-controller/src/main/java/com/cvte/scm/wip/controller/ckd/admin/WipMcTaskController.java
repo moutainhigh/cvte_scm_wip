@@ -84,6 +84,14 @@ public class WipMcTaskController {
         return ResponseFactory.getOkResponse(null);
     }
 
+    @PostMapping("/{mcTaskId}/stock/{versionId}/return_material")
+    public RestResponse returnMaterial(@PathVariable String mcTaskId,
+                                 @PathVariable String versionId,
+                                 @RequestBody List<String> mcTaskLineIds) {
+        wipMcTaskService.inoutStock(TransactionTypeNameEnum.RETURN_OUT_MATERIAL, mcTaskId, versionId, mcTaskLineIds);
+        return ResponseFactory.getOkResponse(null);
+    }
+
 
     @PostMapping("/attachment")
     public RestResponse save(@RequestBody List<AttachmentDTO> attachmentSaveDTOList) {

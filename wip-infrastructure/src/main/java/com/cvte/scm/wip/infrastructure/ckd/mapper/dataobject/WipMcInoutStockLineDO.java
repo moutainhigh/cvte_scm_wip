@@ -73,6 +73,10 @@ public class WipMcInoutStockLineDO extends BaseModel {
     @Column(name = "post_qty")
     @ApiModelProperty(value = "调拨过账数量")
     private Integer postQty;
+
+    @ApiModelProperty(value = "原调拨行id")
+    @Column(name = "inout_stock_line_source")
+    private String inoutStockLineSource;
     /**
      * ${field.comment}
      */

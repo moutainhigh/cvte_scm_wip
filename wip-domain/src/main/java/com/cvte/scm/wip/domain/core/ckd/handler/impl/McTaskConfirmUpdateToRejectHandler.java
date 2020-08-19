@@ -3,16 +3,15 @@ package com.cvte.scm.wip.domain.core.ckd.handler.impl;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.core.exception.client.params.ParamsRequiredException;
 import com.cvte.csb.toolkit.ObjectUtils;
-import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.core.ckd.annotation.McTaskStatusAnnotation;
 import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskLineQuery;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.McTaskInfoView;
 import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskLineView;
-import com.cvte.scm.wip.domain.core.ckd.enums.McTaskDeliveryStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskLineStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.handler.McTaskStatusUpdateIHandler;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskLineService;
+import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskValidateService;
 import com.cvte.scm.wip.domain.core.ckd.service.WipMcTaskVersionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,16 +25,16 @@ import java.util.List;
  * @date 2020-05-08 15:30
  **/
 @Component
-@McTaskStatusAnnotation(curStatus = McTaskStatusEnum.CONFIRM, updateToStatusArr = McTaskStatusEnum.REJECT)
+@McTaskStatusAnnotation(curStatus = McTaskStatusEnum.CONFIRM, updateToStatusArr = {McTaskStatusEnum.REJECT, McTaskStatusEnum.CANCEL})
 @Transactional(transactionManager = "pgTransactionManager")
 public class McTaskConfirmUpdateToRejectHandler implements McTaskStatusUpdateIHandler {
 
     @Autowired
     private WipMcTaskVersionService wipMcTaskVersionService;
-
     @Autowired
     private WipMcTaskLineService wipMcTaskLineService;
-
+    @Autowired
+    private WipMcTaskValidateService validateService;
 
     @Override
     public void handler(McTaskInfoView mcTaskInfoView) {
@@ -58,19 +57,17 @@ public class McTaskConfirmUpdateToRejectHandler implements McTaskStatusUpdateIHa
             throw new ParamsRequiredException("配料任务不能为空");
         }
 
-
         List<WipMcTaskLineView> wipMcTaskLineViews = wipMcTaskLineService.listWipMcTaskLineView(new WipMcTaskLineQuery()
                 .setTaskIds(Arrays.asList(mcTaskInfoView.getMcTaskId()))
                 .setLineStatus(McTaskLineStatusEnum.NORMAL.getCode()));
 
         for (WipMcTaskLineView wipMcTaskLineView : wipMcTaskLineViews) {
-            if ((StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
-                    && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus()))
-                    || (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
-                    && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus()))
-            ) {
-                throw new ParamsIncorrectException("必须作废已创建的调拨单才可进行驳回操作");
+            if (validateService.hasDeliveryBill(wipMcTaskLineView.getDeliveryOutLineStatus()) && !validateService.isReturnMaterial(wipMcTaskLineView)) {
+                throw new ParamsIncorrectException("调拨单需已作废或已退料才可进行该操作");
             }
         }
     }
+
+
+
 }

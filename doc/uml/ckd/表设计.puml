@@ -1,0 +1,157 @@
+@startuml
+!define TABLE(name) class name << (T,#4fc3f7) >>
+
+' {#-+}{field：字段名} {type：字段类型} {default_value：字段默认值} {comment：字段说明}
+' gender char(1) '0' --性别
+
+' # 表示该字段为主键
+' - 表示该字段非空
+' + 表示该字段要创建索引
+' VARCHAR/VARCHAR2 可以简写为 VC
+' CHAR 可以简写为 CR
+' Datetime/Date 可以简写为 DT
+' NUMBER 可以简写为 NUM
+' TEXT/CLOB 可以简写为 TEXT
+' IDX_XXX 表示创建聚合索引XXX
+package scm系统{
+    package 配料任务 {
+        TABLE(WIP_MC_TASK){
+            配料任务
+            ==
+            #MC_TASK_ID VARCHAR(50)
+            -MC_TASK_NO VARCHAR(50) --任务编号
+            -MC_WF_ID VARCHAR(50) --审批状态ID
+            -FACTORY_ID VARCHAR(50) --工厂
+            -SO_NO VARCHAR(50) --销售订单编号
+            -CLIENT VARCHAR(50) --客户
+            -MTR_READY_TIME DATE --齐套日期
+            -finish_status --配料任务完成状态
+            finish_date --配料任务完成时间
+        }
+        TABLE(WIP_MC_TASK_LINE){
+            配料任务清单
+            ==
+            #LINE_ID VARCHAR(50)
+            -MC_TASK_ID VARCHAR(50) --配料任务ID
+            -ITEM_ID VARCHAR(50)
+            -SO_LINE_NO VARCHAR(50)
+            -QTY NUMBER NUMBER --数量
+        }
+        TABLE(WIP_MC_REQ_TO_TASK){
+            配料需求单对应的配料任务
+            ==
+            #ID VARCHAR(50)
+            -MC_REQ_ID
+            -MC_TASK_ID
+        }
+
+        TABLE(WIP_MC_WF){
+            配料任务审核状态表
+            ==
+            #WF_ID VARCHAR(50)
+            -MC_TASK_ID VARCHAR(50)
+            -STATUS VARCHAR(50): 状态
+            -CRT_USER VARCHAR(50)
+            -CRT_TIME Date
+        }
+
+        TABLE(WIP_MC_TASK_VERSION){
+            配料任务版本表
+            ==
+            #VERSION_ID
+            -VERSION_NO VARCHAR(50)
+            -MC_TASK_ID VARCHAR(50)
+            -CRT_DATE DATE
+            -CRT_USER VARCHAR(50)
+        }
+
+        TABLE(WIP_MC_TASK_LINE_VERSION){
+            配料任务清单版本表
+            ==
+            #ID VARCHAR(50)
+            -VERSION_ID VARCHAR(50) --版本ID
+            -VERSION_DATE DATE --版本日期
+            -ITEM_ID VARCHAR(50) --物料ID
+            -SO_LINE_NO VARCHAR(50) --销售订单行号
+            -QTY NUMBER NUMBER --数量
+            -TRANSFER_QTY NUMBER --调拨数量
+            -POST_QTY NUMBER --过账数量
+        }
+
+        TABLE(WIP_MC_REQ){
+            MC(material config)
+            配料需求单
+            ==
+            #MC_REQ_ID VARCHAR(50) --主键
+            -MC_REQ_NO VARCHAR(50) -- 编号j
+            -ZSTATUS NUMBER --状态
+            -ORGANIZATION_IDVARCHAR(50) -- 库存组织
+            -SO_NO VARCHAR(50) -- CRM订单编号
+            -FACTORY_ID VARCHAR(50) -- 工厂
+            -BU VARCHAR(50) -- 事业部
+        }
+
+        TABLE(WIP_MC_INOUT_STOCK){
+            配料任务调拨头表
+            ==
+            INOUT_STOCK_ID VC(36) --主键
+            TYPE VC(50) --调拨类型（IN、OUT）
+            MC_TASK_ID VC(36) --配料任务头ID
+            HEADER_ID VC(36) --调拨单头ID
+            STATUS VC(50) --调拨单头状态
+        }
+
+        TABLE(WIP_MC_INOUT_STOCK_LINE){
+            配料任务调拨行表
+            ==
+            INOUT_STOCK_LINE_ID VC(36) --主键
+            INOUT_STOCK_ID VC(36) --调拨头状态
+            MC_TASK_LINE_ID VC(36) --配料任务行ID
+            LINE_ID VC(36) --调拨单行ID
+            STATUS VC(36) --调拨单行状态(UN_POST, POSTED, CANCELLED)
+            QTY --调拨数量
+            POST_QTY --调拨过账数量
+            INOUT_STOCK_LINE_SOURCE --原调拨单id
+        }
+        WIP_MC_TASK "1"--"N" WIP_MC_TASK_LINE
+        WIP_MC_TASK "1" -- "N" WIP_MC_REQ_TO_TASK
+        WIP_MC_TASK "1" -- "N" WIP_MC_TASK_VERSION
+        WIP_MC_TASK "1" -- "N" WIP_MC_WF
+        WIP_MC_REQ_TO_TASK "N" -- "1" WIP_MC_REQ
+        WIP_MC_TASK_VERSION "1" -- "N" WIP_MC_TASK_LINE_VERSION
+
+        WIP_MC_INOUT_STOCK "1"--"*" WIP_MC_INOUT_STOCK_LINE
+        WIP_MC_TASK "1" -- "*" WIP_MC_INOUT_STOCK
+        '待审状态
+        '工厂已确认，生效日期当前日期，失效日期为空
+        '工厂重新确认，前置版本失效，
+        }
+
+
+        package 通用 {
+            TABLE(wip_operation_log) {
+                业务日志
+                ==
+                id VC(36) --主键
+                module VC(100) --模块
+                reference_id VC(36) --关联业务id
+                operation VC(500) --操作
+                detail text --操作详情
+            }
+
+            TABLE(wip_attachment){
+                附件服务
+                ==
+                reference_id VC(36) --关联业务id
+                file_name VC(200) --附件名
+                content_type
+            }
+
+        }
+
+    }
+@enduml
+
+问题：
+调拨单与调拨单之间是应该要存在数据关联
+生命周期存在问题：完成（调拨出库完成），关闭（调拨出库关闭），

@@ -117,5 +117,13 @@ public abstract class WipBaseService<M, T extends WipBaseRepository<M>> {
         repository.updateList(entityList);
     }
 
+    @Transactional(
+            rollbackFor = {RuntimeException.class}
+    )
+    public void updateListForce(List<M> entityList) {
+        repository.updateListForce(entityList);
+    }
+
+
 
 }

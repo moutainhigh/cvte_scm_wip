@@ -50,4 +50,13 @@ public interface WipBaseRepository <E> {
     void insertList(List<E> entityList);
     
     void updateList(List<E> entityList);
+
+    /**
+     * 主要是为了满足部分场景下需要将字段更新为null
+     *
+     * @param entityList
+     * @return void
+     **/
+    void updateListForce(List<E> entityList);
+
 }

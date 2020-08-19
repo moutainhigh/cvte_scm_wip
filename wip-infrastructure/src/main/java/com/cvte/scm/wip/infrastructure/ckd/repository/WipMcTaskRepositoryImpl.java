@@ -15,7 +15,6 @@ import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;
 import com.cvte.scm.wip.infrastructure.ckd.mapper.WipMcTaskMapper;
 import com.cvte.scm.wip.infrastructure.ckd.mapper.dataobject.WipMcTaskDO;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -60,12 +59,8 @@ public class WipMcTaskRepositoryImpl
        return wipMcTaskMapper.getMcTaskInfoView(mcTaskId);
     }
 
-    public List<McTaskDeliveringStockView> listMcTaskDeliveringOutStockView() {
-        return wipMcTaskMapper.listMcTaskDeliveringOutStockView();
-    }
-
-    public List<McTaskDeliveringStockView> listMcTaskDeliveringInStockView() {
-        return wipMcTaskMapper.listMcTaskDeliveringInStockView();
+    public List<McTaskDeliveringStockView> listMcTaskDeliveringView(String type) {
+        return wipMcTaskMapper.listMcTaskDeliveringView(type);
     }
 
     public List<WipLineStatusView> listWipLineStatusView(WipMcLineStatusQuery query) {

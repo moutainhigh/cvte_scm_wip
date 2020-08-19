@@ -118,20 +118,33 @@ public class WipMcTaskValidateService {
                         throw new ParamsIncorrectException("需要销管上传唛头后，才能创建调拨单");
                     }
                     // 行数据调拨单不存在/已取消，才可创建
-                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryOutLineStatus())
-                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
-                        throw new ParamsIncorrectException("含有调拨出库单已存在的行，请检查");
+                    if (hasDeliveryBill(wipMcTaskLineView.getDeliveryOutLineStatus()) && !isReturnMaterial(wipMcTaskLineView) ) {
+                        throw new ParamsIncorrectException("含有调拨出库单已存在的行，需要取消调拨出库单或退料单过账后才可重新调拨出库");
                     }
                     break;
                 case IN:
                     // 行数据调拨单不存在/已取消，且行出库单对应的调拨单行已过账才可创建
-                    if (StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryInLineStatus())
-                            && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(wipMcTaskLineView.getDeliveryInLineStatus())) {
+                    if (hasDeliveryBill(wipMcTaskLineView.getDeliveryInLineStatus())) {
                         throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
                     }
-
+                    if (hasReturnMaterial(wipMcTaskLineView) && !isCancelled(wipMcTaskLineView.getDeliveryRmLineStatus())) {
+                        throw new ParamsIncorrectException("含有生产退料单的行，请检查");
+                    }
                     if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
                         throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
+                    }
+                    break;
+                case RETURN_OUT_MATERIAL:
+                    // 退料单不存在/已取消，才可以创建
+                    if (hasDeliveryBill(wipMcTaskLineView.getDeliveryRmLineStatus())) {
+                        throw new ParamsIncorrectException("含有退料单已存在的行，请检查");
+                    }
+
+                    // 出库单全部过账，且未创建入库单才允许创建退料单
+                    if (!McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryOutLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨出库单未过账的行，请检查");
+                    } else if (hasDeliveryBill(wipMcTaskLineView.getDeliveryInLineStatus())) {
+                        throw new ParamsIncorrectException("含有调拨入库单已存在的行，请检查");
                     }
                     break;
                 default:
@@ -141,7 +154,24 @@ public class WipMcTaskValidateService {
 
     }
 
+    public boolean hasDeliveryBill(String status) {
+        return StringUtils.isNotBlank(status) && !McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(status);
+    }
 
+    public boolean isCancelled(String status) {
+        return McTaskDeliveryStatusEnum.CANCELLED.getCode().equals(status);
+    }
+    public boolean isReturnMaterial(WipMcTaskLineView wipMcTaskLineView) {
+        return hasReturnMaterial(wipMcTaskLineView)
+                && McTaskDeliveryStatusEnum.POSTED.getCode().equals(wipMcTaskLineView.getDeliveryRmLineStatus());
+    }
+
+
+    public boolean hasReturnMaterial(WipMcTaskLineView wipMcTaskLineView) {
+        return StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineStatus())
+                && StringUtils.isNotBlank(wipMcTaskLineView.getDeliveryRmLineSource())
+                && wipMcTaskLineView.getDeliveryRmLineSource().equals(wipMcTaskLineView.getDeliveryOutStockLineId());
+    }
     /**
      * 判断是否有销管上传的唛头
      *
