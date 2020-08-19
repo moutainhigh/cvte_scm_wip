@@ -22,7 +22,9 @@ public enum BillStatusEnum implements Codeable {
     PREPARED("30", "已备料"),
     ISSUED("35", "已领料"),
     CLOSED("40", "已关闭"),
-    CANCELLED("50", "已取消");
+    CANCELLED("50", "已取消"),
+    FINISH("60", "已完结"),
+    ;
 
     private String code, desc;
 
