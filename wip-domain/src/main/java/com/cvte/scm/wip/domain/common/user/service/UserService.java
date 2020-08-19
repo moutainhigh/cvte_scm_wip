@@ -19,4 +19,7 @@ public interface UserService {
     List<PostEntity> listUserPosts(String userId);
 
     List<GroupEntity> listUserGroups(String userId);
+
+    String getDefaultDimensionByUserId(String userId);
+
 }

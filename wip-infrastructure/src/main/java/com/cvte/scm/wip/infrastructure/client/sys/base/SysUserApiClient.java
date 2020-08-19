@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.infrastructure.client.sys.base;
 
+import com.cvte.csb.sys.base.dto.response.UserDTO;
 import com.cvte.scm.wip.infrastructure.client.common.dto.FeignResult;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysGroup;
 import com.cvte.scm.wip.infrastructure.client.sys.base.dto.SysPost;
@@ -67,4 +68,14 @@ public interface SysUserApiClient {
      */
     @GetMapping({"/admin/v1/user/role_user_unit"})
     FeignResult<Map<String, Object>> listUserByName(@RequestParam(value = "name", required = false) String name);
+
+    /**
+     * 获取用户基础和扩展信息
+     *
+     * @param id 用户ID
+     * @return
+     */
+    @GetMapping("/admin/v1/user/{id}")
+    FeignResult<UserDTO> getSysUserFull(@PathVariable("id") String id);
+
 }

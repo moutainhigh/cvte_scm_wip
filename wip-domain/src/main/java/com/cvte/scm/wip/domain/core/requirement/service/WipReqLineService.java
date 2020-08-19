@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.requirement.service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ArrayUtil;
+import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
@@ -13,8 +14,7 @@ import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.common.utils.ValidateUtils;
-import com.cvte.scm.wip.domain.common.context.GlobalContext;
-import com.cvte.scm.wip.domain.common.user.entity.RoleEntity;
+import com.cvte.scm.wip.domain.common.user.service.UserService;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.XxwipMoInterfaceEntity;
@@ -87,8 +87,9 @@ public class WipReqLineService {
     private WipReqPrintLogService wipReqPrintLogService;
     private XxwipMoInterfaceRepository xxwipMoInterfaceRepository;
     private WipReqLineSplitService wipReqLineSplitService;
+    private UserService userService;
 
-    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService) {
+    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService, UserService userService) {
         this.scmItemService = scmItemService;
         this.wipReqLineRepository = wipReqLineRepository;
         this.wipReqLogService = wipReqLogService;
@@ -96,6 +97,7 @@ public class WipReqLineService {
         this.wipReqPrintLogService = wipReqPrintLogService;
         this.xxwipMoInterfaceRepository = xxwipMoInterfaceRepository;
         this.wipReqLineSplitService = wipReqLineSplitService;
+        this.userService = userService;
     }
 
 
@@ -152,16 +154,15 @@ public class WipReqLineService {
         String[] errorMsg = new String[]{};
         String organizationId = Optional.ofNullable(reqLineList.get(0).getOrganizationId()).orElse("275");
         List<String> itemNoList = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(toList());
-        List<String> roleCodeList = GlobalContext.getRoleList().stream().map(RoleEntity::getRoleCode).collect(Collectors.toList());
+
+        String dimensionId = userService.getDefaultDimensionByUserId(CurrentContext.getCurrentOperatingUser().getId());
+        if (StringUtils.isBlank(dimensionId)) {
+            return new String[]{"默认组织维度为空, 无法变更投料"};
+        }
 
         // 不在变更范围内的物料列表
         List<String> outRangeItemNoList = new ArrayList<>();
-        List<String> limitItemClassList = wipReqLineRepository.selectOutRangeItemList(type.getCode(), organizationId, itemNoList, roleCodeList, outRangeItemNoList);
-        if (ListUtil.empty(limitItemClassList)) {
-            // 防止新加入的角色没有限制
-            String msg = String.format("您的角色【%s】无变更权限", String.join("/", roleCodeList));
-            errorMsg = new String[]{msg};
-        }
+        List<String> limitItemClassList = wipReqLineRepository.selectOutRangeItemList(type.getCode(), organizationId, itemNoList, dimensionId, outRangeItemNoList);
         if (ListUtil.notEmpty(outRangeItemNoList)) {
             String msg = String.format("只有【%s】类物料允许%s", String.join("、", limitItemClassList), type.getDesc());
             errorMsg = new String[]{msg};
