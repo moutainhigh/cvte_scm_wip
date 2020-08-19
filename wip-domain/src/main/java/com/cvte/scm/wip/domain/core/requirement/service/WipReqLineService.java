@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ArrayUtil;
 import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
@@ -88,8 +89,9 @@ public class WipReqLineService {
     private XxwipMoInterfaceRepository xxwipMoInterfaceRepository;
     private WipReqLineSplitService wipReqLineSplitService;
     private UserService userService;
+    private CheckReqHeaderService checkReqHeaderService;
 
-    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService, UserService userService) {
+    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService, UserService userService, CheckReqHeaderService checkReqHeaderService) {
         this.scmItemService = scmItemService;
         this.wipReqLineRepository = wipReqLineRepository;
         this.wipReqLogService = wipReqLogService;
@@ -98,6 +100,7 @@ public class WipReqLineService {
         this.xxwipMoInterfaceRepository = xxwipMoInterfaceRepository;
         this.wipReqLineSplitService = wipReqLineSplitService;
         this.userService = userService;
+        this.checkReqHeaderService = checkReqHeaderService;
     }
 
 
@@ -311,11 +314,15 @@ public class WipReqLineService {
         List<WipReqLineEntity> changedLines = new ArrayList<>();
         String[] errorMessages = handleErrorMessages(parameters.validateAndGetData.apply(changedLines), parameters.eMode);
 
+        // 校验投料单状态, 只可变更已发放的单据
+        List<String> headerIdList = changedLines.stream().map(WipReqLineEntity::getHeaderId).collect(toList());
+        errorMessages = ArrayUtils.addAll(errorMessages, handleErrorMessages(checkReqHeaderService.checkMoFinished(headerIdList), parameters.eMode));
+
         if (ChangedModeEnum.MANUAL.equals(parameters.cMode)) {
             // 手工变更限制物料类别
             List<String> errMsgList = Arrays.asList(errorMessages);
             errMsgList.addAll(Arrays.asList(handleErrorMessages(validateManualLimitItem(changedLines, parameters.type), parameters.eMode)));
-            errorMessages = errMsgList.toArray(new String[0]);
+            errorMessages = ArrayUtils.addAll(errorMessages, errMsgList.toArray(new String[0]));
         }
 
         // 操作的数据可能重复，避免操作异常，故执行去重操作。
