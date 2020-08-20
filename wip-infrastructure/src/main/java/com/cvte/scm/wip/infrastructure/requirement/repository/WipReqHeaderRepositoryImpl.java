@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -157,11 +158,12 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
     @Override
     public List<WipReqHeaderEntity> listWipReqHeaderEntity(QueryWipReqHeaderVO queryWipReqHeaderVO) {
+        if (CollectionUtils.isEmpty(queryWipReqHeaderVO.getWipHeaderIds())) {
+            return Collections.emptyList();
+        }
         Example example = new Example(WipReqHeaderDO.class);
         Example.Criteria criteria = example.createCriteria();
-        if (CollectionUtils.isNotEmpty(queryWipReqHeaderVO.getWipHeaderIds())) {
-            criteria.andIn("headerId", queryWipReqHeaderVO.getWipHeaderIds());
-        }
+        criteria.andIn("headerId", queryWipReqHeaderVO.getWipHeaderIds());
         return WipReqHeaderDO.batchBuildEntity(wipReqHeaderMapper.selectByExample(example));
     }
 

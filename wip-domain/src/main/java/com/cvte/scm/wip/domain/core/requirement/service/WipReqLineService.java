@@ -315,8 +315,10 @@ public class WipReqLineService {
         String[] errorMessages = handleErrorMessages(parameters.validateAndGetData.apply(changedLines), parameters.eMode);
 
         // 校验投料单状态, 只可变更已发放的单据
-        List<String> headerIdList = changedLines.stream().map(WipReqLineEntity::getHeaderId).collect(toList());
-        errorMessages = ArrayUtils.addAll(errorMessages, handleErrorMessages(checkReqHeaderService.checkMoFinished(headerIdList), parameters.eMode));
+        if (ListUtil.notEmpty(changedLines)) {
+            List<String> headerIdList = changedLines.stream().map(WipReqLineEntity::getHeaderId).collect(toList());
+            errorMessages = ArrayUtils.addAll(errorMessages, handleErrorMessages(checkReqHeaderService.checkMoFinished(headerIdList), parameters.eMode));
+        }
 
         if (ChangedModeEnum.MANUAL.equals(parameters.cMode)) {
             // 手工变更限制物料类别
