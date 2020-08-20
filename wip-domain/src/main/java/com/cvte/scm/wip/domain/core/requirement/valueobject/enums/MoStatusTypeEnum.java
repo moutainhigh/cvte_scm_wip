@@ -17,7 +17,7 @@ public enum  MoStatusTypeEnum implements Codeable {
     UN_ISSUED("1", "未发放"),
     ISSUED("3", "已发放"),
     CANCEL("7", "已取消"),
-    FINISH("12", "已完结"),
+    FINISH("12", "已关闭"),
     ;
 
     private String code, desc;

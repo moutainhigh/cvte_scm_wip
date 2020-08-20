@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.service;
 
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
@@ -29,6 +30,9 @@ public class CheckReqHeaderService implements DomainService {
     }
 
     public String[] checkMoFinished(List<String> headerIdList) {
+        if (ListUtil.empty(headerIdList)) {
+            return new String[]{};
+        }
         List<String> distinctHeaderIdList = headerIdList.stream().distinct().collect(Collectors.toList());
         QueryWipReqHeaderVO queryWipReqHeaderVO = new QueryWipReqHeaderVO();
         queryWipReqHeaderVO.setWipHeaderIds(distinctHeaderIdList);
