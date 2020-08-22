@@ -2,7 +2,7 @@ package com.cvte.scm.wip.common.utils;
 
 import com.alibaba.excel.EasyExcel;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
-import com.cvte.scm.wip.common.listener.ExcelListener;
+import com.cvte.scm.wip.common.excel.listener.ExcelListener;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.io.Bits;
 

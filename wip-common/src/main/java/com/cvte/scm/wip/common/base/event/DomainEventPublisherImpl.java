@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.common.event;
+package com.cvte.scm.wip.common.base.event;
 
 import com.cvte.scm.wip.common.base.domain.DomainEvent;
 import com.cvte.scm.wip.common.base.domain.DomainEventPublisher;

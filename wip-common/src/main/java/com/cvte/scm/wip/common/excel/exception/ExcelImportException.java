@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.common.exception;
+package com.cvte.scm.wip.common.excel.exception;
 
 
 import com.cvte.csb.core.exception.ServerException;
