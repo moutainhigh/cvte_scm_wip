@@ -4,6 +4,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.scm.wip.common.excel.converter.definition.BaseField;
 import com.cvte.scm.wip.common.excel.converter.enums.FieldDefinitionTypeEnum;
+import com.cvte.scm.wip.common.excel.converter.enums.ValueMergeTypeEnum;
 import com.cvte.scm.wip.common.utils.EnumUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,7 @@ public class FieldDefinitionDTO {
 
     private Object valueField;
 
+    private ValueMergeTypeEnum valueMergeType;
 
     public BaseField convertToBaseField() {
         FieldDefinitionTypeEnum definitionTypeEnum = EnumUtils.getByCode(this.getType(), FieldDefinitionTypeEnum.class);

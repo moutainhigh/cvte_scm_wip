@@ -33,6 +33,8 @@ public class ExportExcelDTO {
     @ApiModelProperty("导出excel头")
     private List<String> exportHeads;
 
+    @ApiModelProperty("导出excel头标题")
+    private Map<String, String> headTextMap;
 
     @ApiModelProperty("原始头")
     private List<String> originHeads;

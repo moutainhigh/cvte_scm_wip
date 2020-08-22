@@ -24,11 +24,17 @@ public class RowToLineConverter implements Convertible {
     private Set<Object> originUniqueFiledSet;
 
     private ConvertContext convertContext;
+    private Map<String, String> headTextMap;
 
     public RowToLineConverter(String[] originHeads, Object[][] originTable, List<BaseField> columnDefines) {
+        this(originHeads, originTable, columnDefines, Collections.emptyMap());
+    }
+
+    public RowToLineConverter(String[] originHeads, Object[][] originTable, List<BaseField> columnDefines, Map<String, String> headTextMap) {
         this.originHeads = originHeads;
         this.originTable = originTable;
         this.columnDefines = columnDefines;
+        this.headTextMap = headTextMap;
 
         this.init();
     }
@@ -56,7 +62,7 @@ public class RowToLineConverter implements Convertible {
         List<List<String>> heads = new ArrayList<>(convertContext.getHeads().size());
         for (String head : convertContext.getHeads()) {
             List<String> list = new ArrayList<>();
-            list.add(head);
+            list.add(Optional.ofNullable(headTextMap.get(head)).orElse(head));
             heads.add(list);
         }
         convertedTable.setHeads(heads);

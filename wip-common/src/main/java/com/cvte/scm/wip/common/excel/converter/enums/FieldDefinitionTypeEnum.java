@@ -25,7 +25,6 @@ public enum FieldDefinitionTypeEnum implements CodeEnum {
 
     Class<? extends BaseField> cType;
 
-
     public BaseField getBaseFieldInstance() {
         try {
             return cType.newInstance();
@@ -33,4 +32,5 @@ public enum FieldDefinitionTypeEnum implements CodeEnum {
             throw new ParamsIncorrectException("字段定义实例初始化失败：code=" + code);
         }
     }
+
 }

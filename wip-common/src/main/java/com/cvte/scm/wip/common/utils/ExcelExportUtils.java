@@ -60,7 +60,8 @@ public class ExcelExportUtils {
         RowToLineConverter converter = new RowToLineConverter(
                 headList.toArray(new String[0]),
                 convertData(headList, exportExcelDTO.getOriginData()),
-                exportExcelDTO.generateBaseFields());
+                exportExcelDTO.generateBaseFields(),
+                exportExcelDTO.getHeadTextMap());
         ConvertedTable convertedTable = converter.convertToTable();
         converter.destroy();
         return convertedTable;

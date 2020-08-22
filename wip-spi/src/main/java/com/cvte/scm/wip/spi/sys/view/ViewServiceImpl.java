@@ -7,6 +7,7 @@ import com.cvte.scm.wip.domain.common.view.entity.PageResultEntity;
 import com.cvte.scm.wip.domain.common.view.service.ViewService;
 import com.cvte.scm.wip.domain.common.view.vo.DatabaseQueryVO;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
+import com.cvte.scm.wip.infrastructure.client.common.dto.FeignResult;
 import com.cvte.scm.wip.infrastructure.client.sys.view.SysViewApiClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -45,5 +46,13 @@ public class ViewServiceImpl implements ViewService {
         DatabaseQueryDTO databaseQuery = new DatabaseQueryDTO();
         BeanUtils.copyProperties(databaseQueryVO, databaseQuery);
         return sysViewApiClient.executeQuery(databaseQuery);
+    }
+
+    @Override
+    public String getViewPageSQLByViewPageParam(SysViewPageParamVO sysViewPageParam) {
+        SysViewPageParamDTO sysViewPageParamDTO = new SysViewPageParamDTO();
+        BeanUtils.copyProperties(sysViewPageParam, sysViewPageParamDTO);
+        FeignResult<Object> feignResult = sysViewApiClient.getViewPageSQLByViewPageParam(sysViewPageParamDTO);
+        return (String)feignResult.getData();
     }
 }

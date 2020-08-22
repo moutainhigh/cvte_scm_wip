@@ -3,8 +3,16 @@ package com.cvte.scm.wip.domain.core.requirement.service;
 import com.alibaba.fastjson.JSON;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.excel.converter.dto.ExportExcelDTO;
+import com.cvte.scm.wip.common.excel.converter.dto.FieldDefinitionDTO;
+import com.cvte.scm.wip.common.excel.converter.easyexcel.NumberConverter;
+import com.cvte.scm.wip.common.excel.converter.enums.FieldDefinitionTypeEnum;
+import com.cvte.scm.wip.common.excel.converter.enums.ValueMergeTypeEnum;
+import com.cvte.scm.wip.common.utils.ExcelExportUtils;
 import com.cvte.scm.wip.domain.common.view.entity.PageResultEntity;
 import com.cvte.scm.wip.domain.common.view.service.ViewService;
+import com.cvte.scm.wip.domain.common.view.vo.DatabaseQueryVO;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
@@ -14,12 +22,15 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.cvte.csb.toolkit.StringUtils.isNotEmpty;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static com.cvte.scm.wip.domain.core.requirement.valueobject.enums.EntireReportFields.*;
 
 /**
   * 
@@ -161,6 +172,63 @@ public class WipReqLinePageService {
         feignPageResult.setPageNum(originPageNum);
         feignPageResult.setPages(calculatePageNum(feignPageResult.getTotal(), feignPageResult.getPageSize()).intValue());
         return feignPageResult;
+    }
+
+    public void entireExport(SysViewPageParamVO sysViewPageParam, HttpServletResponse httpServletResponse) {
+        List<FieldDefinitionDTO> fieldDefinitionDTOList = Arrays.asList(
+                new FieldDefinitionDTO().setType(FieldDefinitionTypeEnum.UNIQUE.getCode()).setOriginFiled("id").setField("id"),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(ITEM_NO.getField()).setField(ITEM_NO.getField()),
+                new FieldDefinitionDTO().setWidth(2000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(WKP_NO.getField()).setField(WKP_NO.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(ITEM_DESC.getField()).setField(ITEM_DESC.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(CRAFT_ATTR.getField()).setField(CRAFT_ATTR.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(CRAFT_DESC.getField()).setField(CRAFT_DESC.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(CRAFT_REQ.getField()).setField(CRAFT_REQ.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(INV_QTY.getField()).setField(INV_QTY.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(ITEM_CLASS.getField()).setField(ITEM_CLASS.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(REPLACE_GROUP.getField()).setField(REPLACE_GROUP.getField()),
+                new FieldDefinitionDTO().setWidth(5000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(IS_FACTORY_PUR.getField()).setField(IS_FACTORY_PUR.getField()),
+                new FieldDefinitionDTO().setWidth(4000).setType(FieldDefinitionTypeEnum.COMMON.getCode()).setOriginFiled(REQ_QTY.getField()).setField(REQ_QTY.getField()).setValueMergeType(ValueMergeTypeEnum.SUM),
+                new FieldDefinitionDTO().setWidth(10000).setType(FieldDefinitionTypeEnum.ROW_TO_COLUMN.getCode()).setOriginFiled("source_lot_no").setValueField(REQ_QTY.getField())
+        );
+
+        final List<String> originHead = Arrays.asList("id", ITEM_NO.getField(), WKP_NO.getField(), ITEM_DESC.getField(), CRAFT_ATTR.getField(), CRAFT_DESC.getField(), CRAFT_REQ.getField(), INV_QTY.getField(), ITEM_CLASS.getField(), REPLACE_GROUP.getField(), IS_FACTORY_PUR.getField(), REQ_QTY.getField(), "source_lot_no");
+        final List<String> entireHead = Arrays.asList(ITEM_NO.getField(), WKP_NO.getField(), ITEM_DESC.getField(), CRAFT_ATTR.getField(), CRAFT_DESC.getField(), CRAFT_REQ.getField(), INV_QTY.getField(), ITEM_CLASS.getField(), REPLACE_GROUP.getField(), IS_FACTORY_PUR.getField(), REQ_QTY.getField(), "source_lot_no");
+        final Map<String, String> headTextMap = new HashMap<>();
+        headTextMap.put(ITEM_NO.getField(), ITEM_NO.getDesc());
+        headTextMap.put(WKP_NO.getField(), WKP_NO.getDesc());
+        headTextMap.put(ITEM_DESC.getField(), ITEM_DESC.getDesc());
+        headTextMap.put(CRAFT_ATTR.getField(), CRAFT_ATTR.getDesc());
+        headTextMap.put(CRAFT_DESC.getField(), CRAFT_DESC.getDesc());
+        headTextMap.put(CRAFT_REQ.getField(), CRAFT_REQ.getDesc());
+        headTextMap.put(ITEM_CLASS.getField(), ITEM_CLASS.getDesc());
+        headTextMap.put(REPLACE_GROUP.getField(), REPLACE_GROUP.getDesc());
+        headTextMap.put(INV_QTY.getField(), INV_QTY.getDesc());
+        headTextMap.put(IS_FACTORY_PUR.getField(), IS_FACTORY_PUR.getDesc());
+        headTextMap.put(REQ_QTY.getField(), REQ_QTY.getDesc());
+
+        String sql = viewService.getViewPageSQLByViewPageParam(sysViewPageParam);
+        DatabaseQueryVO databaseQuery = new DatabaseQueryVO();
+        String databaseId = "pgdb_scm-wip";
+        databaseQuery.setId(databaseId);
+        databaseQuery.setSql(sql);
+        List<Map<String, Object>> pageData = viewService.executeQuery(databaseQuery);
+
+        if (ListUtil.empty(pageData)) {
+            throw new ParamsIncorrectException("导出数据查询为空!");
+        }
+        ExportExcelDTO exportExcelDTO = new ExportExcelDTO();
+        exportExcelDTO.setOriginData(pageData)
+                .setOriginHeads(originHead)
+                .setHeadTextMap(headTextMap)
+                .setFileName("test")
+                .setFieldDefinitions(fieldDefinitionDTOList)
+                .setExportHeads(entireHead)
+                .setConverters(Collections.singletonList(new NumberConverter()));
+        try {
+            ExcelExportUtils.exportAfterConvert(exportExcelDTO, httpServletResponse);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

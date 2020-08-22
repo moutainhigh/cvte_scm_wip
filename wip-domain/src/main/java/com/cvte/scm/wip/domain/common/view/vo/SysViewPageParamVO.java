@@ -43,6 +43,8 @@ public class SysViewPageParamVO {
     private String viewId;
     @ApiModelProperty("高级查询条件")
     private String advConditions;
+    @ApiModelProperty("占位符JSON串")
+    private String params;
     @ApiModelProperty(
             value = "是否自定义视图",
             required = true,

@@ -2,6 +2,7 @@ package com.cvte.scm.wip.common.excel.converter.definition;
 
 import com.cvte.csb.core.exception.client.params.SourceNotFoundException;
 import com.cvte.scm.wip.common.excel.converter.context.ConvertContext;
+import com.cvte.scm.wip.common.excel.converter.enums.ValueMergeTypeEnum;
 import lombok.Data;
 import org.apache.poi.ss.usermodel.Sheet;
 
@@ -19,6 +20,8 @@ public abstract class BaseField {
     private String originFiled;
 
     private Integer originFieldIndex;
+
+    private ValueMergeTypeEnum valueMergeType;
 
     public abstract List<String> getHeads(ConvertContext convertContext);
 

@@ -34,8 +34,20 @@
 
         <dependency>
             <groupId>com.cvte.csb</groupId>
-            <artifactId>csb-view-core</artifactId>
+            <artifactId>csb-sys-base-core</artifactId>
             <version>${csb.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cvte.csb</groupId>
+            <artifactId>csb-sys-database</artifactId>
+            <version>${csb.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cvte.csb</groupId>
+            <artifactId>csb-view-core</artifactId>
+            <version>${csb.version.snapshot}</version>
         </dependency>
     </dependencies>
 
