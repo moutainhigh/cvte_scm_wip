@@ -138,7 +138,7 @@ public class ReqInsDetailEntity implements Entity<String> {
     }
 
     public void deleteInsDetail() {
-        this.setInsStatus(StatusEnum.CLOSE.getCode());
+        this.setInsStatus(ProcessingStatusEnum.CLOSE.getCode());
         if (StringUtils.isBlank(this.getInvalidBy())) {
             this.setInvalidBy(EntityUtils.getWipUserId());
         }

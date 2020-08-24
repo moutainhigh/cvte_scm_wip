@@ -16,7 +16,9 @@ public enum ProcessingStatusEnum implements Codeable {
     PENDING("0", "待处理"),
     SOLVED("1", "已处理"),
     EXCEPTION("2", "处理异常"),
-    UNHANDLED("3", "不处理");
+    UNHANDLED("3", "不处理"),
+    CLOSE("130", "作废"),
+    ;
 
     private String code, desc;
 }
