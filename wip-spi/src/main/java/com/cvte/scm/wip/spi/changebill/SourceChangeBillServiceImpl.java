@@ -151,7 +151,7 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
             posNo = "";
         }
 
-        List<String> posNoList = Arrays.asList(posNo.split(splitter));
+        List<String> posNoList = Arrays.stream(posNo.split(splitter)).map(String::trim).collect(Collectors.toList());
         // 拆分后向上取整, 按顺序分配到位号上
         Map<String, BigDecimal> posItemQtyMap = splitQtyByPos(posNoList, vo.getItemQty(), 0);
         Map<String, BigDecimal> posUnitQtyMap = splitQtyByPos(posNoList, vo.getItemUnitQty(), 8);
