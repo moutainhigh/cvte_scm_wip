@@ -134,10 +134,10 @@ class ReqInsEntitySpec extends BaseJunitTest {
         when:
         def ins = ReqInsEntity.get().deleteCompleteReqIns(vo)
         then:
-        ins.status == StatusEnum.CLOSE.code && ins.invalidBy == AutoOperationIdentityEnum.WIP.code && ins.invalidReason == reason
+        ins.status == ProcessingStatusEnum.CLOSE.code && ins.invalidBy == AutoOperationIdentityEnum.WIP.code && ins.invalidReason == reason
         and:
         def detail = ins.detailList[0]
-        detail.insStatus == StatusEnum.CLOSE.code && detail.invalidBy == AutoOperationIdentityEnum.WIP.code && detail.invalidReason == reason
+        detail.insStatus == ProcessingStatusEnum.CLOSE.code && detail.invalidBy == AutoOperationIdentityEnum.WIP.code && detail.invalidReason == reason
     }
 
 }

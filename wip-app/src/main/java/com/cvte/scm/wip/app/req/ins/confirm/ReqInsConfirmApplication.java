@@ -15,6 +15,7 @@ import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService
 import com.cvte.scm.wip.domain.core.requirement.service.QueryReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -65,7 +66,7 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + String.format("ID为%s的指令不存在", insHeaderId));
             }
             // 去掉已作废的明细
-            insHeader.getDetailById().removeIf(detail -> StatusEnum.CLOSE.getCode().equals(detail.getInsStatus()));
+            insHeader.getDetailById().removeIf(detail -> ProcessingStatusEnum.CLOSE.getCode().equals(detail.getInsStatus()));
             insHeaderList.add(insHeader);
         }
         insHeaderList.sort((Comparator.comparing(ReqInsEntity::getEnableDate)));

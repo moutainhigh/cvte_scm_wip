@@ -120,7 +120,7 @@ public class ReqInsEntity implements Entity<String> {
     }
 
     public void invalidInstruction() {
-        this.setStatus(StatusEnum.CLOSE.getCode());
+        this.setStatus(ProcessingStatusEnum.CLOSE.getCode());
         if (StringUtils.isBlank(this.getInvalidBy())) {
             this.setInvalidBy(EntityUtils.getWipUserId());
         }
