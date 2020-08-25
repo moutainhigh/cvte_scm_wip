@@ -317,14 +317,12 @@ public class WipReqLineService {
         // 校验投料单状态, 只可变更已发放的单据
         if (ListUtil.notEmpty(changedLines)) {
             List<String> headerIdList = changedLines.stream().map(WipReqLineEntity::getHeaderId).collect(toList());
-            errorMessages = ArrayUtils.addAll(errorMessages, handleErrorMessages(checkReqHeaderService.checkMoFinished(headerIdList), parameters.eMode));
+            errorMessages = handleErrorMessages(checkReqHeaderService.checkMoFinished(headerIdList), parameters.eMode);
         }
 
         if (ChangedModeEnum.MANUAL.equals(parameters.cMode)) {
             // 手工变更限制物料类别
-            List<String> errMsgList = Arrays.asList(errorMessages);
-            errMsgList.addAll(Arrays.asList(handleErrorMessages(validateManualLimitItem(changedLines, parameters.type), parameters.eMode)));
-            errorMessages = ArrayUtils.addAll(errorMessages, errMsgList.toArray(new String[0]));
+            errorMessages = handleErrorMessages(validateManualLimitItem(changedLines, parameters.type), parameters.eMode);
         }
 
         // 操作的数据可能重复，避免操作异常，故执行去重操作。

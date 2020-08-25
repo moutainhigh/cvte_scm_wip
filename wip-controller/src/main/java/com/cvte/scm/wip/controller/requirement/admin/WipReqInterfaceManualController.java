@@ -46,4 +46,5 @@ public class WipReqInterfaceManualController {
         wipReqInterfaceService.invalid(interfaceInIds);
         return ResponseFactory.getOkResponse("作废成功！");
     }
+
 }
