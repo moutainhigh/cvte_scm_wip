@@ -26,6 +26,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.OperationSeqNumEnum;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -398,13 +400,34 @@ public class WipReqLineService {
      * 调用回写工单信息的存储过程
      */
     private String executeProcedure(String groupId, String wipEntityId) {
-        String[] poInfo = EntityUtils.retry(() -> xxwipMoInterfaceRepository.callProcedure(wipEntityId, groupId), ATTEMPT_NUMBER, "调用 XXAPS.XXWIP_INTERFACE_PKG.P_UPDATE_MO_ITEM 存储过程");
+        String[] poInfo;
+        try {
+            poInfo = EntityUtils.retry(() -> xxwipMoInterfaceRepository.callProcedure(wipEntityId, groupId), ATTEMPT_NUMBER, "调用 XXAPS.XXWIP_INTERFACE_PKG.P_UPDATE_MO_ITEM 存储过程");
+        } catch (RuntimeException re) {
+            throw new ParamsIncorrectException(truncProcedureErrMsg(re.getMessage()));
+        }
         if (poInfo == null || poInfo.length != 2) {
             return "糟糕，储存过程出现了未知错误，速联系相关人员。";
         } else if ("error".equalsIgnoreCase(poInfo[0])) {
-            return poInfo[1];
+            return truncProcedureErrMsg(poInfo[1]);
         }
         return "";
+    }
+
+    @VisibleForTesting
+    String truncProcedureErrMsg(String errMsg) {
+        if (StringUtils.isBlank(errMsg)) {
+            return errMsg;
+        }
+        String pattern = "ORA-[0-9]*:";
+        String[] splitResult = errMsg.split(pattern);
+        if (splitResult.length > 1) {
+            String keyMsg = splitResult[1];
+            if (StringUtils.isNotBlank(keyMsg)) {
+                return keyMsg.trim();
+            }
+        }
+        return errMsg;
     }
 
     /**
