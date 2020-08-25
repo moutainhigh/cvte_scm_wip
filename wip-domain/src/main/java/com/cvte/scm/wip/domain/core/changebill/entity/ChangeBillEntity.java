@@ -202,7 +202,8 @@ public class ChangeBillEntity implements Entity<String> {
         ReqInsBuildVO instructionBuildVO = ReqInsBuildVO.buildVO(this);
         instructionBuildVO.setChangeType(ChangedTypeEnum.ADD.getCode());
         // 生成投料单指令头
-        instructionBuildVO.setInsHeaderStatus(ProcessingStatusEnum.PENDING.getCode())
+        String insStatus = StatusEnum.CLOSE.getCode().equals(this.getBillStatus()) ? ProcessingStatusEnum.CLOSE.getCode() : ProcessingStatusEnum.PENDING.getCode();
+        instructionBuildVO.setInsHeaderStatus(insStatus)
                 .setAimHeaderId(reqHeaderVO.getHeaderId())
                 .setAimReqLotNo(reqHeaderVO.getSourceLotNo());
 
@@ -256,7 +257,7 @@ public class ChangeBillEntity implements Entity<String> {
                 .setOperationType(billDetailEntity.getOperationType())
                 .setInsStatus(ProcessingStatusEnum.PENDING.getCode());
         if (StatusEnum.CLOSE.getCode().equals(billDetailEntity.getStatus())) {
-            detailBuildVO.setInsStatus(StatusEnum.CLOSE.getCode());
+            detailBuildVO.setInsStatus(ProcessingStatusEnum.CLOSE.getCode());
         }
         return detailBuildVO;
     }

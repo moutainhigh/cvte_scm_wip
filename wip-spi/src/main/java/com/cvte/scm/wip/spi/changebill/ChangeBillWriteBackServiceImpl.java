@@ -13,6 +13,7 @@ import com.cvte.scm.wip.domain.common.user.service.UserService;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillWriteBackService;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import com.cvte.scm.wip.infrastructure.boot.config.api.EbsApiInfoConfiguration;
 import com.cvte.scm.wip.spi.changebill.DTO.ChangeBillWriteBackDTO;
 import com.cvte.scm.wip.spi.common.EbsResponse;
@@ -51,7 +52,7 @@ public class ChangeBillWriteBackServiceImpl implements ChangeBillWriteBackServic
                 .setExecuteCode(reqInsEntity.getStatus())
                 .setUserNo(userEntity.getAccount());
         String executeMessage;
-        if (StatusEnum.CLOSE.getCode().equals(reqInsEntity.getStatus())) {
+        if (ProcessingStatusEnum.CLOSE.getCode().equals(reqInsEntity.getStatus())) {
             executeMessage = reqInsEntity.getInvalidReason();
         } else {
             executeMessage = reqInsEntity.getExecuteResult();

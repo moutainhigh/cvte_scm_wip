@@ -228,7 +228,7 @@ public class CheckReqInsDomainService implements DomainService {
             ReqInsEntity existsIns = ReqInsEntity.get().getByKey(vo.getInsHeaderId());
             return Objects.nonNull(existsIns) &&
                     (ProcessingStatusEnum.SOLVED.getCode().equals(existsIns.getStatus())
-                            || StatusEnum.CLOSE.getCode().equals(existsIns.getStatus()));
+                            || ProcessingStatusEnum.CLOSE.getCode().equals(existsIns.getStatus()));
         }
         return false;
     }

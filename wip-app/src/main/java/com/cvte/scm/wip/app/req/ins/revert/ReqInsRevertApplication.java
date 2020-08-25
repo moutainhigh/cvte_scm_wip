@@ -52,7 +52,7 @@ public class ReqInsRevertApplication {
             if (!ProcessingStatusEnum.SOLVED.getCode().equals(insHeader.getStatus())) {
                 throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + String.format("仅支持撤回已处理的更改单, %s", insHeaderId));
             }
-            insHeader.getDetailById().removeIf(detail -> StatusEnum.CLOSE.getCode().equals(detail.getInsStatus()));
+            insHeader.getDetailById().removeIf(detail -> ProcessingStatusEnum.CLOSE.getCode().equals(detail.getInsStatus()));
             insHeaderList.add(insHeader);
         }
         // TODO 按确认日期倒序
