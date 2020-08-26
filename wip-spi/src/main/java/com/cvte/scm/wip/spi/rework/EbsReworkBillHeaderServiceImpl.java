@@ -24,6 +24,7 @@ import com.cvte.scm.wip.infrastructure.client.sys.base.dto.UserBaseDTO;
 import com.cvte.scm.wip.spi.rework.dto.EbsRwkBillCreateDTO;
 import com.cvte.scm.wip.spi.rework.dto.EbsRwkBillLineCreateDTO;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -46,13 +47,14 @@ public class EbsReworkBillHeaderServiceImpl implements EbsReworkBillHeaderServic
 
     private EbsApiInfoConfiguration ebsApiInfoConfiguration;
     private AccessTokenService accessTokenService;
-    private SysUserApiClient sysUserApiClient;
     private WipReworkMoRepository wipReworkMoRepository;
 
-    public EbsReworkBillHeaderServiceImpl(EbsApiInfoConfiguration ebsApiInfoConfiguration, AccessTokenService accessTokenService, SysUserApiClient sysUserApiClient, WipReworkMoRepository wipReworkMoRepository) {
+    @Autowired
+    private SysUserApiClient sysUserApiClient;
+
+    public EbsReworkBillHeaderServiceImpl(EbsApiInfoConfiguration ebsApiInfoConfiguration, AccessTokenService accessTokenService, WipReworkMoRepository wipReworkMoRepository) {
         this.ebsApiInfoConfiguration = ebsApiInfoConfiguration;
         this.accessTokenService = accessTokenService;
-        this.sysUserApiClient = sysUserApiClient;
         this.wipReworkMoRepository = wipReworkMoRepository;
     }
 
