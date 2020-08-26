@@ -6,6 +6,7 @@ import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHander;
 import com.xxl.job.core.log.XxlJobLogger;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -21,11 +22,8 @@ import java.util.Map;
 @JobHander(value = "wipInterfaceOmissionExecution")
 public class WipInterfaceJobHandle extends IJobHandler {
 
-    private final WipReqInterfaceService wipReqInterfaceService;
-
-    public WipInterfaceJobHandle(WipReqInterfaceService wipReqInterfaceService) {
-        this.wipReqInterfaceService = wipReqInterfaceService;
-    }
+    @Autowired
+    private WipReqInterfaceService wipReqInterfaceService;
 
     @Override
     public ReturnT<String> execute(Map<String, Object> map) {

@@ -17,6 +17,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnu
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,13 +45,12 @@ public class WipReqInterfaceService {
 
     private static final Function<String, String> logFormat = s -> isNotEmpty(s) ? format("[scm-wip][interface] {}", s) : s;
 
-    private WipReqLineService wipReqLinesService;
-
     private WipReqInterfaceRepository wipReqInterfaceRepository;
 
-    public WipReqInterfaceService(WipReqLineService wipReqLinesService,
-                                  WipReqInterfaceRepository wipReqInterfaceRepository) {
-        this.wipReqLinesService = wipReqLinesService;
+    @Autowired
+    private WipReqLineService wipReqLinesService;
+
+    public WipReqInterfaceService(WipReqInterfaceRepository wipReqInterfaceRepository) {
         this.wipReqInterfaceRepository = wipReqInterfaceRepository;
     }
 
