@@ -32,6 +32,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
@@ -90,10 +91,12 @@ public class WipReqLineService {
     private WipReqPrintLogService wipReqPrintLogService;
     private XxwipMoInterfaceRepository xxwipMoInterfaceRepository;
     private WipReqLineSplitService wipReqLineSplitService;
-    private UserService userService;
     private CheckReqHeaderService checkReqHeaderService;
 
-    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService, UserService userService, CheckReqHeaderService checkReqHeaderService) {
+    @Autowired
+    private UserService userService;
+
+    public WipReqLineService(ScmItemService scmItemService, WipReqLineRepository wipReqLineRepository, WipReqLogService wipReqLogService, WipReqHeaderRepository wipReqHeaderRepository, WipReqPrintLogService wipReqPrintLogService, XxwipMoInterfaceRepository xxwipMoInterfaceRepository, WipReqLineSplitService wipReqLineSplitService, CheckReqHeaderService checkReqHeaderService) {
         this.scmItemService = scmItemService;
         this.wipReqLineRepository = wipReqLineRepository;
         this.wipReqLogService = wipReqLogService;
@@ -101,7 +104,6 @@ public class WipReqLineService {
         this.wipReqPrintLogService = wipReqPrintLogService;
         this.xxwipMoInterfaceRepository = xxwipMoInterfaceRepository;
         this.wipReqLineSplitService = wipReqLineSplitService;
-        this.userService = userService;
         this.checkReqHeaderService = checkReqHeaderService;
     }
 
