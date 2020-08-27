@@ -50,6 +50,14 @@
               from wip_req_ins_h ih
               where ih.source_cn_bill_id = cbd.bill_id
           )
+        <if test="factoryId != null and factoryId.length() > 0">
+          and exists(
+              select 1
+              from wip_cn_bill cb
+              where cb.bill_id = cbd.bill_id
+              and cb.factory_id = #{factoryId}
+          )
+        </if>
     </select>
 
 </mapper>

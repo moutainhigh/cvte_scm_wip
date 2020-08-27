@@ -105,9 +105,9 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
      * @param errMsgList 用于查询的同步失败信息
      */
     @Override
-    public List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList) {
-        List<WipCnBillDO> billDOList = cnBillMapper.selectSyncFailedBills(errMsgList);
-        List<WipCnBillDetailDO> billDetailDOList = cnBillDMapper.selectSyncFailedDetails(errMsgList);
+    public List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList, String factoryId) {
+        List<WipCnBillDO> billDOList = cnBillMapper.selectSyncFailedBills(errMsgList, factoryId);
+        List<WipCnBillDetailDO> billDetailDOList = cnBillDMapper.selectSyncFailedDetails(errMsgList, factoryId);
 
         // 把更改单组合起来
         List<ChangeBillEntity> billList = WipCnBillDO.batchBuildEntity(billDOList);

@@ -16,6 +16,6 @@ public interface WipCnBillMapper extends CommonMapper<WipCnBillDO> {
 
     WipCnBillDO selectByReqInsHeaderId(String reqInsHeaderId);
 
-    List<WipCnBillDO> selectSyncFailedBills(@Param("errMsgList") List<String> errMsgList);
+    List<WipCnBillDO> selectSyncFailedBills(@Param("errMsgList") List<String> errMsgList, @Param("factoryId") String factoryId);
 
 }

@@ -50,6 +50,9 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
     @Override
     public List<ChangeBillBuildVO> querySourceChangeBill(ChangeBillQueryVO queryVO) {
         List<SourceChangeBillDTO> changeBillDTOList = requestEbsChangeBill(queryVO);
+        if (StringUtils.isNotBlank(queryVO.getFactoryId())) {
+            this.filterFactoryBill(changeBillDTOList, queryVO.getFactoryId());
+        }
         if (ListUtil.empty(changeBillDTOList)) {
             return Collections.emptyList();
         }
@@ -83,6 +86,10 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
             throw new ServerException("", "EBS接口请求异常");
         }
         return ebsResponse.getRtData();
+    }
+
+    private void filterFactoryBill(List<SourceChangeBillDTO> changeBillDTOList, String factoryId) {
+        changeBillDTOList.removeIf(bill -> !factoryId.equals(bill.getFactoryId().toString()));
     }
 
     private void filterChangedBill(Map<String, List<SourceChangeBillDTO>> sourceBillMap) {

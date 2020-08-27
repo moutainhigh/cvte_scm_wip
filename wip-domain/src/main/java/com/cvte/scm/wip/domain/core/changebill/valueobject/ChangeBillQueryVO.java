@@ -18,4 +18,6 @@ public class ChangeBillQueryVO {
 
     private Date lastUpdDate;
 
+    private String factoryId;
+
 }

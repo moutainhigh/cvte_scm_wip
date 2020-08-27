@@ -25,14 +25,14 @@ public class ChangeBillSyncFailedDomainService implements DomainService {
         this.changeBillRepository = changeBillRepository;
     }
 
-    public List<ChangeBillBuildVO> addSyncFailedBills(List<ChangeBillBuildVO> sourceBillBuildVOList) {
+    public List<ChangeBillBuildVO> addSyncFailedBills(List<ChangeBillBuildVO> sourceBillBuildVOList, String factoryId) {
         // 新同步过来的更改单
         Map<String, Boolean> newSyncBillMap = new HashMap<>();
         sourceBillBuildVOList.forEach(vo -> newSyncBillMap.put(vo.getBillNo(), true));
 
         List<String> errMsgList = new ArrayList<>();
         errMsgList.add(ReqInsErrEnum.TARGET_REQ_INVALID.getDesc());
-        List<ChangeBillEntity> billList = changeBillRepository.getSyncFailedBills(errMsgList);
+        List<ChangeBillEntity> billList = changeBillRepository.getSyncFailedBills(errMsgList, factoryId);
 
         // 创建指令失败的更改单列表
         List<ChangeBillBuildVO> billBuildVOList = new ArrayList<>(sourceBillBuildVOList);

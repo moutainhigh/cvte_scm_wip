@@ -61,7 +61,7 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
                 changeBillBuildVOList = sourceChangeBillService.querySourceChangeBill(queryVO);
 
                 // 把已创建更改单, 但是创建指令失败的单据加进来
-                changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList);
+                changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList, queryVO.getFactoryId());
 
                 if (ListUtil.empty(changeBillBuildVOList)) {
                     continue;
