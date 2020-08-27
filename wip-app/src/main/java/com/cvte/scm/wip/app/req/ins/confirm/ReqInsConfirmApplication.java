@@ -42,28 +42,32 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
     private CheckReqInsDomainService checkReqInsDomainService;
     private WipReqLineService wipReqLineService;
-    private QueryReqLineService queryReqLineService;
     private DataSourceTransactionManager pgTransactionManager;
     private TransactionTemplate transactionTemplate;
 
     public ReqInsConfirmApplication(CheckReqInsDomainService checkReqInsDomainService, WipReqLineService wipReqLineService
-            , QueryReqLineService queryReqLineService, @Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager
+            , @Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager
             , TransactionTemplate transactionTemplate) {
         this.checkReqInsDomainService = checkReqInsDomainService;
         this.wipReqLineService = wipReqLineService;
-        this.queryReqLineService = queryReqLineService;
         this.pgTransactionManager = pgTransactionManager;
         this.transactionTemplate = transactionTemplate;
     }
 
     @Override
     public String doAction(String[] insHeaderIds) {
+        List<ReqInsConfirmResultDTO> confirmResultList = new ArrayList<>();
 
         List<ReqInsEntity> insHeaderList = new ArrayList<>();
         for (String insHeaderId : insHeaderIds) {
+            if (StringUtils.isBlank(insHeaderId)) {
+                confirmResultList.add(new ReqInsConfirmResultDTO(null, ExecutionResultEnum.SKIP, null));
+                continue;
+            }
             ReqInsEntity insHeader = ReqInsEntity.get().getByKey(insHeaderId);
             if (Objects.isNull(insHeader)) {
-                throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + String.format("ID为%s的指令不存在", insHeaderId));
+                confirmResultList.add(new ReqInsConfirmResultDTO(null, ExecutionResultEnum.FAILED, VALIDATE_FAILED + String.format("ID为%s的指令不存在", insHeaderId)));
+                continue;
             }
             // 去掉已作废的明细
             insHeader.getDetailById().removeIf(detail -> ProcessingStatusEnum.CLOSE.getCode().equals(detail.getInsStatus()));
@@ -71,7 +75,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
         }
         insHeaderList.sort((Comparator.comparing(ReqInsEntity::getEnableDate)));
 
-        List<ReqInsConfirmResultDTO> confirmResultList = new ArrayList<>();
         for (ReqInsEntity insHeader : insHeaderList) {
 
             try {

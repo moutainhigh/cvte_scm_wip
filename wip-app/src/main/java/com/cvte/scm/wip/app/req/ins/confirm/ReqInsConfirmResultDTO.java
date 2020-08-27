@@ -13,6 +13,7 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +61,12 @@ public class ReqInsConfirmResultDTO {
         }
         if (ListUtil.notEmpty(failedList)) {
             StringBuilder failedMsgBuilder = new StringBuilder();
-            failedMsgBuilder.append("执行失败" + failedList.size() + "条:");
+            failedMsgBuilder.append("执行失败" + failedList.size() + "条:;");
             for (ReqInsConfirmResultDTO failed : failedList) {
-                failedMsgBuilder.append("【").append(failed.getErrMsg()).append("】");
+                if (Objects.nonNull(failed) && StringUtils.isNotBlank(failed.getInsEntity().getAimReqLotNo())) {
+                    failedMsgBuilder.append(failed.getInsEntity().getAimReqLotNo()).append(":");
+                }
+                failedMsgBuilder.append(failed.getErrMsg()).append(";");
             }
             msgList.add(failedMsgBuilder.toString());
         }
