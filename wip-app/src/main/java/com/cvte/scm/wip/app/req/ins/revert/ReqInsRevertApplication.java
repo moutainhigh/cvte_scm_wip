@@ -11,6 +11,7 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -80,7 +81,7 @@ public class ReqInsRevertApplication {
 
             transactionTemplate.setTransactionManager(pgTransactionManager);
             transactionTemplate.execute(status -> {
-                wipReqLineService.executeByChangeBill(reqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+                wipReqLineService.executeByChangeBill(reqLineList, ChangedTypeEnum.REVERT, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
                 return null;
             });
 

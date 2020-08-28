@@ -2,6 +2,7 @@ package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.web.rest.ResponseFactory;
+import com.cvte.scm.wip.app.req.line.ReqLineChangeApplication;
 import com.cvte.scm.wip.app.req.line.ReqLineReplaceApplication;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
@@ -34,12 +35,14 @@ public class WipReqLinesController {
     private WipReqMtrsService wipReqMtrsService;
     private WipReqLineService wipReqLineService;
     private ReqLineReplaceApplication reqLineReplaceApplication;
+    private ReqLineChangeApplication reqLineChangeApplication;
 
-    public WipReqLinesController(WipReqLinePageService wipReqLinePageService, WipReqMtrsService wipReqMtrsService, WipReqLineService wipReqLineService, ReqLineReplaceApplication reqLineReplaceApplication) {
+    public WipReqLinesController(WipReqLinePageService wipReqLinePageService, WipReqMtrsService wipReqMtrsService, WipReqLineService wipReqLineService, ReqLineReplaceApplication reqLineReplaceApplication, ReqLineChangeApplication reqLineChangeApplication) {
         this.wipReqLinePageService = wipReqLinePageService;
         this.wipReqMtrsService = wipReqMtrsService;
         this.wipReqLineService = wipReqLineService;
         this.reqLineReplaceApplication = reqLineReplaceApplication;
+        this.reqLineChangeApplication = reqLineChangeApplication;
     }
 
     @PostMapping("/tree")
@@ -63,8 +66,8 @@ public class WipReqLinesController {
 
     @PostMapping("/addMany")
     public RestResponse add(@RequestBody List<WipReqLineEntity> wipReqLine) {
-        wipReqLineService.addMany(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, EntityUtils.getWipUserId());
-        return ResponseFactory.getOkResponse("投料单行数据新增成功！");
+        reqLineChangeApplication.doAction(wipReqLine);
+        return ResponseFactory.getOkResponse("投料变更成功！");
     }
 
     @PostMapping("/cancelByLineIds")
