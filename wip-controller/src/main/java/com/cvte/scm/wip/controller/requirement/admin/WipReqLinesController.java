@@ -1,6 +1,9 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
+import com.cvte.csb.base.context.CurrentContext;
+import com.cvte.csb.core.exception.client.authorizations.InvalidTokenException;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.web.rest.ResponseFactory;
 import com.cvte.scm.wip.app.req.line.ReqLineReplaceApplication;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
@@ -16,6 +19,8 @@ import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -107,4 +112,11 @@ public class WipReqLinesController {
     public RestResponse canSubstitute(@RequestBody WipReqMtrsEntity wipReqMtrs) {
         return ResponseFactory.getOkResponse(wipReqMtrsService.canSubstitute(wipReqMtrs));
     }
+
+    @PostMapping("/entireReport")
+    public RestResponse entireReport(@RequestBody SysViewPageParamVO sysViewPageParam, HttpServletResponse httpServletResponse) {
+        wipReqLinePageService.entireExport(sysViewPageParam, httpServletResponse);
+        return new RestResponse();
+    }
+
 }

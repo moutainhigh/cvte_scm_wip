@@ -26,6 +26,7 @@
         <project.location>${basedir}</project.location>
         <mapper.version>3.3.6</mapper.version>
         <csb.version>2.0.5</csb.version>
+        <csb.version.snapshot>2.0.9.4-SNAPSHOT</csb.version.snapshot>
         <csb.snap.version>2.0.6-SNAPSHOT</csb.snap.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
