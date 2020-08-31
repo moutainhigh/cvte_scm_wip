@@ -20,4 +20,6 @@ public interface ViewService {
 
     List<Map<String, Object>> executeQuery(DatabaseQueryVO databaseQueryVO);
 
+    String getViewPageSQLByViewPageParam(SysViewPageParamVO sysViewPageParam);
+
 }

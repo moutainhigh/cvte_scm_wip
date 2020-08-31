@@ -32,4 +32,10 @@ public interface SysViewApiClient {
      */
     @PostMapping({"/api/v1/database/execute_query"})
     List<Map<String, Object>> executeQuery(@RequestBody DatabaseQueryDTO databaseQueryDTO);
+    /**
+     * 获取视图查询SQL(不带分页)
+     * @param sysViewPageParam 视图分页查询参数
+     */
+    @PostMapping({"/admin/v1/view/render/sql"})
+    FeignResult<Object> getViewPageSQLByViewPageParam(@RequestBody SysViewPageParamDTO sysViewPageParam);
 }
