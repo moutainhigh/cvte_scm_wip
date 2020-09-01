@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,6 +53,20 @@ public class WipReqLotIssuedRepositoryImpl implements WipReqLotIssuedRepository 
             throw new ParamsIncorrectException("领料数据不存在");
         }
         return WipReqLotIssuedDO.buildEntity(issuedDOList.get(0));
+    }
+
+    @Override
+    public List<WipReqLotIssuedEntity> selectById(List<String> idList) {
+        if (ListUtil.empty(idList)) {
+            return Collections.emptyList();
+        }
+        Example example = new Example(WipReqLotIssuedDO.class);
+        example.createCriteria().andIn("id", idList);
+        List<WipReqLotIssuedDO> issuedDOList = wipReqLotIssuedMapper.selectByExample(example);
+        if (ListUtil.empty(issuedDOList)) {
+            return Collections.emptyList();
+        }
+        return WipReqLotIssuedDO.batchBuildEntity(issuedDOList);
     }
 
     @Override

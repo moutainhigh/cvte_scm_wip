@@ -1,7 +1,6 @@
 package com.cvte.scm.wip.spi.requirement;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.scm.wip.common.enums.error.ReqLineErrEnum;
@@ -42,13 +41,14 @@ public class LotIssuedWriteBackServiceImpl implements LotIssuedWriteBackService 
 
         LotIssuedWriteBackDTO lotIssuedWriteBackDTO = new LotIssuedWriteBackDTO();
         lotIssuedWriteBackDTO.setHeaderId(reqLotIssued.getHeaderId())
-                .setLotNo(reqLotIssued.getMtrLotNo())
+                // ERP将所有领料批次存放在ATTRIBUTE3字段, 格式为 (lot:qty,...)
+                .setLotNo(reqLotIssued.getMtrLotNo() + ":" + reqLotIssued.getIssuedQty().toString())
                 .setWkpNo(reqLotIssued.getWkpNo())
                 .setItemId(itemId)
                 .setLotQty(reqLotIssued.getIssuedQty())
                 .setOpType(opType.getCode());
 
-        String jsonParam = JSONObject.toJSONString(lotIssuedWriteBackDTO);
+        String jsonParam = JSON.toJSONString(lotIssuedWriteBackDTO);
         String url = ebsApiInfoConfiguration.getBaseUrl() + "/xxfnd/pubprocess/recordReqMtrLot";
         String token;
         try {

@@ -42,7 +42,7 @@ public class WipReqLotIssuedEntity {
 
     @ApiModelProperty(value = "领料数量")
     @Min(value = 0, message = "最小领料数量为0")
-    private Integer issuedQty;
+    private Long issuedQty;
 
     @ApiModelProperty(value = "状态")
     private String status;
@@ -64,4 +64,11 @@ public class WipReqLotIssuedEntity {
     private String updUser;
 
     private Date updDate;
+
+    @ApiModelProperty(value = "锁定状态")
+    private String lockStatus;
+
+    @ApiModelProperty(value = "锁定类型")
+    private String lockType;
+
 }

@@ -22,7 +22,7 @@ public class LotIssuedWriteBackDTO {
 
     private String itemId;
 
-    private Integer lotQty;
+    private Long lotQty;
 
     private String opType;
 

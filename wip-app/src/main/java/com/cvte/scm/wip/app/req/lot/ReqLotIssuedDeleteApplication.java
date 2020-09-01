@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.app.req.issue;
+package com.cvte.scm.wip.app.req.lot;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.LotIssuedWriteBackService;

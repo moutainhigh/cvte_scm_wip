@@ -5,6 +5,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.enums.StatusEnum;
+import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLogEntity;
@@ -13,9 +14,8 @@ import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLogRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLotProcessVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
-import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,24 +31,36 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-@Transactional(transactionManager = "pgTransactionManager")
 public class WipReqLotIssuedService {
 
     private WipReqLotIssuedRepository wipReqLotIssuedRepository;
     private WipReqLineRepository wipReqLineRepository;
     private WipReqLogRepository wipReqLogRepository;
+    private CheckReqLineService checkReqLineService;
 
-    public WipReqLotIssuedService(WipReqLotIssuedRepository wipReqLotIssuedRepository, WipReqLineRepository wipReqLineRepository, WipReqLogRepository wipReqLogRepository) {
+    public WipReqLotIssuedService(WipReqLotIssuedRepository wipReqLotIssuedRepository, WipReqLineRepository wipReqLineRepository, WipReqLogRepository wipReqLogRepository, CheckReqLineService checkReqLineService) {
         this.wipReqLotIssuedRepository = wipReqLotIssuedRepository;
         this.wipReqLineRepository = wipReqLineRepository;
         this.wipReqLogRepository = wipReqLogRepository;
+        this.checkReqLineService = checkReqLineService;
     }
 
     public WipReqLotIssuedEntity selectById(String id) {
         return wipReqLotIssuedRepository.selectById(id);
     }
 
-    public void add(WipReqLotIssuedEntity wipReqLotIssued) {
+    public List<WipReqLotIssuedEntity> selectLockedByKey(WipReqLotProcessVO vo) {
+        WipReqLotIssuedEntity queryEntity = new WipReqLotIssuedEntity();
+        queryEntity.setOrganizationId(vo.getOrganizationId())
+                .setItemNo(vo.getItemNo())
+                .setMtrLotNo(vo.getMtrLotNo())
+                .setLockStatus(YoNEnum.Y.getCode())
+                .setStatus(StatusEnum.NORMAL.getCode());
+        return wipReqLotIssuedRepository.selectList(queryEntity);
+    }
+
+    public void save(WipReqLotIssuedEntity wipReqLotIssued) {
+        checkReqLineService.checkItemExists(wipReqLotIssued.getOrganizationId(), wipReqLotIssued.getHeaderId(), wipReqLotIssued.getWkpNo(), wipReqLotIssued.getItemNo());
         this.verifyIssuedQty(wipReqLotIssued);
         if (StringUtils.isBlank(wipReqLotIssued.getId())) {
             // 新增
@@ -63,6 +75,30 @@ public class WipReqLotIssuedService {
 
     public void invalid(String id) {
         wipReqLotIssuedRepository.invalidById(id);
+    }
+
+    public void changeLockStatus(List<String> idList) {
+        List<WipReqLotIssuedEntity> lotIssuedEntityList = wipReqLotIssuedRepository.selectById(idList);
+        if (idList.size() != lotIssuedEntityList.size()) {
+            List<String> notExistsIdList = lotIssuedEntityList.stream().map(WipReqLotIssuedEntity::getId).filter(idList::contains).collect(Collectors.toList());
+            StringBuilder sb = new StringBuilder();
+            for (String id : notExistsIdList) {
+                sb.append(id).append("/");
+            }
+            sb.append("对应的领料批次不存在");
+            throw new ParamsIncorrectException(sb.toString());
+        }
+        for (WipReqLotIssuedEntity lotIssuedEntity : lotIssuedEntityList) {
+            if (YoNEnum.Y.getCode().equals(lotIssuedEntity.getLockStatus())) {
+                lotIssuedEntity.setLockStatus(YoNEnum.N.getCode());
+            } else {
+                lotIssuedEntity.setLockStatus(YoNEnum.Y.getCode());
+            }
+        }
+        for (WipReqLotIssuedEntity lotIssuedEntity : lotIssuedEntityList) {
+            EntityUtils.writeStdUpdInfoToEntity(lotIssuedEntity, EntityUtils.getWipUserId());
+            wipReqLotIssuedRepository.update(lotIssuedEntity);
+        }
     }
 
     /**
@@ -80,6 +116,7 @@ public class WipReqLotIssuedService {
         if (lotIssuedList == null) {
             lotIssuedList = new ArrayList<>();
         }
+        long oldTotalLotIssuedQty = lotIssuedList.stream().mapToLong(WipReqLotIssuedEntity::getIssuedQty).sum();
 
         // 替换旧的
         Iterator<WipReqLotIssuedEntity> iterator = lotIssuedList.iterator();
@@ -102,11 +139,15 @@ public class WipReqLotIssuedService {
         Set<BillStatusEnum> statusList = BillStatusEnum.getValidStatusSet();
         List<WipReqLineEntity> reqLinesList = wipReqLineRepository.selectValidByKey(keyQueryVO, statusList);
 
-        int totalIssuedQty = lotIssuedList.stream().mapToInt(WipReqLotIssuedEntity::getIssuedQty).sum();
-        int totalReqQty = reqLinesList.stream().mapToInt(WipReqLineEntity::getReqQty).sum();
-        if (totalIssuedQty > totalReqQty) {
-            log.info("领料数量大于需求数量,新增领料数量失败");
-            throw new ParamsIncorrectException("领料数量大于需求数量");
+        long totalReqQty = reqLinesList.stream().mapToLong(WipReqLineEntity::getReqQty).sum();
+        if (Objects.isNull(wipReqLotIssued.getIssuedQty())) {
+            wipReqLotIssued.setIssuedQty(totalReqQty - oldTotalLotIssuedQty);
+        } else {
+            long totalIssuedQty = lotIssuedList.stream().mapToLong(WipReqLotIssuedEntity::getIssuedQty).sum();
+            if (totalIssuedQty > totalReqQty) {
+                log.info("领料数量大于需求数量,新增领料数量失败");
+                throw new ParamsIncorrectException("领料数量大于需求数量");
+            }
         }
     }
 
@@ -122,8 +163,8 @@ public class WipReqLotIssuedService {
                 .setUpdDate(new Date())
                 .setOperationType(operationType)
                 .setHeaderId(afterEntity.getHeaderId())
-                .setBeforeItemQty(beforeEntity.getIssuedQty())
-                .setAfterItemQty(afterEntity.getIssuedQty())
+                .setBeforeItemQty(beforeEntity.getIssuedQty().intValue())
+                .setAfterItemQty(afterEntity.getIssuedQty().intValue())
                 .setMtrLotNo(afterEntity.getMtrLotNo())
                 .setRmk01(afterEntity.getId());
         wipReqLogRepository.insert(wipReqLog);

@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject;
 
 
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -14,7 +15,10 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yt
@@ -25,7 +29,7 @@ import java.util.Date;
 @Accessors(chain = true)
 @ApiModel(description = "投料单领料批次")
 @Table(name = "wip.wip_req_lot_issued")
-public class WipReqLotIssuedDO {
+public class WipReqLotIssuedDO extends BaseModel {
 
     private static final long serialVersionUID = 1L;
 
@@ -78,7 +82,7 @@ public class WipReqLotIssuedDO {
     @Column(name = "issued_qty")
     @ApiModelProperty(value = "领料数量")
     @Min(value = 0, message = "最小领料数量为0")
-    private Integer issuedQty;
+    private Long issuedQty;
     /**
      * 状态
      */
@@ -134,6 +138,18 @@ public class WipReqLotIssuedDO {
     @Column(name = "upd_date")
     @ApiModelProperty(value = "${field.comment}")
     private Date updDate;
+    /**
+     * 锁定状态
+     */
+    @Column(name = "lock_status")
+    @ApiModelProperty(value = "锁定状态")
+    private String lockStatus;
+    /**
+     * 锁定类型
+     */
+    @Column(name = "lock_type")
+    @ApiModelProperty(value = "锁定类型")
+    private String lockType;
 
     public static WipReqLotIssuedEntity buildEntity(WipReqLotIssuedDO issuedDO) {
         WipReqLotIssuedEntity issuedEntity = new WipReqLotIssuedEntity();
@@ -145,6 +161,16 @@ public class WipReqLotIssuedDO {
         WipReqLotIssuedDO issuedDO = new WipReqLotIssuedDO();
         BeanUtils.copyProperties(issuedEntity, issuedDO);
         return issuedDO;
+    }
+
+    public static List<WipReqLotIssuedEntity> batchBuildEntity(List<WipReqLotIssuedDO> issuedDOList) {
+        List<WipReqLotIssuedEntity> lotIssuedEntityList = new ArrayList<>();
+        for (WipReqLotIssuedDO lotIssuedDO : issuedDOList) {
+            WipReqLotIssuedEntity issuedEntity = new WipReqLotIssuedEntity();
+            BeanUtils.copyProperties(lotIssuedDO, issuedEntity);
+            lotIssuedEntityList.add(issuedEntity);
+        }
+        return lotIssuedEntityList;
     }
 
 }

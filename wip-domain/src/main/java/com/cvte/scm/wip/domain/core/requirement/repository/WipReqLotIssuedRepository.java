@@ -17,6 +17,8 @@ public interface WipReqLotIssuedRepository {
 
     WipReqLotIssuedEntity selectById(String id);
 
+    List<WipReqLotIssuedEntity> selectById(List<String> idList);
+
     void insert(WipReqLotIssuedEntity lotIssuedEntity);
 
     void update(WipReqLotIssuedEntity lotIssuedEntity);

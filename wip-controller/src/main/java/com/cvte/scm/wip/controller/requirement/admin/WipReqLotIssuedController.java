@@ -1,8 +1,9 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
-import com.cvte.scm.wip.app.req.issue.ReqLotIssuedDeleteApplication;
-import com.cvte.scm.wip.app.req.issue.ReqLotIssuedSaveApplication;
+import com.cvte.scm.wip.app.req.lot.ReqLotIssuedDeleteApplication;
+import com.cvte.scm.wip.app.req.lot.ReqLotIssuedLockApplication;
+import com.cvte.scm.wip.app.req.lot.ReqLotIssuedSaveApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +28,12 @@ public class WipReqLotIssuedController {
 
     private ReqLotIssuedSaveApplication reqLotIssuedSaveApplication;
     private ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication;
+    private ReqLotIssuedLockApplication reqLotIssuedLockApplication;
 
-    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication) {
+    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication) {
         this.reqLotIssuedSaveApplication = reqLotIssuedSaveApplication;
         this.reqLotIssuedDeleteApplication = reqLotIssuedDeleteApplication;
+        this.reqLotIssuedLockApplication = reqLotIssuedLockApplication;
     }
 
     @PostMapping("/save")
@@ -44,4 +47,11 @@ public class WipReqLotIssuedController {
         reqLotIssuedDeleteApplication.doAction(idStr);
         return new RestResponse();
     }
+
+    @PostMapping("/lock")
+    public RestResponse lock(@RequestBody String[] idArr) {
+        reqLotIssuedLockApplication.doAction(idArr);
+        return new RestResponse();
+    }
+
 }
