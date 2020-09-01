@@ -1,19 +1,12 @@
 package com.cvte.scm.wip.controller.requirement.job;
 
-import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.app.req.line.ReqLineSyncApplication;
-import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
 import com.xxl.job.core.handler.annotation.JobHander;
-import com.xxl.job.core.log.XxlJobLogger;
 import org.springframework.stereotype.Service;
 
-import java.rmi.ServerException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author : jf

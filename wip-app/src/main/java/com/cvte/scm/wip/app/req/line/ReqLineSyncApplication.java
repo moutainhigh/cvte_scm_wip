@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 @Service
 public class ReqLineSyncApplication {
 
-    private static final String READ_WRITE_LOCK_NAME = "lineSyncRWLock";
+    private static final String READ_WRITE_LOCK_NAME = "lineSyncReadWriteLock";
+    private static final String REENTRANT_LOCK_NAME = "lineSyncReentrantLock";
 
     private RedissonClient redissonClient;
     private WipReqLineRepository linesRepository;
@@ -62,7 +63,7 @@ public class ReqLineSyncApplication {
         RLock lock;
         if (StringUtils.isNotBlank(factoryId)) {
             readWriteLock.readLock().lock();
-            lock = redissonClient.getLock(factoryId);
+            lock = redissonClient.getLock(REENTRANT_LOCK_NAME + "_" + factoryId);
         } else {
             // 定时任务调用时工厂为空
             readWriteLock.writeLock().lock();

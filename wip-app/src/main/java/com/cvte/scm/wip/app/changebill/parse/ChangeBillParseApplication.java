@@ -4,6 +4,7 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.Application;
+import com.cvte.scm.wip.common.utils.DateUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillSyncFailedDomainService;
 import com.cvte.scm.wip.domain.core.changebill.service.SourceChangeBillService;
@@ -11,8 +12,12 @@ import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.service.GenerateReqInsDomainService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,20 +32,27 @@ import java.util.stream.Collectors;
   */
 @Slf4j
 @Component
-public class ChangeBillParseApplication implements Application<ChangeBillQueryVO, String> {
+public class ChangeBillParseApplication {
 
+    private static final String READ_WRITE_LOCK_NAME = "changeBillSyncReadWriteLock";
+    private static final String REENTRANT_LOCK_NAME = "changeBillReentrantSyncLock";
+
+    private RedissonClient redissonClient;
     private SourceChangeBillService sourceChangeBillService;
     private ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService;
     private GenerateReqInsDomainService generateReqInsDomainService;
 
-    public ChangeBillParseApplication(SourceChangeBillService sourceChangeBillService, ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService, GenerateReqInsDomainService generateReqInsDomainService) {
+    public ChangeBillParseApplication(RedissonClient redissonClient, SourceChangeBillService sourceChangeBillService, ChangeBillSyncFailedDomainService changeBillSyncFailedDomainService, GenerateReqInsDomainService generateReqInsDomainService) {
+        this.redissonClient = redissonClient;
         this.sourceChangeBillService = sourceChangeBillService;
         this.changeBillSyncFailedDomainService = changeBillSyncFailedDomainService;
         this.generateReqInsDomainService = generateReqInsDomainService;
     }
 
-    @Override
     public String doAction(ChangeBillQueryVO queryVO) {
+        if (Objects.isNull(queryVO.getLastUpdDate())) {
+            queryVO.setLastUpdDate(DateUtils.getMinutesBeforeTime(LocalDateTime.now(), 10));
+        }
 
         if (StringUtils.isBlank(queryVO.getOrganizationId())) {
             throw new ParamsIncorrectException("组织ID不可为空");
@@ -53,8 +65,25 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
             splitOrganizationId = splitOrganizationId.trim();
             queryVO.setOrganizationId(splitOrganizationId);
 
+            String factoryId = queryVO.getFactoryId();
+            // 为每个组织分配读写锁
+            RReadWriteLock readWriteLock = redissonClient.getReadWriteLock(READ_WRITE_LOCK_NAME + "_" + splitOrganizationId);
+            RLock lock;
+            if (StringUtils.isNotBlank(factoryId)) {
+                readWriteLock.readLock().lock();
+                lock = redissonClient.getLock(REENTRANT_LOCK_NAME + "_" + factoryId);
+            } else {
+                // 定时任务调用时工厂为空
+                readWriteLock.writeLock().lock();
+                lock = null;
+            }
+
             // 接口和定时任务可能同时调用, 为避免并发引起的数据问题, 按业务组织加锁。 intern将字符串写入常量池, 保证每次拿到的是业务组织的同一个内存对象
-            synchronized (splitOrganizationId.intern()) {
+            try {
+                if (null != lock) {
+                    lock.lock();
+                }
+
                 List<ChangeBillBuildVO> changeBillBuildVOList;
 
                 // 获取EBS更改单
@@ -86,6 +115,15 @@ public class ChangeBillParseApplication implements Application<ChangeBillQueryVO
                 }
 
                 syncedBillNoList.addAll(changeBillBuildVOList.stream().map(ChangeBillBuildVO::getBillNo).collect(Collectors.toList()));
+            } finally {
+                if (null != lock) {
+                    lock.unlock();
+                }
+                if (StringUtils.isNotBlank(factoryId)) {
+                    readWriteLock.readLock().unlock();
+                } else {
+                    readWriteLock.writeLock().unlock();
+                }
             }
         }
 
