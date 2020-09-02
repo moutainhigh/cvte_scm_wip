@@ -3,7 +3,6 @@ package com.cvte.scm.wip.app.changebill.parse;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
-import com.cvte.scm.wip.common.base.domain.Application;
 import com.cvte.scm.wip.common.utils.DateUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.service.ChangeBillSyncFailedDomainService;
@@ -15,12 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 /**
@@ -61,13 +62,62 @@ public class ChangeBillParseApplication {
         List<String> syncedBillNoList = new ArrayList<>();
 
         String[] organizationIdArr = queryVO.getOrganizationId().split(",");
+        CountDownLatch countDownLatch = new CountDownLatch(3);
         for (String splitOrganizationId : organizationIdArr) {
+            ChangeBillQueryVO dupQueryVO = new ChangeBillQueryVO();
+            BeanUtils.copyProperties(queryVO, dupQueryVO);
             splitOrganizationId = splitOrganizationId.trim();
-            queryVO.setOrganizationId(splitOrganizationId);
+            dupQueryVO.setOrganizationId(splitOrganizationId);
 
+            ChangeBillParseTask parseTask = new ChangeBillParseTask(countDownLatch, dupQueryVO, syncedBillNoList);
+            Thread taskThread = new Thread(parseTask);
+            taskThread.start();
+        }
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            String msg = "等待子线程时发生未知异常, msg = " + e.getMessage();
+            syncedBillNoList.add(msg);
+            log.error(msg);
+        }
+        return String.join(",", syncedBillNoList);
+    }
+
+    private class ChangeBillParseTask implements Runnable {
+
+        private CountDownLatch countDownLatch;
+        private ChangeBillQueryVO queryVO;
+        private List<String> syncedBillNoList;
+
+        ChangeBillParseTask(CountDownLatch countDownLatch, ChangeBillQueryVO queryVO, List<String> syncedBillNoList) {
+            this.countDownLatch = countDownLatch;
+            this.queryVO = queryVO;
+            this.syncedBillNoList = syncedBillNoList;
+        }
+
+        @Override
+        public void run() {
             String factoryId = queryVO.getFactoryId();
             // 为每个组织分配读写锁
-            RReadWriteLock readWriteLock = redissonClient.getReadWriteLock(READ_WRITE_LOCK_NAME + "_" + splitOrganizationId);
+            RReadWriteLock readWriteLock;
+            try {
+                readWriteLock = redissonClient.getReadWriteLock(READ_WRITE_LOCK_NAME + "_" + queryVO.getOrganizationId());
+            } catch (RuntimeException re) {
+                String msg = queryVO.getOrganizationId() + "组织获取读写锁时异常, msg = " + re.getMessage();
+                syncedBillNoList.add(msg);
+                log.error(msg);
+                countDownLatch.countDown();
+                return;
+            }
+            if (Objects.isNull(readWriteLock)) {
+                String msg = queryVO.getOrganizationId() + "组织获取的读写锁为空";
+                syncedBillNoList.add(msg);
+                log.error(msg);
+                countDownLatch.countDown();
+                return;
+            }
+
             RLock lock;
             if (StringUtils.isNotBlank(factoryId)) {
                 readWriteLock.readLock().lock();
@@ -93,7 +143,7 @@ public class ChangeBillParseApplication {
                 changeBillBuildVOList = changeBillSyncFailedDomainService.addSyncFailedBills(changeBillBuildVOList, queryVO.getFactoryId());
 
                 if (ListUtil.empty(changeBillBuildVOList)) {
-                    continue;
+                    return;
                 }
 
                 for (ChangeBillBuildVO changeBillBuildVO : changeBillBuildVOList) {
@@ -115,6 +165,15 @@ public class ChangeBillParseApplication {
                 }
 
                 syncedBillNoList.addAll(changeBillBuildVOList.stream().map(ChangeBillBuildVO::getBillNo).collect(Collectors.toList()));
+            } catch (RuntimeException re) {
+                StringBuilder msgBuilder = new StringBuilder();
+                msgBuilder.append(queryVO.getOrganizationId()).append("组织");
+                if (StringUtils.isNotBlank(queryVO.getFactoryId())) {
+                    msgBuilder.append(",").append(queryVO.getFactoryId()).append("工厂");
+                }
+                msgBuilder.append("同步时发生异常, msg = ").append(re.getMessage());
+                syncedBillNoList.add(msgBuilder.toString());
+                log.error(msgBuilder.toString());
             } finally {
                 if (null != lock) {
                     lock.unlock();
@@ -124,10 +183,10 @@ public class ChangeBillParseApplication {
                 } else {
                     readWriteLock.writeLock().unlock();
                 }
+                countDownLatch.countDown();
             }
         }
 
-        return String.join(",", syncedBillNoList);
     }
 
 }
