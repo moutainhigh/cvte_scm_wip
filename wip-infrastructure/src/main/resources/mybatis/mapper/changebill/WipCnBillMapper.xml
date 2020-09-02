@@ -45,6 +45,7 @@
             select *
             from wip_cn_bill cb
             where cb.bill_status = '110'
+              and cb.organization_id = #{organizationId}
               and exists(
                   select 1
                   from wip_cn_bill_error_log el

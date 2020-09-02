@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.changebill.repository;
 
 import com.cvte.scm.wip.common.base.domain.Repository;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
+import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 
 import java.util.List;
 
@@ -24,6 +25,6 @@ public interface ChangeBillRepository extends Repository {
 
     ChangeBillEntity getByReqInsHeaderId(String reqInsHeaderId);
 
-    List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList, String factoryId);
+    List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList, ChangeBillQueryVO queryVO);
 
 }
