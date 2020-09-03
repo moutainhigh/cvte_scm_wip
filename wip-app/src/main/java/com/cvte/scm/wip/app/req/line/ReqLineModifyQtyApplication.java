@@ -25,7 +25,7 @@ import java.util.Map;
   * email   : xueyuting@cvte.com
   */
 @Service
-public class ReqLineChangeApplication {
+public class ReqLineModifyQtyApplication {
 
     private ReqInsEntityFactory reqInsEntityFactory;
     private CheckReqInsDomainService checkReqInsDomainService;
@@ -33,7 +33,7 @@ public class ReqLineChangeApplication {
     private DataSourceTransactionManager pgTransactionManager;
     private TransactionTemplate transactionTemplate;
 
-    public ReqLineChangeApplication(ReqInsEntityFactory reqInsEntityFactory, CheckReqInsDomainService checkReqInsDomainService
+    public ReqLineModifyQtyApplication(ReqInsEntityFactory reqInsEntityFactory, CheckReqInsDomainService checkReqInsDomainService
             , WipReqLineService wipReqLineService, @Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager
             , TransactionTemplate transactionTemplate) {
         this.reqInsEntityFactory = reqInsEntityFactory;
