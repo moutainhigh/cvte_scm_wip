@@ -228,6 +228,12 @@
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
             <version>3.1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jodd</groupId>
+                    <artifactId>jodd-bean</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
