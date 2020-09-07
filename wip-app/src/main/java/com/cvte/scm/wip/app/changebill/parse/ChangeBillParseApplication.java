@@ -62,7 +62,7 @@ public class ChangeBillParseApplication {
         List<String> syncedBillNoList = new ArrayList<>();
 
         String[] organizationIdArr = queryVO.getOrganizationId().split(",");
-        CountDownLatch countDownLatch = new CountDownLatch(3);
+        CountDownLatch countDownLatch = new CountDownLatch(organizationIdArr.length);
         for (String splitOrganizationId : organizationIdArr) {
             ChangeBillQueryVO dupQueryVO = new ChangeBillQueryVO();
             BeanUtils.copyProperties(queryVO, dupQueryVO);
