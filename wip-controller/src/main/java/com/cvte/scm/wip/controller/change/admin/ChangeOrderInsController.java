@@ -2,16 +2,13 @@ package com.cvte.scm.wip.controller.change.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.changebill.parse.ChangeBillParseApplication;
-import com.cvte.scm.wip.common.utils.DateUtils;
+import com.cvte.scm.wip.app.changebill.sync.ChangeBillFullSyncApplication;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
   * 
@@ -26,17 +23,23 @@ import java.util.Objects;
 public class ChangeOrderInsController {
 
     private ChangeBillParseApplication changeBillParseApplication;
+    private ChangeBillFullSyncApplication changeBillFullSyncApplication;
 
-    public ChangeOrderInsController(ChangeBillParseApplication changeBillParseApplication) {
+    public ChangeOrderInsController(ChangeBillParseApplication changeBillParseApplication, ChangeBillFullSyncApplication changeBillFullSyncApplication) {
         this.changeBillParseApplication = changeBillParseApplication;
+        this.changeBillFullSyncApplication = changeBillFullSyncApplication;
     }
 
     @PostMapping("/sync")
     public RestResponse sync(@RequestBody ChangeBillQueryVO vo) {
-        if (Objects.isNull(vo.getLastUpdDate())) {
-            vo.setLastUpdDate(DateUtils.getMinutesBeforeTime(LocalDateTime.now(), 10));
-        }
         changeBillParseApplication.doAction(vo);
         return new RestResponse();
     }
+
+    @PostMapping("/full_sync")
+    public RestResponse fullSync(@RequestBody ChangeBillQueryVO vo) {
+        changeBillFullSyncApplication.doAction(vo);
+        return new RestResponse();
+    }
+
 }

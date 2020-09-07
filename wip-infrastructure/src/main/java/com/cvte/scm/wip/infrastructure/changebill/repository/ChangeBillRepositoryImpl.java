@@ -7,6 +7,7 @@ import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillDetailEntity;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
+import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.WipCnBillDMapper;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.WipCnBillMapper;
 import com.cvte.scm.wip.infrastructure.changebill.mapper.dataobject.WipCnBillDO;
@@ -105,9 +106,9 @@ public class ChangeBillRepositoryImpl implements ChangeBillRepository {
      * @param errMsgList 用于查询的同步失败信息
      */
     @Override
-    public List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList) {
-        List<WipCnBillDO> billDOList = cnBillMapper.selectSyncFailedBills(errMsgList);
-        List<WipCnBillDetailDO> billDetailDOList = cnBillDMapper.selectSyncFailedDetails(errMsgList);
+    public List<ChangeBillEntity> getSyncFailedBills(List<String> errMsgList, ChangeBillQueryVO queryVO) {
+        List<WipCnBillDO> billDOList = cnBillMapper.selectSyncFailedBills(errMsgList, queryVO.getOrganizationId(), queryVO.getFactoryId());
+        List<WipCnBillDetailDO> billDetailDOList = cnBillDMapper.selectSyncFailedDetails(errMsgList, queryVO.getOrganizationId(), queryVO.getFactoryId());
 
         // 把更改单组合起来
         List<ChangeBillEntity> billList = WipCnBillDO.batchBuildEntity(billDOList);
