@@ -50,6 +50,8 @@ public class SyncChangeBillJobHandler extends IJobHandler {
         Integer minutesBefore = (Integer)map.get(MINUTES_BEFORE);
         if (Objects.nonNull(minutesBefore)) {
             changeBillQueryVO.setLastUpdDate(DateUtils.getMinutesBeforeTime(LocalDateTime.now(), minutesBefore));
+        } else {
+            changeBillQueryVO.setLastUpdDate(DateUtils.getMinutesBeforeTime(LocalDateTime.now(), 60));
         }
 
         String billNos = changeBillParseApplication.doAction(changeBillQueryVO);

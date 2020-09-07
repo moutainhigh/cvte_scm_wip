@@ -135,7 +135,7 @@ public class ChangeBillDetailEntity implements Entity<String>{
         List<ChangeBillDetailEntity> dbDetailEntityList = getByBillId(vo.getBillId());
         List<ChangeBillDetailBuildVO> detailVoList = vo.getDetailVOList();
         // 原始修改项按位号拆分后, 其 来源行Id 相同, 需要加上 位号 作为对比查询时的唯一键
-        List<String> detailVoKeyList = detailVoList.stream().map(detailVo -> detailVo.getSourceLineId() + detailVo.getPosNo()).collect(Collectors.toList());
+        List<String> detailVoKeyList = detailVoList.stream().map(ChangeBillDetailBuildVO::getKey).collect(Collectors.toList());
         // 可更新列表
         List<ChangeBillDetailBuildVO> updateVoList = new ArrayList<>(detailVoList);
         if (ListUtil.notEmpty(dbDetailEntityList)) {
@@ -143,7 +143,7 @@ public class ChangeBillDetailEntity implements Entity<String>{
             Iterator<ChangeBillDetailBuildVO> iterator = updateVoList.iterator();
             while (iterator.hasNext()) {
                 ChangeBillDetailBuildVO updateVo = iterator.next();
-                ChangeBillDetailEntity detailEntity = detailEntityMap.get(updateVo.getSourceLineId() + updateVo.getPosNo());
+                ChangeBillDetailEntity detailEntity = detailEntityMap.get(updateVo.getKey());
                 if (Objects.nonNull(detailEntity)) {
                     // 将ID设置为数据库的才可更新
                     updateVo.setDetailId(detailEntity.getDetailId());
@@ -157,7 +157,7 @@ public class ChangeBillDetailEntity implements Entity<String>{
             }
 
             // 数据库存在但是vo列表不存在, 则删除
-            dbDetailEntityList.removeIf(detailEntity -> detailVoKeyList.contains(detailEntity.getSourceLineId() + detailEntity.getPosNo()));
+            dbDetailEntityList.removeIf(detailEntity -> detailVoKeyList.contains(detailEntity.getKey()));
             if (ListUtil.notEmpty(dbDetailEntityList) && needDelete) {
                 this.batchDeleteDetail(dbDetailEntityList);
             } else {
@@ -167,8 +167,8 @@ public class ChangeBillDetailEntity implements Entity<String>{
 
         // 剩下的新增
         if (updateVoList.size() != detailVoList.size()) {
-            Set<String> savedSourceIdSet = updateVoList.stream().map(updateVo -> updateVo.getSourceLineId() + updateVo.getPosNo()).collect(Collectors.toSet());
-            detailVoList.removeIf(detailVo -> savedSourceIdSet.contains(detailVo.getSourceLineId() + detailVo.getPosNo()));
+            Set<String> savedSourceIdSet = updateVoList.stream().map(ChangeBillDetailBuildVO::getKey).collect(Collectors.toSet());
+            detailVoList.removeIf(detailVo -> savedSourceIdSet.contains(detailVo.getKey()));
             if (ListUtil.notEmpty(detailVoList)) {
                 resultDetailEntityList.addAll(this.batchCreateDetail(detailVoList));
             }
@@ -179,8 +179,12 @@ public class ChangeBillDetailEntity implements Entity<String>{
 
     private Map<String, ChangeBillDetailEntity> toMapByChangeDetailKey(List<ChangeBillDetailEntity> billDetailEntityList) {
         Map<String, ChangeBillDetailEntity> entityMap = new HashMap<>();
-        billDetailEntityList.forEach(detailEntity -> entityMap.put(detailEntity.getSourceLineId() + detailEntity.getPosNo(), detailEntity));
+        billDetailEntityList.forEach(detailEntity -> entityMap.put(detailEntity.getKey(), detailEntity));
         return entityMap;
+    }
+
+    private String getKey() {
+        return this.getSourceLineId() + this.getItemIdNew() + this.getPosNo();
     }
 
     public static ChangeBillDetailEntity get() {

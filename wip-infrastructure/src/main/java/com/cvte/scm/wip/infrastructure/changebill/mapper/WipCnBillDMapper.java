@@ -14,6 +14,6 @@ import java.util.List;
  */
 public interface WipCnBillDMapper extends CommonMapper<WipCnBillDetailDO> {
 
-    List<WipCnBillDetailDO> selectSyncFailedDetails(@Param("errMsgList") List<String> errMsgList);
+    List<WipCnBillDetailDO> selectSyncFailedDetails(@Param("errMsgList") List<String> errMsgList, @Param("organizationId") String organizationId, @Param("factoryId") String factoryId);
 
 }

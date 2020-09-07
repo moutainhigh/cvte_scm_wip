@@ -223,6 +223,18 @@
             <artifactId>guava-retrying</artifactId>
             <version>2.0.0</version>
         </dependency>
+        <!-- redisson -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>3.1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jodd</groupId>
+                    <artifactId>jodd-bean</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <repositories>

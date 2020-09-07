@@ -45,6 +45,7 @@
             select *
             from wip_cn_bill cb
             where cb.bill_status = '110'
+              and cb.organization_id = #{organizationId}
               and exists(
                   select 1
                   from wip_cn_bill_error_log el
@@ -63,6 +64,9 @@
                   from wip_req_ins_h ih
                   where ih.source_cn_bill_id = cb.bill_id
               )
+            <if test="factoryId != null and factoryId.length() > 0">
+              and cb.factory_id = #{factoryId}
+            </if>
     </select>
 
 </mapper>

@@ -5,6 +5,7 @@ import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
 import com.cvte.scm.wip.domain.core.changebill.repository.ChangeBillRepository;
 import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillBuildVO;
+import com.cvte.scm.wip.domain.core.changebill.valueobject.ChangeBillQueryVO;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,14 +26,14 @@ public class ChangeBillSyncFailedDomainService implements DomainService {
         this.changeBillRepository = changeBillRepository;
     }
 
-    public List<ChangeBillBuildVO> addSyncFailedBills(List<ChangeBillBuildVO> sourceBillBuildVOList) {
+    public List<ChangeBillBuildVO> addSyncFailedBills(List<ChangeBillBuildVO> sourceBillBuildVOList, ChangeBillQueryVO queryVO) {
         // 新同步过来的更改单
         Map<String, Boolean> newSyncBillMap = new HashMap<>();
         sourceBillBuildVOList.forEach(vo -> newSyncBillMap.put(vo.getBillNo(), true));
 
         List<String> errMsgList = new ArrayList<>();
         errMsgList.add(ReqInsErrEnum.TARGET_REQ_INVALID.getDesc());
-        List<ChangeBillEntity> billList = changeBillRepository.getSyncFailedBills(errMsgList);
+        List<ChangeBillEntity> billList = changeBillRepository.getSyncFailedBills(errMsgList, queryVO);
 
         // 创建指令失败的更改单列表
         List<ChangeBillBuildVO> billBuildVOList = new ArrayList<>(sourceBillBuildVOList);
