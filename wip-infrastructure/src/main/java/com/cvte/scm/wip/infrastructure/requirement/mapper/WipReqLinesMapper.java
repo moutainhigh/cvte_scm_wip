@@ -1,6 +1,8 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper;
 
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,5 +20,7 @@ public interface WipReqLinesMapper extends CommonMapper<WipReqLineDO> {
     void writeIncrementalData(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
 
     void writeLackLines(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
+
+    WipReqItemVO selectReqItem(@Param("queryVO") WipReqLineKeyQueryVO queryVO);
 
 }

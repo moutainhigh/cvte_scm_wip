@@ -30,4 +30,22 @@
             <result column="upd_user" property="updUser" />
             <result column="upd_time" property="updTime" />
         </resultMap>
+
+    <select id="sumNotPostQtyExceptCurrent" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.RtcLineQueryVO" resultType="java.math.BigDecimal">
+            select sum(mrl.issued_qty) as issued_qty
+            from wip_mtr_rtc_l mrl
+            inner join wip_mtr_rtc_h mrh
+            on mrl.header_id = mrh.header_id
+            where mrh.mo_id = #{queryVO.moId}
+            and mrl.item_id = #{queryVO.itemId}
+            and mrl.wkp_no = #{queryVO.wkpNo}
+            <if test="queryVO.headerId != null">
+                and mrh.header_id <![CDATA[ <> ]]> #{queryVO.headerId}
+            </if>
+            and mrh.bill_type = #{queryVO.billType}
+            and mrl.line_status in
+            <foreach collection="queryVO.statusColl" item="status" open="(" separator="," close=")">
+                    #{status}
+            </foreach>
+    </select>
 </mapper>

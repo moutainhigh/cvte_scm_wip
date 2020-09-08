@@ -162,4 +162,35 @@
         </if>
     </insert>
 
+    <select id="selectReqItem" resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
+        select Aa.organization_id as organizationId,
+               Aa.header_id as moId,
+               Aa.item_id as itemId,
+               Aa.item_no as itemNo,
+               Aa.wkp_no as wkpNo,
+               max(Aa.unit_qty)                               as unitQty,
+               sum(Aa.req_qty)                                as reqQty,
+               sum(COALESCE(Aa.issued_qty, 0))                as issuedQty,
+               sum(req_qty) - sum(COALESCE(Aa.issued_qty, 0)) as unIssuedQty,
+               1 as componentYieldFactor /* TODO 同步BOM产出率 */
+        from (
+                 select Wrl.organization_id,
+                        Wrl.header_id,
+                        Wrl.item_id,
+                        Wrl.item_no,
+                        Wrl.wkp_no,
+                        sum(Wrl.unit_qty)                               as unit_qty,
+                        sum(Wrl.req_qty)                                as req_qty,
+                        sum(COALESCE(Wrl.issued_qty, 0))                as issued_qty
+                 from wip_req_lines Wrl
+                 where Wrl.line_status not in ('40', '50')
+                   and Wrl.organization_id = #{queryVO.organizationId}
+                   and Wrl.item_id = #{queryVO.itemId}
+                   and Wrl.header_id = #{queryVO.headerId}
+                   and Wrl.wkp_no = #{queryVO.wkpNo}
+                 group by Wrl.organization_id, Wrl.header_id, Wrl.lot_number, Wrl.wkp_no, Wrl.item_id, Wrl.item_no
+             ) Aa
+        group by Aa.organization_id, Aa.header_id, Aa.wkp_no, Aa.item_id, Aa.item_no
+    </select>
+
 </mapper>

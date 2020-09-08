@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import tk.mybatis.mapper.entity.Example;
@@ -63,5 +64,7 @@ public interface WipReqLineRepository {
      * @return 允许手工变更的物料类别列表
      */
     List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, String dimensionId, List<String> outRangeItemNoList);
+
+    WipReqItemVO selectReqItem(WipReqLineKeyQueryVO queryVO);
 
 }
