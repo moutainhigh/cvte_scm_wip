@@ -47,14 +47,4 @@ public class WipAttachmentRepositoryImpl
         return attachmentViewList;
 
     }
-
-    @Override
-    protected Class<WipAttachmentEntity> getEntityClass() {
-        return WipAttachmentEntity.class;
-    }
-
-    @Override
-    protected Class<WipAttachmentDO> getDomainClass() {
-        return WipAttachmentDO.class;
-    }
 }
