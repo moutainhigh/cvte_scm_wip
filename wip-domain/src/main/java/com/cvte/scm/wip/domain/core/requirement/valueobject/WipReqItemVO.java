@@ -36,4 +36,8 @@ public class WipReqItemVO {
 
     private BigDecimal componentYieldFactor;
 
+    public String getKey() {
+        return String.join("_", this.organizationId, this.moId, this.itemId, this.wkpNo);
+    }
+
 }

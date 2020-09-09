@@ -13,7 +13,7 @@ import lombok.Getter;
   */
 @Getter
 @AllArgsConstructor
-public enum RtcHeaderStatusEnum implements Codeable {
+public enum WipMtrRtcHeaderStatusEnum implements Codeable {
     DRAFT("10", "草稿"),
     WITHDRAW("15", "退回"),
     REVIEW("20", "审核中"),

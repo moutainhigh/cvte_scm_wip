@@ -6,7 +6,6 @@ import com.cvte.scm.wip.infrastructure.rtc.mapper.dataobject.WipMtrRtcHDO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcHeaderRepository;
 import org.springframework.stereotype.Service;
 import com.cvte.scm.wip.infrastructure.rtc.mapper.WipMtrRtcHMapper;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 服务实现类

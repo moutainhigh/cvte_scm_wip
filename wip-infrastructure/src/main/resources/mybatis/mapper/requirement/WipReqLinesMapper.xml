@@ -172,7 +172,7 @@
                sum(Aa.req_qty)                                as reqQty,
                sum(COALESCE(Aa.issued_qty, 0))                as issuedQty,
                sum(req_qty) - sum(COALESCE(Aa.issued_qty, 0)) as unIssuedQty,
-               1 as componentYieldFactor /* TODO 同步BOM产出率 */
+               COALESCE(1, 1) as componentYieldFactor /* TODO 同步BOM产出率 */
         from (
                  select Wrl.organization_id,
                         Wrl.header_id,
@@ -185,7 +185,9 @@
                  from wip_req_lines Wrl
                  where Wrl.line_status not in ('40', '50')
                    and Wrl.organization_id = #{queryVO.organizationId}
-                   and Wrl.item_id = #{queryVO.itemId}
+                   <if test="queryVO.itemId != null">
+                       and Wrl.item_id = #{queryVO.itemId}
+                   </if>
                    and Wrl.header_id = #{queryVO.headerId}
                    and Wrl.wkp_no = #{queryVO.wkpNo}
                  group by Wrl.organization_id, Wrl.header_id, Wrl.lot_number, Wrl.wkp_no, Wrl.item_id, Wrl.item_no

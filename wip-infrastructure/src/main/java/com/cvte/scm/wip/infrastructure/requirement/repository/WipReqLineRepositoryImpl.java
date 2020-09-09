@@ -218,7 +218,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     }
 
     @Override
-    public WipReqItemVO selectReqItem(WipReqLineKeyQueryVO queryVO) {
+    public List<WipReqItemVO> selectReqItem(WipReqLineKeyQueryVO queryVO) {
         return wipReqLinesMapper.selectReqItem(queryVO);
     }
 

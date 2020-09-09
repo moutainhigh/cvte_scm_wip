@@ -21,6 +21,6 @@ public interface WipReqLinesMapper extends CommonMapper<WipReqLineDO> {
 
     void writeLackLines(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
 
-    WipReqItemVO selectReqItem(@Param("queryVO") WipReqLineKeyQueryVO queryVO);
+    List<WipReqItemVO> selectReqItem(@Param("queryVO") WipReqLineKeyQueryVO queryVO);
 
 }

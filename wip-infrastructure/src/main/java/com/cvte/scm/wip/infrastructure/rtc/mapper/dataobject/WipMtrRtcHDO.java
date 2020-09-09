@@ -30,7 +30,6 @@ public class WipMtrRtcHDO extends BaseModel {
      * 头ID
      */
     @Id
-    @GeneratedValue(generator = "JDBC")
     @Column(name = "header_id")
     @ApiModelProperty(value = "头ID")
     private String headerId;

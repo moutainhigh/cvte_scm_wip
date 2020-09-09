@@ -7,6 +7,7 @@ import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcAssignRepository;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,9 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
 
     private WipMtrRtcAssignRepository wipMtrRtcAssignRepository;
 
+    public WipMtrRtcAssignEntity() {}
+
+    @Autowired
     public WipMtrRtcAssignEntity(WipMtrRtcAssignRepository wipMtrRtcAssignRepository) {
         this.wipMtrRtcAssignRepository = wipMtrRtcAssignRepository;
     }

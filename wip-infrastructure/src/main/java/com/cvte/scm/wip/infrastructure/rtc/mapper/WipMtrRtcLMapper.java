@@ -1,6 +1,6 @@
 package com.cvte.scm.wip.infrastructure.rtc.mapper;
 
-import com.cvte.scm.wip.domain.core.rtc.valueobject.RtcLineQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
 import com.cvte.scm.wip.infrastructure.rtc.mapper.dataobject.WipMtrRtcLDO;
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
 import org.apache.ibatis.annotations.Param;
@@ -15,6 +15,6 @@ import java.math.BigDecimal;
  */
 public interface WipMtrRtcLMapper extends CommonMapper<WipMtrRtcLDO> {
 
-    BigDecimal sumNotPostQtyExceptCurrent(@Param("queryVO") RtcLineQueryVO queryVO);
+    BigDecimal sumUnPostQtyExceptCurrent(@Param("queryVO") WipMtrRtcLineQueryVO queryVO);
 
 }

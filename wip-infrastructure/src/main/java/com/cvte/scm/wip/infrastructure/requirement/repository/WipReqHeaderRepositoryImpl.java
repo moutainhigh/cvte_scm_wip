@@ -167,6 +167,23 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
         return WipReqHeaderDO.batchBuildEntity(wipReqHeaderMapper.selectByExample(example));
     }
 
+    @Override
+    public WipReqHeaderEntity selectByMoNo(String moNo) {
+        if (StringUtils.isBlank(moNo)) {
+            throw new ParamsIncorrectException("工单号不可为空");
+        }
+        Example example = new Example(WipReqHeaderDO.class);
+        example.createCriteria()
+                .andEqualTo("sourceNo", moNo)
+                .andNotEqualTo("billStatus", BillStatusEnum.CLOSED.getCode())
+                .andNotEqualTo("billStatus", BillStatusEnum.CANCELLED.getCode());
+        List<WipReqHeaderDO> reqHeaderDOList = wipReqHeaderMapper.selectByExample(example);
+        if (ListUtil.notEmpty(reqHeaderDOList)) {
+            return WipReqHeaderDO.buildEntity(reqHeaderDOList.get(0));
+        }
+        return null;
+    }
+
     private String validateIndex(WipReqHeaderEntity wipReqHeader) {
         StringBuilder indexErrorMsg = new StringBuilder();
         BiFunction<String, String, String> format = (s1, s2) -> StringUtils.isEmpty(s1) ? s2 + "不可为空; " : "";

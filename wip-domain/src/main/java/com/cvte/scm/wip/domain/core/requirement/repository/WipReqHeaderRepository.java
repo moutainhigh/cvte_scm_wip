@@ -41,4 +41,6 @@ public interface WipReqHeaderRepository {
 
     List<WipReqHeaderEntity> listWipReqHeaderEntity(QueryWipReqHeaderVO queryWipReqHeaderVO);
 
+    WipReqHeaderEntity selectByMoNo(String moNo);
+
 }

@@ -31,7 +31,6 @@ public class WipMtrRtcLDO extends BaseModel {
      * 单据行ID
      */
     @Id
-    @GeneratedValue(generator = "JDBC")
     @Column(name = "line_id")
     @ApiModelProperty(value = "单据行ID")
     private String lineId;

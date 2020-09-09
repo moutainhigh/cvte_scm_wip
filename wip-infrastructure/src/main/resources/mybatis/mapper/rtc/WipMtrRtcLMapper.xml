@@ -31,8 +31,8 @@
             <result column="upd_time" property="updTime" />
         </resultMap>
 
-    <select id="sumNotPostQtyExceptCurrent" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.RtcLineQueryVO" resultType="java.math.BigDecimal">
-            select sum(mrl.issued_qty) as issued_qty
+    <select id="sumUnPostQtyExceptCurrent" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO" resultType="java.math.BigDecimal">
+            select COALESCE(sum(mrl.issued_qty), 0) as issued_qty
             from wip_mtr_rtc_l mrl
             inner join wip_mtr_rtc_h mrh
             on mrl.header_id = mrh.header_id

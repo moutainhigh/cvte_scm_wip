@@ -65,6 +65,6 @@ public interface WipReqLineRepository {
      */
     List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, String dimensionId, List<String> outRangeItemNoList);
 
-    WipReqItemVO selectReqItem(WipReqLineKeyQueryVO queryVO);
+    List<WipReqItemVO> selectReqItem(WipReqLineKeyQueryVO queryVO);
 
 }

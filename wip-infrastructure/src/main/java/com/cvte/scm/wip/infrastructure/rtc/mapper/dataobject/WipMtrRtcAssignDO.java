@@ -30,7 +30,6 @@ public class WipMtrRtcAssignDO extends BaseModel {
      * 分配ID
      */
     @Id
-    @GeneratedValue(generator = "JDBC")
     @Column(name = "assign_id")
     @ApiModelProperty(value = "分配ID")
     private String assignId;

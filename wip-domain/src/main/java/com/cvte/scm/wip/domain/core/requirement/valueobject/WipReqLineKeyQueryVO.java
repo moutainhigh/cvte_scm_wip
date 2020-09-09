@@ -5,9 +5,9 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -54,6 +54,14 @@ public class WipReqLineKeyQueryVO {
                 .setItemNo(entity.getItemNoOld())
                 .setPosNo(entity.getPosNo());
         return keyQueryVO;
+    }
+
+    public static WipReqLineKeyQueryVO build(WipMtrRtcHeaderBuildVO headerBuildVO) {
+        WipReqLineKeyQueryVO queryVO = new WipReqLineKeyQueryVO();
+        queryVO.setOrganizationId(headerBuildVO.getOrganizationId())
+                .setHeaderId(headerBuildVO.getMoId())
+                .setWkpNo(headerBuildVO.getWkpNo());
+        return queryVO;
     }
 
     @Override
