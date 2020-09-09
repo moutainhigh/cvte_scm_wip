@@ -39,27 +39,27 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
     protected ModelMapper modelMapper;
 
     protected Class<E> getEntityClass() {
-        return (Class<E>) getFromRawType();
+        return (Class<E>) getDomainEntityRawType();
     }
 
     protected Class<T> getDomainClass() {
-        return (Class<T>) getToRawType();
+        return (Class<T>) getDataObjectRawType();
     }
 
-    protected List<T> batchBuildDO(List<E> entityList) {
-        return entityList.stream().map(el -> buildDO(el)).collect(Collectors.toList());
+    protected List<T> batchBuildDO(List<E> domainEntityList) {
+        return domainEntityList.stream().map(el -> buildDO(el)).collect(Collectors.toList());
     }
 
-    protected T buildDO(E entity) {
-        return modelMapper.map(entity, getDomainClass());
+    protected T buildDO(E domainEntity) {
+        return modelMapper.map(domainEntity, getDomainClass());
     }
 
-    protected E buildEntity(T domain) {
-        return modelMapper.map(domain, getEntityClass());
+    protected E buildEntity(T dataObject) {
+        return modelMapper.map(dataObject, getEntityClass());
     }
 
-    protected List<E> batchBuildEntity(List<T> entityList) {
-        return entityList.stream().map(el -> buildEntity(el)).collect(Collectors.toList());
+    protected List<E> batchBuildEntity(List<T> domainEntityList) {
+        return domainEntityList.stream().map(el -> buildEntity(el)).collect(Collectors.toList());
     }
 
     public boolean isExist(String id) {
@@ -67,8 +67,8 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
         return ObjectUtils.isNotNull(t);
     }
 
-    public E selectOne(E entity) {
-        return buildEntity(this.mapper.selectOne(buildDO(entity)));
+    public E selectOne(E domainEntity) {
+        return buildEntity(this.mapper.selectOne(buildDO(domainEntity)));
     }
 
     public E selectById(Object id) {
@@ -93,48 +93,48 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
         return batchBuildEntity(this.mapper.selectListByIds(batchBuildDO(objects)));
     }
 
-    public List<E> selectList(E entity) {
-        return batchBuildEntity(this.mapper.select(buildDO(entity)));
+    public List<E> selectList(E domainEntity) {
+        return batchBuildEntity(this.mapper.select(buildDO(domainEntity)));
     }
 
     public List<E> selectListAll() {
         return batchBuildEntity(this.mapper.selectAll());
     }
 
-    public Long selectCount(E entity) {
-        return new Long((long)this.mapper.selectCount(buildDO(entity)));
+    public Long selectCount(E domainEntity) {
+        return new Long((long)this.mapper.selectCount(buildDO(domainEntity)));
     }
 
     public List<E> selectByExample(Object example) {
         return batchBuildEntity(this.mapper.selectByExample(example));
     }
 
-    public int insert(E entity) {
-        return this.mapper.insert(buildDO(entity));
+    public int insert(E domainEntity) {
+        return this.mapper.insert(buildDO(domainEntity));
     }
 
-    public int insertSelective(E entity) {
-        return this.mapper.insertSelective(buildDO(entity));
+    public int insertSelective(E domainEntity) {
+        return this.mapper.insertSelective(buildDO(domainEntity));
     }
 
-    public int delete(E entity) {
-        return this.mapper.delete(buildDO(entity));
+    public int delete(E domainEntity) {
+        return this.mapper.delete(buildDO(domainEntity));
     }
 
     public int deleteById(Object id) {
         return this.mapper.deleteByPrimaryKey(id);
     }
 
-    public int updateById(E entity) {
-        return this.mapper.updateByPrimaryKey(buildDO(entity));
+    public int updateById(E domainEntity) {
+        return this.mapper.updateByPrimaryKey(buildDO(domainEntity));
     }
 
-    public int updateSelectiveById(E entity) {
-        return this.mapper.updateByPrimaryKeySelective(buildDO(entity));
+    public int updateSelectiveById(E domainEntity) {
+        return this.mapper.updateByPrimaryKeySelective(buildDO(domainEntity));
     }
 
-    public int updateByJudgeVersionSelective(E entity) {
-        int result = this.mapper.updateByPrimaryKeySelective(buildDO(entity));
+    public int updateByJudgeVersionSelective(E domainEntity) {
+        int result = this.mapper.updateByPrimaryKeySelective(buildDO(domainEntity));
         if (result != 1) {
             throw new ParamsIncorrectException("当前数据已被其他用户编辑过，请刷新后再编辑提交");
         } else {
@@ -166,15 +166,15 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
      * 如需要添加GeneratedValue注解，可以指定generator为UUID
      * </p>
      *
-     * @param entityList
+     * @param domainEntityList
      * @return void
      **/
     @Transactional(
             rollbackFor = {RuntimeException.class}
     )
-    public void insertList(List<E> entityList) {
+    public void insertList(List<E> domainEntityList) {
         SqlSession batchSqlSession = null;
-        List<T> doList = batchBuildDO(entityList);
+        List<T> doList = batchBuildDO(domainEntityList);
 
         try {
             batchSqlSession = this.sqlSessionFactory.openSession(ExecutorType.BATCH, false);
@@ -203,9 +203,9 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
     @Transactional(
             rollbackFor = {RuntimeException.class}
     )
-    public void updateList(List<E> entityList) {
+    public void updateList(List<E> domainEntityList) {
         SqlSession batchSqlSession = null;
-        List<T> doList = batchBuildDO(entityList);
+        List<T> doList = batchBuildDO(domainEntityList);
         try {
             batchSqlSession = this.sqlSessionFactory.openSession(ExecutorType.BATCH, false);
             BaseMapper baseMapper = (BaseMapper)batchSqlSession.getMapper(this.getMapperClazz());
@@ -234,9 +234,9 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
     @Transactional(
             rollbackFor = {RuntimeException.class}
     )
-    public void updateListForce(List<E> entityList) {
+    public void updateListForce(List<E> domainEntityList) {
         SqlSession batchSqlSession = null;
-        List<T> doList = batchBuildDO(entityList);
+        List<T> doList = batchBuildDO(domainEntityList);
         try {
             batchSqlSession = this.sqlSessionFactory.openSession(ExecutorType.BATCH, false);
             BaseMapper baseMapper = (BaseMapper)batchSqlSession.getMapper(this.getMapperClazz());
@@ -264,9 +264,9 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
     @Transactional(
             rollbackFor = {RuntimeException.class}
     )
-    public void deleteList(List<E> entityList) {
+    public void deleteList(List<E> domainEntityList) {
         SqlSession batchSqlSession = null;
-        List<T> doList = batchBuildDO(entityList);
+        List<T> doList = batchBuildDO(domainEntityList);
         try {
             batchSqlSession = this.sqlSessionFactory.openSession(ExecutorType.BATCH, false);
             BaseMapper baseMapper = (BaseMapper)batchSqlSession.getMapper(this.getMapperClazz());

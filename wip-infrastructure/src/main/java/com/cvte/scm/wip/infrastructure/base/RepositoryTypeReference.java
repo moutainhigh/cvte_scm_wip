@@ -13,12 +13,12 @@ import java.lang.reflect.Type;
  **/
 public class RepositoryTypeReference<T, E> {
 
-    private final Type fromRawType;
-    private final Type toRawType;
+    private final Type dataObjectRawType;
+    private final Type domainEntityRawType;
 
     protected RepositoryTypeReference() {
-        fromRawType = getSuperclassTypeParameter(getClass(), 0);
-        toRawType = getSuperclassTypeParameter(getClass(), 1);
+        dataObjectRawType = getSuperclassTypeParameter(getClass(), 1);
+        domainEntityRawType = getSuperclassTypeParameter(getClass(), 2);
     }
 
     Type getSuperclassTypeParameter(Class<?> clazz, int index) {
@@ -41,10 +41,10 @@ public class RepositoryTypeReference<T, E> {
         return rawType;
     }
 
-    public final Type getFromRawType() {
-        return fromRawType;
+    public final Type getDataObjectRawType() {
+        return dataObjectRawType;
     }
-    public final Type getToRawType() {
-        return toRawType;
+    public final Type getDomainEntityRawType() {
+        return domainEntityRawType;
     }
 }
