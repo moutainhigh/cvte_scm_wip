@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
 
@@ -121,6 +122,12 @@ public class WipReqHeaderEntity {
 
     @ApiModelProperty(value = "工单状态")
     private String statusType;
+
+    @ApiModelProperty(value = "完工数量")
+    private BigDecimal completeQty;
+
+    @ApiModelProperty(value = "部门ID")
+    private String departmentId;
 
     @Override
     public boolean equals(Object obj) {
