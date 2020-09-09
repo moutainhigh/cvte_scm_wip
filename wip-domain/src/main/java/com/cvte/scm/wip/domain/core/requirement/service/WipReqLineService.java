@@ -158,7 +158,7 @@ public class WipReqLineService {
      * @author xueyuting
      */
     private String[] validateManualLimitItem(List<WipReqLineEntity> reqLineList, ChangedTypeEnum type) {
-        String[] errorMsg = new String[]{};
+        String[] errorMsg = new String[]{""};
         String organizationId = Optional.ofNullable(reqLineList.get(0).getOrganizationId()).orElse("275");
         List<String> itemNoList = reqLineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(toList());
 
@@ -608,9 +608,9 @@ public class WipReqLineService {
         return "";
     }
 
-    public void executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
+    public void executeByChangeBill(List<WipReqLineEntity> wipReqLineList, ChangedTypeEnum cType, ExecutionModeEnum eMode, ChangedModeEnum cMode, boolean isLog, String userId) {
         wipReqLineList = sortLineByChangeType(wipReqLineList);
-        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, ChangedTypeEnum.EXECUTE, this::simpleAddChangedData);
+        Function<List<WipReqLineEntity>, String[]> validateAndGetData = getValidator(wipReqLineList, cType, this::simpleAddChangedData);
         Consumer<WipReqLineEntity> complete = line -> EntityUtils.writeStdUpdInfoToEntity(line, getWipUserId());
         Consumer<WipReqLineEntity> manipulate = line -> {
             ChangedTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(line.getChangeType(), ChangedTypeEnum.class);
@@ -640,7 +640,7 @@ public class WipReqLineService {
                     throw new ParamsIncorrectException("不支持的投料行变更类型:" + typeEnum.getDesc());
             }
         };
-        ChangedParameters parameters = new ChangedParameters().setType(ChangedTypeEnum.EXECUTE).setLog(isLog).setComplete(complete)
+        ChangedParameters parameters = new ChangedParameters().setType(cType).setLog(isLog).setComplete(complete)
                 .setValidateAndGetData(validateAndGetData).setManipulate(manipulate).setEMode(eMode).setCMode(cMode);
         change(parameters);
     }

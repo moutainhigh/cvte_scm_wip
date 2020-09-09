@@ -5,6 +5,7 @@ import com.cvte.csb.core.exception.client.authorizations.InvalidTokenException;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.web.rest.ResponseFactory;
+import com.cvte.scm.wip.app.req.line.ReqLineModifyQtyApplication;
 import com.cvte.scm.wip.app.req.line.ReqLineReplaceApplication;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
@@ -39,12 +40,14 @@ public class WipReqLinesController {
     private WipReqMtrsService wipReqMtrsService;
     private WipReqLineService wipReqLineService;
     private ReqLineReplaceApplication reqLineReplaceApplication;
+    private ReqLineModifyQtyApplication reqLineModifyQtyApplication;
 
-    public WipReqLinesController(WipReqLinePageService wipReqLinePageService, WipReqMtrsService wipReqMtrsService, WipReqLineService wipReqLineService, ReqLineReplaceApplication reqLineReplaceApplication) {
+    public WipReqLinesController(WipReqLinePageService wipReqLinePageService, WipReqMtrsService wipReqMtrsService, WipReqLineService wipReqLineService, ReqLineReplaceApplication reqLineReplaceApplication, ReqLineModifyQtyApplication reqLineModifyQtyApplication) {
         this.wipReqLinePageService = wipReqLinePageService;
         this.wipReqMtrsService = wipReqMtrsService;
         this.wipReqLineService = wipReqLineService;
         this.reqLineReplaceApplication = reqLineReplaceApplication;
+        this.reqLineModifyQtyApplication = reqLineModifyQtyApplication;
     }
 
     @PostMapping("/tree")
@@ -70,6 +73,12 @@ public class WipReqLinesController {
     public RestResponse add(@RequestBody List<WipReqLineEntity> wipReqLine) {
         wipReqLineService.addMany(wipReqLine, ExecutionModeEnum.STRICT, ChangedModeEnum.MANUAL, true, EntityUtils.getWipUserId());
         return ResponseFactory.getOkResponse("投料单行数据新增成功！");
+    }
+
+    @PostMapping("/modifyQty")
+    public RestResponse modifyQty(@RequestBody List<WipReqLineEntity> wipReqLine) {
+        reqLineModifyQtyApplication.doAction(wipReqLine);
+        return ResponseFactory.getOkResponse("投料变更成功！");
     }
 
     @PostMapping("/cancelByLineIds")

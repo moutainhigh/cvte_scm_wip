@@ -15,6 +15,7 @@ import com.cvte.scm.wip.domain.core.requirement.service.CheckReqInsDomainService
 import com.cvte.scm.wip.domain.core.requirement.service.QueryReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLineService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedModeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -117,7 +118,7 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
             transactionTemplate.setTransactionManager(pgTransactionManager);
             try {
                 transactionTemplate.execute(status -> {
-                    wipReqLineService.executeByChangeBill(reqLineList, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
+                    wipReqLineService.executeByChangeBill(reqLineList, ChangedTypeEnum.EXECUTE, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
                     return null;
                 });
             } catch (RuntimeException re) {
