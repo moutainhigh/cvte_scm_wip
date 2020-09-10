@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -104,7 +103,7 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         // 领料套数
         BigDecimal billQty = rtcHeaderBuildVO.getBillQty();
         // 有效申请未过账数
-        BigDecimal unPostQty = wipMtrRtcLineRepository.sumUnPostQtyExceptCurrent(WipMtrRtcLineQueryVO.buildForPosted(rtcHeaderBuildVO, this));
+        BigDecimal unPostQty = reqItemVO.getUnPostQty();
         if (WipMtrRtcHeaderTypeEnum.RECEIVE.getCode().equals(rtcHeaderBuildVO.getBillType())) {
             // 领料单行 : min( 领料套数*单位用量/BOM产出率, 工单未领数量-有效申请未过账之和)
             BigDecimal totalQty = rtcHeaderBuildVO.getBillQty().multiply(reqItemVO.getUnitQty()).divide(reqItemVO.getComponentYieldFactor(), RoundingMode.HALF_UP);

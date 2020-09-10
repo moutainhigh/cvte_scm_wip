@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.rtc.repository;
 
 import com.cvte.scm.wip.domain.common.repository.WipBaseRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
 
@@ -17,6 +18,8 @@ public interface WipMtrRtcLineRepository extends WipBaseRepository<WipMtrRtcLine
 
     List<WipMtrRtcLineEntity> selectByHeaderId(String headerId);
 
-    BigDecimal sumUnPostQtyExceptCurrent(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO);
+    BigDecimal sumQtyExceptCurrent(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO);
+
+    List<WipReqItemVO> batchSumUnPostQtyExceptCurrent(WipMtrRtcLineQueryVO queryVO);
 
 }

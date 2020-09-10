@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.infrastructure.rtc.repository;
 
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
 import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;
@@ -32,7 +33,12 @@ public class WipMtrRtcLineRepositoryImpl
     }
 
     @Override
-    public BigDecimal sumUnPostQtyExceptCurrent(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO) {
-        return mapper.sumUnPostQtyExceptCurrent(wipMtrRtcLineQueryVO);
+    public BigDecimal sumQtyExceptCurrent(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO) {
+        return mapper.sumQtyExceptCurrent(wipMtrRtcLineQueryVO);
+    }
+
+    @Override
+    public List<WipReqItemVO> batchSumUnPostQtyExceptCurrent(WipMtrRtcLineQueryVO queryVO) {
+        return mapper.batchSumUnPostQtyExceptCurrent(queryVO);
     }
 }

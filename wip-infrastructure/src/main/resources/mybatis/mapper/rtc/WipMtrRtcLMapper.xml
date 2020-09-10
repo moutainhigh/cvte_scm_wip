@@ -2,50 +2,87 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cvte.scm.wip.infrastructure.rtc.mapper.WipMtrRtcLMapper">
     <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.rtc.mapper.dataobject.WipMtrRtcLDO">
-            <result column="line_id" property="lineId" />
-            <result column="header_id" property="headerId" />
-            <result column="organization_id" property="organizationId" />
-            <result column="item_id" property="itemId" />
-            <result column="item_no" property="itemNo" />
-            <result column="mo_lot_no" property="moLotNo" />
-            <result column="wkp_no" property="wkpNo" />
-            <result column="invp_no" property="invpNo" />
-            <result column="req_qty" property="reqQty" />
-            <result column="issued_qty" property="issuedQty" />
-            <result column="line_status" property="lineStatus" />
-            <result column="post_date" property="postDate" />
-            <result column="supplier" property="supplier" />
-            <result column="serial_no" property="serialNo" />
-            <result column="process_result" property="processResult" />
-            <result column="bad_mtr_reason" property="badMtrReason" />
-            <result column="bad_mtr_desc" property="badMtrDesc" />
-            <result column="remark" property="remark" />
-            <result column="rmk01" property="rmk01" />
-            <result column="rmk02" property="rmk02" />
-            <result column="rmk03" property="rmk03" />
-            <result column="rmk04" property="rmk04" />
-            <result column="rmk05" property="rmk05" />
-            <result column="crt_user" property="crtUser" />
-            <result column="crt_time" property="crtTime" />
-            <result column="upd_user" property="updUser" />
-            <result column="upd_time" property="updTime" />
-        </resultMap>
+        <result column="line_id" property="lineId" />
+        <result column="header_id" property="headerId" />
+        <result column="organization_id" property="organizationId" />
+        <result column="item_id" property="itemId" />
+        <result column="item_no" property="itemNo" />
+        <result column="mo_lot_no" property="moLotNo" />
+        <result column="wkp_no" property="wkpNo" />
+        <result column="invp_no" property="invpNo" />
+        <result column="req_qty" property="reqQty" />
+        <result column="issued_qty" property="issuedQty" />
+        <result column="line_status" property="lineStatus" />
+        <result column="post_date" property="postDate" />
+        <result column="supplier" property="supplier" />
+        <result column="serial_no" property="serialNo" />
+        <result column="process_result" property="processResult" />
+        <result column="bad_mtr_reason" property="badMtrReason" />
+        <result column="bad_mtr_desc" property="badMtrDesc" />
+        <result column="remark" property="remark" />
+        <result column="rmk01" property="rmk01" />
+        <result column="rmk02" property="rmk02" />
+        <result column="rmk03" property="rmk03" />
+        <result column="rmk04" property="rmk04" />
+        <result column="rmk05" property="rmk05" />
+        <result column="crt_user" property="crtUser" />
+        <result column="crt_time" property="crtTime" />
+        <result column="upd_user" property="updUser" />
+        <result column="upd_time" property="updTime" />
+    </resultMap>
 
-    <select id="sumUnPostQtyExceptCurrent" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO" resultType="java.math.BigDecimal">
-            select COALESCE(sum(mrl.issued_qty), 0) as issued_qty
-            from wip_mtr_rtc_l mrl
-            inner join wip_mtr_rtc_h mrh
+    <select id="sumQtyExceptCurrent" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO" resultType="java.math.BigDecimal">
+        select coalesce(sum(mrl.issued_qty), 0) as issued_qty
+        from wip_mtr_rtc_l mrl
+        inner join wip_mtr_rtc_h mrh
             on mrl.header_id = mrh.header_id
-            where mrh.mo_id = #{queryVO.moId}
+        where mrh.mo_id = #{queryVO.moId}
+          and mrl.item_id = #{queryVO.itemId}
+          and mrl.wkp_no = #{queryVO.wkpNo}
+        <if test="queryVO.headerId != null">
+            and mrh.header_id <![CDATA[ <> ]]> #{queryVO.headerId}
+        </if>
+          and mrh.bill_type = #{queryVO.billType}
+          and mrl.line_status in
+        <foreach collection="queryVO.statusColl" item="status" open="(" separator="," close=")">
+                #{status}
+        </foreach>
+    </select>
+
+    <select id="batchSumUnPostQtyExceptCurrent" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO"
+            resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
+        select mrh.organization_id as organizationId,
+               mrh.mo_id as moId,
+               mrl.item_id as itemId,
+               mrl.wkp_no as wkpNo,
+               coalesce(sum(mrl.issued_qty), 0) as unPostQty
+        from wip_mtr_rtc_l mrl
+        inner join wip_mtr_rtc_h mrh
+            on mrl.header_id = mrh.header_id
+        where mrh.mo_id = #{queryVO.moId}
+          <if test="queryVO.itemId != null">
             and mrl.item_id = #{queryVO.itemId}
-            and mrl.wkp_no = #{queryVO.wkpNo}
-            <if test="queryVO.headerId != null">
-                and mrh.header_id <![CDATA[ <> ]]> #{queryVO.headerId}
-            </if>
-            and mrh.bill_type = #{queryVO.billType}
-            and mrl.line_status in
-            <foreach collection="queryVO.statusColl" item="status" open="(" separator="," close=")">
-                    #{status}
+          </if>
+          and mrl.wkp_no = #{queryVO.wkpNo}
+          and mrh.bill_type = #{queryVO.billType}
+        <if test="queryVO.headerId != null and queryVO.headerId.length() > 0">
+            and mrh.header_id <![CDATA[ <> ]]> #{queryVO.headerId}
+        </if>
+        <if test="queryVO.itemKeyColl != null and queryVO.itemKeyColl.size() > 0">
+            and (mrl.item_id in
+            <foreach collection="queryVO.itemKeyColl" item="itemKey" open="(" separator="," close=")">
+                #{itemKey}
             </foreach>
+            or mrl.item_no in
+            <foreach collection="queryVO.itemKeyColl" item="itemKey" open="(" separator="," close=")">
+                #{itemKey}
+            </foreach>
+            )
+        </if>
+          and mrl.line_status in
+        <foreach collection="queryVO.statusColl" item="status" open="(" separator="," close=")">
+            #{status}
+        </foreach>
+        group by mrh.organization_id, mrh.mo_id, mrl.item_id, mrl.wkp_no
     </select>
 </mapper>

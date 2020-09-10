@@ -1,7 +1,5 @@
 package com.cvte.scm.wip.domain.core.rtc.valueobject;
 
-import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
-import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -9,12 +7,11 @@ import lombok.experimental.Accessors;
 import java.util.Collection;
 
 /**
-  * 
-  * @author  : xueyuting
-  * @since    : 2020/9/8 16:16
-  * @version : 1.0
-  * email   : xueyuting@cvte.com
-  */
+ * @author : xueyuting
+ * @version : 1.0
+ * email   : xueyuting@cvte.com
+ * @since : 2020/9/8 16:16
+ */
 @Data
 @Accessors(chain = true)
 public class WipMtrRtcLineQueryVO {
@@ -41,26 +38,29 @@ public class WipMtrRtcLineQueryVO {
 
     private Collection<String> statusColl;
 
-    public static WipMtrRtcLineQueryVO buildForPosted(WipMtrRtcHeaderEntity rtcHeaderEntity, WipMtrRtcLineEntity rtcLineEntity) {
+    private Collection<String> itemKeyColl;
+
+    public static WipMtrRtcLineQueryVO buildForUnPost(String organizationId, String headerId, String moId, String billType, String wkpNo, String itemId) {
         WipMtrRtcLineQueryVO rtcLineQueryVO = new WipMtrRtcLineQueryVO();
-        rtcLineQueryVO.setOrganizationId(rtcHeaderEntity.getOrganizationId())
-                .setMoId(rtcHeaderEntity.getMoId())
-                .setHeaderId(rtcHeaderEntity.getHeaderId())
-                .setWkpNo(rtcLineEntity.getWkpNo())
-                .setItemId(rtcLineEntity.getItemId())
+        rtcLineQueryVO.setOrganizationId(organizationId)
+                .setHeaderId(headerId)
+                .setMoId(moId)
+                .setBillType(billType)
+                .setWkpNo(wkpNo)
+                .setItemId(itemId)
                 // 未过账状态
                 .setStatusColl(WipMtrRtcLineStatusEnum.getUnPostStatus());
         return rtcLineQueryVO;
     }
 
-    public static WipMtrRtcLineQueryVO buildForPosted(WipMtrRtcHeaderBuildVO rtcHeaderBuildVO, WipMtrRtcLineEntity rtcLineEntity) {
+    public static WipMtrRtcLineQueryVO buildForUnPost(String organizationId, String headerId, String moId, String billType, String wkpNo, Collection<String> itemKeyColl) {
         WipMtrRtcLineQueryVO rtcLineQueryVO = new WipMtrRtcLineQueryVO();
-        rtcLineQueryVO.setOrganizationId(rtcHeaderBuildVO.getOrganizationId())
-                .setMoId(rtcHeaderBuildVO.getMoId())
-                .setHeaderId(rtcHeaderBuildVO.getHeaderId())
-                .setBillType(rtcHeaderBuildVO.getBillType())
-                .setWkpNo(rtcLineEntity.getWkpNo())
-                .setItemId(rtcLineEntity.getItemId())
+        rtcLineQueryVO.setOrganizationId(organizationId)
+                .setHeaderId(headerId)
+                .setMoId(moId)
+                .setBillType(billType)
+                .setWkpNo(wkpNo)
+                .setItemKeyColl(itemKeyColl)
                 // 未过账状态
                 .setStatusColl(WipMtrRtcLineStatusEnum.getUnPostStatus());
         return rtcLineQueryVO;

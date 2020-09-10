@@ -5,9 +5,8 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
-import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -37,12 +35,12 @@ public class WipMtrRtcHeaderService {
 
     private CheckMtrRtcHeaderService checkMtrRtcHeaderService;
     private WipReqHeaderRepository wipReqHeaderRepository;
-    private WipReqLineRepository wipReqLineRepository;
+    private WipReqItemService wipReqItemService;
 
-    public WipMtrRtcHeaderService(CheckMtrRtcHeaderService checkMtrRtcHeaderService, WipReqHeaderRepository wipReqHeaderRepository, WipReqLineRepository wipReqLineRepository) {
+    public WipMtrRtcHeaderService(CheckMtrRtcHeaderService checkMtrRtcHeaderService, WipReqHeaderRepository wipReqHeaderRepository, WipReqItemService wipReqItemService) {
         this.checkMtrRtcHeaderService = checkMtrRtcHeaderService;
         this.wipReqHeaderRepository = wipReqHeaderRepository;
-        this.wipReqLineRepository = wipReqLineRepository;
+        this.wipReqItemService = wipReqItemService;
     }
 
     /**
@@ -54,8 +52,10 @@ public class WipMtrRtcHeaderService {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderRepository.selectByMoNo(wipMtrRtcHeaderBuildVO.getMoNo());
         fillMoInfo(wipMtrRtcHeaderBuildVO, reqHeaderEntity);
         // 获取工单工序投料信息
-        List<WipReqItemVO> reqItemVOList = getReqItemList(wipMtrRtcHeaderBuildVO);
-        filterAndCheckItem(wipMtrRtcHeaderBuildVO, reqItemVOList);
+        List<WipReqItemVO> reqItemVOList = wipReqItemService.getReqItemList(wipMtrRtcHeaderBuildVO);
+        if (ListUtil.empty(reqItemVOList)) {
+            throw new ParamsIncorrectException("工单没有可领/退的物料");
+        }
 
         // 校验数量
         checkMtrRtcHeaderService.checkBillQtyUpper(wipMtrRtcHeaderBuildVO.getBillQty(), BigDecimal.valueOf(reqHeaderEntity.getBillQty()));
@@ -100,27 +100,6 @@ public class WipMtrRtcHeaderService {
         rtcHeaderEntity.saveLines(isCreate);
 
         return rtcHeaderEntity.getHeaderId();
-    }
-
-    /**
-     * 获取工单工序投料信息
-     * @since 2020/9/9 10:24 上午
-     * @author xueyuting
-     */
-    private List<WipReqItemVO> getReqItemList(WipMtrRtcHeaderBuildVO wipMtrRtcHeaderBuildVO) {
-        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.build(wipMtrRtcHeaderBuildVO);
-        // 查询工单投料信息
-        return wipReqLineRepository.selectReqItem(reqLineQueryVO);
-    }
-
-    private void filterAndCheckItem(WipMtrRtcHeaderBuildVO wipMtrRtcHeaderBuildVO, List<WipReqItemVO> reqItemVOList) {
-        List<String> itemList = wipMtrRtcHeaderBuildVO.getItemList();
-        if (ListUtil.notEmpty(itemList)) {
-            reqItemVOList.removeIf(item -> !itemList.contains(item.getItemNo()));
-        }
-        if (ListUtil.empty(reqItemVOList)) {
-            throw new ParamsIncorrectException("工单没有可领/退的物料");
-        }
     }
 
     /**

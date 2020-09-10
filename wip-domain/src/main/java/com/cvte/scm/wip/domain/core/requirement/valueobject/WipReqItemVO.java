@@ -30,11 +30,16 @@ public class WipReqItemVO {
 
     private BigDecimal reqQty;
 
+    // 已发料
     private BigDecimal issuedQty;
 
     private BigDecimal unIssuedQty;
 
+    // BOM产出率
     private BigDecimal componentYieldFactor;
+
+    // 已申请未过账的领/退料数量
+    private BigDecimal unPostQty;
 
     public String getKey() {
         return String.join("_", this.organizationId, this.moId, this.itemId, this.wkpNo);
