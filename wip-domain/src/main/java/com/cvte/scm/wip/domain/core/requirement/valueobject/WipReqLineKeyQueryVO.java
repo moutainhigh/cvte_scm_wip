@@ -59,12 +59,16 @@ public class WipReqLineKeyQueryVO {
         return keyQueryVO;
     }
 
-    public static WipReqLineKeyQueryVO build(WipMtrRtcHeaderBuildVO headerBuildVO) {
+    public static WipReqLineKeyQueryVO buildForReqItem(String organizationId, String moId, String wkpNo) {
+        return buildForReqItem(organizationId, moId, wkpNo, null);
+    }
+
+    public static WipReqLineKeyQueryVO buildForReqItem(String organizationId, String moId, String wkpNo, List<String> itemList) {
         WipReqLineKeyQueryVO queryVO = new WipReqLineKeyQueryVO();
-        queryVO.setOrganizationId(headerBuildVO.getOrganizationId())
-                .setHeaderId(headerBuildVO.getMoId())
-                .setWkpNo(headerBuildVO.getWkpNo())
-                .setItemKeyColl(headerBuildVO.getItemList());
+        queryVO.setOrganizationId(organizationId)
+                .setHeaderId(moId)
+                .setWkpNo(wkpNo)
+                .setItemKeyColl(itemList);
         return queryVO;
     }
 

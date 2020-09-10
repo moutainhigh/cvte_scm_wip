@@ -198,8 +198,8 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         }
     }
 
-    public void saveLines(boolean isUpdate) {
-        if (isUpdate) {
+    public void saveLines(boolean isCreate) {
+        if (isCreate) {
             for (WipMtrRtcLineEntity rtcLineEntity : this.lineList) {
                 EntityUtils.writeStdCrtInfoToEntity(rtcLineEntity, EntityUtils.getWipUserId());
             }

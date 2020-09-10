@@ -39,7 +39,7 @@ public class WipReqItemService {
      * @author xueyuting
      */
     public List<WipReqItemVO> getReqItemList(WipMtrRtcHeaderBuildVO wipMtrRtcHeaderBuildVO) {
-        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.build(wipMtrRtcHeaderBuildVO);
+        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getWkpNo(), wipMtrRtcHeaderBuildVO.getItemList());
         // 查询工单投料信息
         List<WipReqItemVO> reqItemVOList = wipReqLineRepository.selectReqItem(reqLineQueryVO);
         // 查询投料申请未过账数量

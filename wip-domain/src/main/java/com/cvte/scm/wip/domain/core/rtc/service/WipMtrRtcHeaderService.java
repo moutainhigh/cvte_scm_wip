@@ -50,7 +50,7 @@ public class WipMtrRtcHeaderService {
      */
     public String refresh(WipMtrRtcHeaderBuildVO wipMtrRtcHeaderBuildVO) {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderRepository.selectByMoNo(wipMtrRtcHeaderBuildVO.getMoNo());
-        fillMoInfo(wipMtrRtcHeaderBuildVO, reqHeaderEntity);
+        wipMtrRtcHeaderBuildVO.fillMoInfo(reqHeaderEntity);
         // 获取工单工序投料信息
         List<WipReqItemVO> reqItemVOList = wipReqItemService.getReqItemList(wipMtrRtcHeaderBuildVO);
         if (ListUtil.empty(reqItemVOList)) {
@@ -112,30 +112,6 @@ public class WipMtrRtcHeaderService {
         // 工单或工序变更时需要重新生成
         return valueChanged.test(headerBuildVO.getMoId(), headerEntity.getMoId())
                 || valueChanged.test(headerBuildVO.getWkpNo(), headerEntity.getWkpNo());
-    }
-
-    /**
-     * 填充工单信息
-     * @since 2020/9/9 10:15 上午
-     * @author xueyuting
-     */
-    private void fillMoInfo(WipMtrRtcHeaderBuildVO headerBuildVO, WipReqHeaderEntity headerEntity) {
-        if (Objects.isNull(headerEntity) || StringUtils.isBlank(headerEntity.getSourceId())) {
-            throw new ParamsIncorrectException("工单不存在");
-        }
-        if (StringUtils.isNotBlank(headerBuildVO.getMoNo()) && StringUtils.isBlank(headerBuildVO.getMoId())) {
-            // 设置工单ID
-            headerBuildVO.setMoId(headerEntity.getSourceId());
-        }
-        if (StringUtils.isBlank(headerBuildVO.getFactoryId())) {
-            // 设置工厂ID
-            headerBuildVO.setFactoryId(headerEntity.getFactoryId());
-        }
-        BigDecimal reqBillQty = BigDecimal.valueOf(headerEntity.getBillQty());
-        BigDecimal reqCompleteQty = Optional.ofNullable(headerEntity.getCompleteQty()).orElse(BigDecimal.ZERO);
-        headerBuildVO.setOriginQty(reqBillQty);
-        headerBuildVO.setCompleteQty(reqCompleteQty);
-        headerBuildVO.setUnCompleteQty(reqBillQty.subtract(reqCompleteQty));
     }
 
 }

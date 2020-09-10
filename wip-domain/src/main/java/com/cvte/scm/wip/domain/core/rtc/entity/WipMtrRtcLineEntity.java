@@ -6,6 +6,7 @@ import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import lombok.Data;
@@ -18,9 +19,11 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 
 /**
  * 领退料单行
@@ -99,6 +102,12 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         return lineList;
     }
 
+    public List<WipMtrRtcLineEntity> getByLineIds(String[] lineIdArr) {
+        List<WipMtrRtcLineEntity> lineList = wipMtrRtcLineRepository.selectListByIds(lineIdArr);
+        lineList.forEach(this::wiredAfterSelect);
+        return lineList;
+    }
+
     BigDecimal calculateQty(WipMtrRtcHeaderBuildVO rtcHeaderBuildVO, WipReqItemVO reqItemVO) {
         // 领料套数
         BigDecimal billQty = rtcHeaderBuildVO.getBillQty();
@@ -137,7 +146,32 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         }
     }
 
-    String getReqKey(String moId) {
+    public void update(WipMtrRtcLineBuildVO rtcLineBuildVO) {
+        BiPredicate<Object, Object> valueChanged = (v, p) -> Objects.nonNull(v) && !v.equals(p);
+        if (valueChanged.test(rtcLineBuildVO.getReqQty(), this.reqQty)) {
+            this.setReqQty(rtcLineBuildVO.getReqQty());
+        }
+        if (valueChanged.test(rtcLineBuildVO.getInvpNo(), this.invpNo)) {
+            this.setInvpNo(rtcLineBuildVO.getInvpNo());
+        }
+        if (valueChanged.test(rtcLineBuildVO.getIssuedQty(), this.issuedQty)) {
+            this.setIssuedQty(rtcLineBuildVO.getIssuedQty());
+        }
+        if (valueChanged.test(rtcLineBuildVO.getSupplier(), this.supplier)) {
+            this.setSupplier(rtcLineBuildVO.getSupplier());
+        }
+        if (valueChanged.test(rtcLineBuildVO.getSerialNo(), this.serialNo)) {
+            this.setSerialNo(rtcLineBuildVO.getSerialNo());
+        }
+        if (valueChanged.test(rtcLineBuildVO.getBadReason(), this.badMtrReason)) {
+            this.setBadMtrReason(rtcLineBuildVO.getBadReason());
+        }
+        if (valueChanged.test(rtcLineBuildVO.getBadDesc(), this.badMtrDesc)) {
+            this.setBadMtrDesc(rtcLineBuildVO.getBadDesc());
+        }
+    }
+
+    public String getReqKey(String moId) {
         return String.join("_", this.organizationId, moId, this.itemId, this.wkpNo);
     }
 
