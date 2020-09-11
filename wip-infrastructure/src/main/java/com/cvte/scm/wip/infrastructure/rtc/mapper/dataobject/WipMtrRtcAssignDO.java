@@ -34,11 +34,11 @@ public class WipMtrRtcAssignDO extends BaseModel {
     @ApiModelProperty(value = "分配ID")
     private String assignId;
     /**
-     * 组织ID
+     * 单据行Id
      */
-    @Column(name = "organization_id")
-    @ApiModelProperty(value = "组织ID")
-    private String organizationId;
+    @Column(name = "line_id")
+    @ApiModelProperty(value = "单据行Id")
+    private String lineId;
     /**
      * 单据Id
      */
@@ -46,17 +46,11 @@ public class WipMtrRtcAssignDO extends BaseModel {
     @ApiModelProperty(value = "单据Id")
     private String headerId;
     /**
-     * 单据行Id
+     * 组织ID
      */
-    @Column(name = "line_id")
-    @ApiModelProperty(value = "单据行Id")
-    private String lineId;
-    /**
-     * 物料批次号
-     */
-    @Column(name = "mtr_lot_no")
-    @ApiModelProperty(value = "物料批次号")
-    private String mtrLotNo;
+    @Column(name = "organization_id")
+    @ApiModelProperty(value = "组织ID")
+    private String organizationId;
     /**
      * 工厂ID
      */
@@ -64,23 +58,41 @@ public class WipMtrRtcAssignDO extends BaseModel {
     @ApiModelProperty(value = "工厂ID")
     private String factoryId;
     /**
-     * 分配数量
-     */
-    @Column(name = "assign_qty")
-    @ApiModelProperty(value = "分配数量")
-    private BigDecimal assignQty;
-    /**
      * 子库
      */
     @Column(name = "invp_no")
     @ApiModelProperty(value = "子库")
     private String invpNo;
     /**
+     * 物料批次号
+     */
+    @Column(name = "mtr_lot_no")
+    @ApiModelProperty(value = "物料批次号")
+    private String mtrLotNo;
+    /**
+     * 分配数量
+     */
+    @Column(name = "assign_qty")
+    @ApiModelProperty(value = "分配数量")
+    private BigDecimal assignQty;
+    /**
+     * 实发数量
+     */
+    @Column(name = "issued_qty")
+    @ApiModelProperty(value = "实发数量")
+    private BigDecimal issuedQty;
+    /**
      * 源单据ID
      */
     @Column(name = "source_order_id")
     @ApiModelProperty(value = "源单据ID")
     private String sourceOrderId;
+    /**
+     * 分配状态
+     */
+    @Column(name = "assign_status")
+    @ApiModelProperty(value = "分配状态")
+    private String assignStatus;
     /**
      * ${field.comment}
      */

@@ -1,9 +1,13 @@
 package com.cvte.scm.wip.domain.core.rtc.entity;
 
+import com.cvte.csb.toolkit.ArrayUtils;
+import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcAssignRepository;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcAssignBuildVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,7 +17,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.BiPredicate;
 
 /**
  * 领退料单分配
@@ -44,21 +52,25 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
 
     private String assignId;
 
-    private String organizationId;
+    private String lineId;
 
     private String headerId;
 
-    private String lineId;
-
-    private String mtrLotNo;
+    private String organizationId;
 
     private String factoryId;
 
-    private BigDecimal assignQty;
-
     private String invpNo;
 
+    private String mtrLotNo;
+
+    private BigDecimal assignQty;
+
+    private BigDecimal issuedQty;
+
     private String sourceOrderId;
+
+    private String assignStatus;
 
     private String crtUser;
 
@@ -67,6 +79,48 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
     private String updUser;
 
     private Date updTime;
+
+    public List<WipMtrRtcAssignEntity> getByIds(String[] assignIdArr) {
+        if (ArrayUtils.isEmpty(assignIdArr)) {
+            return new ArrayList<>();
+        }
+        List<WipMtrRtcAssignEntity> rtcAssignEntityList = wipMtrRtcAssignRepository.selectListByIds(assignIdArr);
+        rtcAssignEntityList.forEach(this::wiredAfterSelect);
+        return rtcAssignEntityList;
+    }
+
+    public void create(WipMtrRtcAssignBuildVO assignBuildVO) {
+        this.setAssignId(UUIDUtils.get32UUID())
+                .setLineId(assignBuildVO.getLineId())
+                .setHeaderId(assignBuildVO.getHeaderId())
+                .setOrganizationId(assignBuildVO.getOrganizationId())
+                .setFactoryId(assignBuildVO.getFactoryId())
+                .setInvpNo(assignBuildVO.getInvpNo())
+                .setMtrLotNo(assignBuildVO.getMtrLotNo())
+                .setAssignQty(assignBuildVO.getAssignQty())
+                .setIssuedQty(assignBuildVO.getIssuedQty())
+                .setAssignStatus(StatusEnum.NORMAL.getCode());
+    }
+
+    public void update(WipMtrRtcAssignBuildVO assignBuildVO) {
+        BiPredicate<Object, Object> valueChanged = (v, p) -> Objects.nonNull(v) && !v.equals(p);
+        if (valueChanged.test(assignBuildVO.getInvpNo(), this.invpNo)) {
+            this.setInvpNo(assignBuildVO.getInvpNo());
+        }
+        if (valueChanged.test(assignBuildVO.getMtrLotNo(), this.mtrLotNo)) {
+            this.setMtrLotNo(assignBuildVO.getMtrLotNo());
+        }
+        if (valueChanged.test(assignBuildVO.getAssignQty(), this.assignQty)) {
+            this.setAssignQty(assignBuildVO.getAssignQty());
+        }
+        if (valueChanged.test(assignBuildVO.getIssuedQty(), this.issuedQty)) {
+            this.setIssuedQty(assignBuildVO.getIssuedQty());
+        }
+    }
+
+    private void wiredAfterSelect(WipMtrRtcAssignEntity rtcAssignEntity) {
+        rtcAssignEntity.setWipMtrRtcAssignRepository(this.wipMtrRtcAssignRepository);
+    }
 
     public static WipMtrRtcAssignEntity get() {
         return DomainFactory.get(WipMtrRtcAssignEntity.class);
