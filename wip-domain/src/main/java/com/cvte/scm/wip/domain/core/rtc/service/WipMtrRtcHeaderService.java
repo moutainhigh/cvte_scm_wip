@@ -82,7 +82,7 @@ public class WipMtrRtcHeaderService {
             } else {
                 isCreate = false;
                 // 更新子库
-                if (!rtcHeaderEntity.getInvpNo().equals(wipMtrRtcHeaderBuildVO.getInvpNo())) {
+                if (StringUtils.isNotBlank(wipMtrRtcHeaderBuildVO.getInvpNo()) && !wipMtrRtcHeaderBuildVO.getInvpNo().equals(rtcHeaderEntity.getInvpNo())) {
                     rtcHeaderEntity.getLineList().forEach(line -> line.setInvpNo(wipMtrRtcHeaderBuildVO.getInvpNo()));
                 }
             }
