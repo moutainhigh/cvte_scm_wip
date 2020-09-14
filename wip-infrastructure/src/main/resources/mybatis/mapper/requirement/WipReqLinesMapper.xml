@@ -189,7 +189,9 @@
                        and Wrl.item_id = #{queryVO.itemId}
                    </if>
                    and Wrl.header_id = #{queryVO.headerId}
-                   and Wrl.wkp_no = #{queryVO.wkpNo}
+                   <if test="queryVO.wkpNo != null">
+                       and Wrl.wkp_no = #{queryVO.wkpNo}
+                   </if>
                    <if test="queryVO.itemKeyColl != null and queryVO.itemKeyColl.size() > 0">
                        and (Wrl.item_id in
                        <foreach collection="queryVO.itemKeyColl" item="itemKey" open="(" separator="," close=")">
