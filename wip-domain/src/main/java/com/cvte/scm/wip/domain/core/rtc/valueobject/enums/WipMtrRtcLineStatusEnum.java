@@ -17,11 +17,11 @@ import java.util.Set;
 @Getter
 @AllArgsConstructor
 public enum WipMtrRtcLineStatusEnum implements Codeable {
-    DRAFT("10", "未分配"),
-    ASSIGNED("20", "已分配"),
+    ASSIGNED("20", "未过账"),
     POSTING("30", "过账中"),
     FAILED("35", "过账失败"),
     POSTED("40", "已过账"),
+    CLOSED("50", "关闭"),
     CANCELED("60", "取消"),
     ;
     private String code, desc;
@@ -30,7 +30,6 @@ public enum WipMtrRtcLineStatusEnum implements Codeable {
 
     static {
         Set<String> unPostStatusSet = new HashSet<>();
-        unPostStatusSet.add(DRAFT.code);
         unPostStatusSet.add(ASSIGNED.code);
         unPostStatusSet.add(FAILED.code);
         unPostStatus = unPostStatusSet;

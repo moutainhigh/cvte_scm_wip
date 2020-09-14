@@ -165,7 +165,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
                     .setInvpNo(this.invpNo)
                     .setReqQty(this.billQty)
                     .setIssuedQty(this.billQty)
-                    .setLineStatus(WipMtrRtcLineStatusEnum.DRAFT.getCode());
+                    .setLineStatus(WipMtrRtcLineStatusEnum.ASSIGNED.getCode());
             mtrRtcLineEntityList.add(rtcLineEntity);
         }
         this.lineList = mtrRtcLineEntityList;
