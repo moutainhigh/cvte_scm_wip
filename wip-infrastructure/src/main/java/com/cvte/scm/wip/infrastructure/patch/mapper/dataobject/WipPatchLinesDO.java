@@ -73,6 +73,6 @@ public class WipPatchLinesDO extends BaseModel {
 
     @Column(name = "is_show")
     @ApiModelProperty("删除情况")
-    private Integer isShow;
+    private String isShow;
 
 }

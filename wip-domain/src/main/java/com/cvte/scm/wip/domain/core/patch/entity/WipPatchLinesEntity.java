@@ -42,5 +42,5 @@ public class WipPatchLinesEntity extends BaseModel {
     private String reason;
 
     @ApiModelProperty("删除情况")
-    private Integer isShow;
+    private String isShow;
 }

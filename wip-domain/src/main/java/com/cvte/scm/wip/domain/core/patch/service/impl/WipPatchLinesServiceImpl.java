@@ -189,7 +189,7 @@ public class WipPatchLinesServiceImpl implements WipPatchLinesService {
         if (!PatchEnum.NEW.getCode().equals(wipPatchWfEntity.getStatus())){
             throw new ParamsRequiredException("非法删除");
         }
-        wipPatchLinesRepository.updateSelectiveById(new WipPatchLinesEntity().setId(id).setIsShow(1));
+        wipPatchLinesRepository.updateSelectiveById(new WipPatchLinesEntity().setId(id).setIsShow("0"));
     }
 
     @Override

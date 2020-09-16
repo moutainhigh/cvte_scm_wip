@@ -39,6 +39,6 @@ public class WipPatchLinesRepositoryImpl
 
     @Override
     public List<WipPatchLinesEntity> selectListByBillId(String billId,String itemId) {
-        return batchBuildEntity(wipPatchLinesMapper.select(new WipPatchLinesDO().setBillId(billId).setItemId(itemId)));
+        return batchBuildEntity(wipPatchLinesMapper.select(new WipPatchLinesDO().setBillId(billId).setItemId(itemId).setIsShow("1")));
     }
 }
