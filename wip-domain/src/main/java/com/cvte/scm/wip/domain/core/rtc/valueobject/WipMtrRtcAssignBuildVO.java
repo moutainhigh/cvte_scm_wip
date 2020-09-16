@@ -36,4 +36,6 @@ public class WipMtrRtcAssignBuildVO {
 
     private String sourceOrderId;
 
+    private String changeType;
+
 }

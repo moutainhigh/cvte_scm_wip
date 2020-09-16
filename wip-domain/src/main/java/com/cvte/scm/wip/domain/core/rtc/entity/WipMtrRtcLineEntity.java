@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.rtc.entity;
 import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
@@ -183,6 +184,14 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     public void updateAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {
         rtcAssignEntityList.forEach(assign -> EntityUtils.writeStdUpdInfoToEntity(assign, EntityUtils.getWipUserId()));
+        wipMtrRtcAssignRepository.updateList(rtcAssignEntityList);
+    }
+
+    public void deleteAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {
+        for (WipMtrRtcAssignEntity deleteAssignEntity : rtcAssignEntityList) {
+            deleteAssignEntity.setAssignStatus(StatusEnum.CLOSE.getCode());
+            EntityUtils.writeStdUpdInfoToEntity(deleteAssignEntity, EntityUtils.getWipUserId());
+        }
         wipMtrRtcAssignRepository.updateList(rtcAssignEntityList);
     }
 
