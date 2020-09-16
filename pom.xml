@@ -261,6 +261,16 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>jfrog-releases</id>
+            <name>artifactory-releases</name>
+            <url>https://artifactory.gz.cvte.cn:443/artifactory/SR_maven_releases_local/</url>
+        </repository>
+        <repository>
+            <id>jfrog-snapshots</id>
+            <name>artifactory-snapshots</name>
+            <url>https://artifactory.gz.cvte.cn:443/artifactory/SR_maven_snapshots_local</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>

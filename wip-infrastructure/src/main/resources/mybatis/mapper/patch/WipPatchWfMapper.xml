@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.patch.mapper.WipPatchWfMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.patch.mapper.dataobject.WipPatchWfDO">
+            <result column="id" property="id" />
+            <result column="bill_id" property="billId" />
+            <result column="status" property="status" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_date" property="crtDate" />
+        </resultMap>
+
+    <insert id="insertBatchReturnId" parameterType="com.cvte.scm.wip.infrastructure.patch.mapper.dataobject.WipPatchWfDO" useGeneratedKeys="true" keyProperty="id">
+        insert into wip_patch_wf (
+		bill_id,
+		status,
+		crt_user,
+		crt_date)
+		values
+		(#{billId},
+		#{status},
+		#{crtUser},
+		#{crtDate})
+    </insert>
+</mapper>
