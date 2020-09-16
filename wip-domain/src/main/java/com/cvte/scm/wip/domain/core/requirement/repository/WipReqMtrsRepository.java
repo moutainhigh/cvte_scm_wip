@@ -19,4 +19,7 @@ public interface WipReqMtrsRepository {
 
     List<String> selectSubRuleMtrsItemNo(String headerId, String itemId);
 
+    List<WipReqMtrsEntity> getAllMtrs(String headerId, String itemId);
+
+    int countReqMtrs(String headerId, String oldItemId,String nowItemId);
 }

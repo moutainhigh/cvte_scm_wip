@@ -5,6 +5,8 @@ import com.cvte.scm.wip.domain.core.requirement.repository.WipReqMtrsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static java.util.Objects.isNull;
 
 /**
@@ -27,5 +29,10 @@ public class WipReqMtrsService {
             return false;
         }
         return wipReqMtrsRepository.selectCount(wipReqMtrs) > 0;
+    }
+
+    public List<WipReqMtrsEntity> getAllMtrs(String headerId, String itemId){
+        List<WipReqMtrsEntity> allMtrs = wipReqMtrsRepository.getAllMtrs(headerId, itemId);
+        return allMtrs;
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.beans.BeanUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jf
@@ -53,6 +55,15 @@ public class WipReqMtrsDO {
         WipReqMtrsDO issuedDO = new WipReqMtrsDO();
         BeanUtils.copyProperties(issuedEntity, issuedDO);
         return issuedDO;
+    }
+    public static List<WipReqMtrsEntity> buildEntityList(List<WipReqMtrsDO> wipReqMtrsDOS){
+        List<WipReqMtrsEntity> list = new ArrayList<>();
+        wipReqMtrsDOS.forEach(v->{
+            WipReqMtrsEntity issuedEntity = new WipReqMtrsEntity();
+            BeanUtils.copyProperties(v, issuedEntity);
+            list.add(issuedEntity);
+        });
+        return list;
     }
 
 }

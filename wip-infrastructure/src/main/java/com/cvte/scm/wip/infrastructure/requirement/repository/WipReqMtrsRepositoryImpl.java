@@ -40,4 +40,16 @@ public class WipReqMtrsRepositoryImpl implements WipReqMtrsRepository {
         return wipReqMtrsMapper.selectSubRuleMtrsItemNo(headerId, itemId);
     }
 
+    @Override
+    public List<WipReqMtrsEntity> getAllMtrs(String headerId, String itemId) {
+        List<WipReqMtrsDO> allMtrs = wipReqMtrsMapper.getAllMtrs(headerId, itemId);
+        List<WipReqMtrsEntity> list = WipReqMtrsDO.buildEntityList(allMtrs);
+        return list;
+    }
+
+    @Override
+    public int countReqMtrs(String headerId, String oldItemId, String nowItemId) {
+        int i = wipReqMtrsMapper.countReqMtrs(headerId, oldItemId, nowItemId);
+        return i;
+    }
 }
