@@ -53,6 +53,9 @@ public class WipMtrRtcViewService {
     public PageResultEntity lineView(SysViewPageParamVO sysViewPageParam) {
         PageResultEntity feignPageResult = viewService.getViewPageDataByViewPageParam(sysViewPageParam);
         List<Map<String, Object>> data = (List<Map<String, Object>>) feignPageResult.getList();
+        if (ListUtil.empty(data)) {
+            return feignPageResult;
+        }
 
         String organizationId = (String) data.get(0).get("organizationId");
         String moId = (String) data.get(0).get("moId");
