@@ -1,10 +1,12 @@
 package com.cvte.scm.wip.domain.core.rtc.entity;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
+import com.cvte.scm.wip.common.enums.BooleanEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.common.serial.SerialNoGenerationService;
@@ -12,7 +14,6 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcHeaderRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,6 +28,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum.*;
 
 /**
  * 领退料单
@@ -129,7 +132,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
                 .setRemark(headerBuildVO.getRemark())
                 .setInvpNo(headerBuildVO.getInvpNo())
                 .setSourceBillNo(headerBuildVO.getSourceBillNo())
-                .setBillStatus(WipMtrRtcHeaderStatusEnum.DRAFT.getCode());
+                .setBillStatus(DRAFT.getCode());
         EntityUtils.writeStdCrtInfoToEntity(this, EntityUtils.getWipUserId());
         wipMtrRtcHeaderRepository.insert(this);
     }
@@ -144,6 +147,40 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
                 .setRemark(headerBuildVO.getRemark())
                 .setSourceBillNo(headerBuildVO.getSourceBillNo());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
+    public void submit() {
+        this.setBillStatus(REVIEW.getCode());
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
+    public void review(String approved) {
+        String approvedBillStatus;
+        if (BooleanEnum.YES.getCode().equals(approved)) {
+            approvedBillStatus = EFFECTIVE.getCode();
+        } else if (BooleanEnum.NO.getCode().equals(approved)) {
+            approvedBillStatus = WITHDRAW.getCode();
+        } else {
+            throw new ParamsIncorrectException("非法的审核指令");
+        }
+        this.setBillStatus(approvedBillStatus);
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
+    public void close() {
+        this.setBillStatus(CLOSED.getCode());
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        List<WipMtrRtcLineEntity> unCompleteRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        if (ListUtil.notEmpty(unCompleteRtcLineList)) {
+            for (WipMtrRtcLineEntity unCompleteRtcLine : unCompleteRtcLineList) {
+                unCompleteRtcLine.setLineStatus(WipMtrRtcLineStatusEnum.CLOSED.getCode());
+                EntityUtils.writeStdUpdInfoToEntity(unCompleteRtcLine, EntityUtils.getWipUserId());
+            }
+            wipMtrRtcLineRepository.updateList(unCompleteRtcLineList);
+        }
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
     }
 
