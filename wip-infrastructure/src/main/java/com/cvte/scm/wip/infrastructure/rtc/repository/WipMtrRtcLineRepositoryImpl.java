@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.cvte.scm.wip.infrastructure.rtc.mapper.WipMtrRtcLMapper;
 import tk.mybatis.mapper.entity.Example;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -33,12 +32,13 @@ public class WipMtrRtcLineRepositoryImpl
     }
 
     @Override
-    public BigDecimal sumQtyExceptCurrent(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO) {
-        return mapper.sumQtyExceptCurrent(wipMtrRtcLineQueryVO);
+    public List<WipReqItemVO> batchSumMoUnPostQty(WipMtrRtcLineQueryVO queryVO) {
+        return mapper.batchSumMoUnPostQty(queryVO);
     }
 
     @Override
-    public List<WipReqItemVO> batchSumUnPostQtyExceptCurrent(WipMtrRtcLineQueryVO queryVO) {
-        return mapper.batchSumUnPostQtyExceptCurrent(queryVO);
+    public List<WipReqItemVO> batchSumUnPostQty(WipMtrRtcLineQueryVO queryVO) {
+        return mapper.batchSumUnPostQty(queryVO);
     }
+
 }

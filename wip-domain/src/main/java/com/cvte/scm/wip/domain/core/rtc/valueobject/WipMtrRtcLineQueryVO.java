@@ -24,6 +24,8 @@ public class WipMtrRtcLineQueryVO {
 
     private String organizationId;
 
+    private String factoryId;
+
     private String itemId;
 
     private String itemNo;
@@ -40,26 +42,25 @@ public class WipMtrRtcLineQueryVO {
 
     private Collection<String> itemKeyColl;
 
-    public static WipMtrRtcLineQueryVO buildForUnPost(String organizationId, String headerId, String moId, String billType, String wkpNo, String itemId) {
+    public static WipMtrRtcLineQueryVO buildForMoUnPost(String organizationId, String moId, String headerId, String billType, String wkpNo, Collection<String> itemKeyColl) {
         WipMtrRtcLineQueryVO rtcLineQueryVO = new WipMtrRtcLineQueryVO();
         rtcLineQueryVO.setOrganizationId(organizationId)
-                .setHeaderId(headerId)
                 .setMoId(moId)
+                .setHeaderId(headerId)
                 .setBillType(billType)
                 .setWkpNo(wkpNo)
-                .setItemId(itemId)
+                .setItemKeyColl(itemKeyColl)
                 // 未过账状态
                 .setStatusColl(WipMtrRtcLineStatusEnum.getUnPostStatus());
         return rtcLineQueryVO;
     }
 
-    public static WipMtrRtcLineQueryVO buildForUnPost(String organizationId, String headerId, String moId, String billType, String wkpNo, Collection<String> itemKeyColl) {
+    public static WipMtrRtcLineQueryVO buildForUnPost(String organizationId, String factoryId, String headerId, String billType, Collection<String> itemKeyColl) {
         WipMtrRtcLineQueryVO rtcLineQueryVO = new WipMtrRtcLineQueryVO();
         rtcLineQueryVO.setOrganizationId(organizationId)
+                .setFactoryId(factoryId)
                 .setHeaderId(headerId)
-                .setMoId(moId)
                 .setBillType(billType)
-                .setWkpNo(wkpNo)
                 .setItemKeyColl(itemKeyColl)
                 // 未过账状态
                 .setStatusColl(WipMtrRtcLineStatusEnum.getUnPostStatus());

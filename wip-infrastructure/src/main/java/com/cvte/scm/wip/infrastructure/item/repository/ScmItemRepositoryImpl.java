@@ -41,6 +41,20 @@ public class ScmItemRepositoryImpl implements ScmItemRepository {
     }
 
     @Override
+    public List<ScmItemEntity> selectByItemIds(String organizationId, Iterable<String> itemIds) {
+        Example example = new Example(ScmItemDO.class);
+        example.createCriteria().andIn("itemId", itemIds);
+        List<ScmItemDO> itemDOList = scmItemMapper.selectByExample(example);
+
+        List<ScmItemEntity> itemEntityList = new ArrayList<>();
+        for (ScmItemDO itemDO : itemDOList) {
+            ScmItemEntity itemEntity = ScmItemDO.buildEntity(itemDO, organizationId);
+            itemEntityList.add(itemEntity);
+        }
+        return itemEntityList;
+    }
+
+    @Override
     public List<ScmItemEntity> selectByItemNos(String organizationId, Iterable<String> itemNos) {
         Example example = new Example(ScmItemDO.class);
         example.createCriteria().andIn("itemNo", itemNos);

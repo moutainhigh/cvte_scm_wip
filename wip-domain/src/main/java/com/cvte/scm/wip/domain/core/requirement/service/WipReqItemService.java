@@ -43,9 +43,9 @@ public class WipReqItemService {
         // 查询工单投料信息
         List<WipReqItemVO> reqItemVOList = wipReqLineRepository.selectReqItem(reqLineQueryVO);
         // 查询投料申请未过账数量
-        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForUnPost(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getHeaderId(), wipMtrRtcHeaderBuildVO.getMoId(),
+        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForMoUnPost(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getHeaderId(),
                 wipMtrRtcHeaderBuildVO.getBillType(), wipMtrRtcHeaderBuildVO.getWkpNo(), wipMtrRtcHeaderBuildVO.getItemList());
-        List<WipReqItemVO> unPostReqItemVOList = wipMtrRtcLineRepository.batchSumUnPostQtyExceptCurrent(wipMtrRtcLineQueryVO);
+        List<WipReqItemVO> unPostReqItemVOList = wipMtrRtcLineRepository.batchSumMoUnPostQty(wipMtrRtcLineQueryVO);
         Map<String, WipReqItemVO> unPostReqItemVOMap = unPostReqItemVOList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
 
         for (WipReqItemVO reqItemVO : reqItemVOList) {

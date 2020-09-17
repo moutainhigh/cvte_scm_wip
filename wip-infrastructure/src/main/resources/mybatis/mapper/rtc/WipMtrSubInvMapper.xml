@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.rtc.mapper.WipMtrSubInvMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
+        <result column="organization_id" property="organizationId" />
+        <result column="factory_id" property="factoryId" />
+        <result column="factory_no" property="factoryNo" />
+        <result column="inventory_item_id" property="inventoryItemId" />
+        <result column="lot_number" property="lotNumber" />
+        <result column="first_stockin_date" property="firstStockinDate" />
+        <result column="subinventory_code" property="subinventoryCode" />
+        <result column="supply_qty" property="supplyQty" />
+    </resultMap>
+    <select id="selectByVO" resultMap="BaseResultMap">
+        select siq.organization_id,
+               siq.factory_id,
+               siq.factory_no,
+               siq.subinventory_code,
+               siq.inventory_item_id,
+               sum(siq.supply_qty) as supply_qty
+        from wip_mtr_sub_inv_qty_v siq
+        where siq.organization_id = #{subInvVOList[0].organizationId}
+          and siq.factory_id = #{subInvVOList[0].factoryId}
+          and (
+          <foreach collection="subInvVOList" item="subInv" open="(" separator="or" close=")">
+              (siq.inventory_item_id = #{subInv.inventoryItemId}
+              <if test="subInv.subinventoryCode != null and subInv.length() > 0">
+                  and siq.subinventory_code = #{subInv.subinventoryCode}
+              </if>
+              )
+          </foreach>
+          )
+        group by siq.factory_no, siq.factory_id, siq.inventory_item_id, siq.organization_id,
+                 siq.subinventory_code
+    </select>
+</mapper>

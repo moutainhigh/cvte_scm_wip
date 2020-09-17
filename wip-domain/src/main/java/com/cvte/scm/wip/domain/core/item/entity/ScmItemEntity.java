@@ -13,4 +13,6 @@ public class ScmItemEntity {
 
     private String itemNo;
 
+    private String rdMinClassCode;
+
 }
