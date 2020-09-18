@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.rtc.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
@@ -17,10 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiPredicate;
 
 /**
@@ -87,6 +85,13 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
         List<WipMtrRtcAssignEntity> rtcAssignEntityList = wipMtrRtcAssignRepository.selectListByIds(assignIdArr);
         rtcAssignEntityList.forEach(this::wiredAfterSelect);
         return rtcAssignEntityList;
+    }
+
+    public List<WipMtrRtcAssignEntity> getByLineIds(Collection<String> lineIdList) {
+        if (CollectionUtil.isEmpty(lineIdList)) {
+            return new ArrayList<>();
+        }
+        return wipMtrRtcAssignRepository.selectByLineIds(lineIdList);
     }
 
     public void create(WipMtrRtcAssignBuildVO assignBuildVO) {

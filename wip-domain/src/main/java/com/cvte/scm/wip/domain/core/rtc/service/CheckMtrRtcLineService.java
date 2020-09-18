@@ -1,14 +1,21 @@
 package com.cvte.scm.wip.domain.core.rtc.service;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -69,6 +76,57 @@ public class CheckMtrRtcLineService {
         }
         if (qty.compareTo(availableQty) > 0) {
             throw new ParamsIncorrectException(errMsg + availableQty.toString());
+        }
+    }
+
+    public void checkInvpNo(String invpNo) {
+        if (StringUtils.isBlank(invpNo)) {
+            throw new ParamsIncorrectException("子库为空");
+        }
+    }
+
+    public void checkInvQty(List<WipMtrRtcLineEntity> rtcLineEntityList, List<WipMtrSubInvVO> subInvVOList) {
+        Map<String, BigDecimal> subInvQtyMap = WipMtrSubInvVO.groupQtyByItemSub(subInvVOList);
+        Map<String, BigDecimal> lotQtyMap = WipMtrSubInvVO.groupQtyByItemSubLot(subInvVOList);
+        StringBuilder errMsgBuilder = new StringBuilder();
+        for (WipMtrRtcLineEntity rtcLine : rtcLineEntityList) {
+            try {
+                checkInvpNo(rtcLine.getInvpNo());
+            } catch (ParamsIncorrectException pe) {
+                errMsgBuilder.append(rtcLine.getItemNo()).append(pe.getMessage()).append(";");
+                continue;
+            }
+            List<WipMtrRtcAssignEntity> rtcAssignList = rtcLine.getAssignList();
+            if (ListUtil.notEmpty(rtcAssignList)) {
+                // 校验分配的批次现有量
+                for (WipMtrRtcAssignEntity rtcAssign : rtcAssignList) {
+                    try {
+                        checkQty(rtcAssign.getIssuedQty(), lotQtyMap, BatchProcessUtils.getKey(rtcLine.getItemId(), rtcAssign.getInvpNo(), rtcAssign.getMtrLotNo()));
+                    } catch (ParamsIncorrectException pe) {
+                        errMsgBuilder.append(rtcLine.getItemNo()).append("的批次").append(rtcAssign.getMtrLotNo()).append(pe.getMessage()).append(";");
+                    }
+                }
+            } else {
+                // 校验子库现有量
+                try {
+                    checkQty(rtcLine.getIssuedQty(), subInvQtyMap, BatchProcessUtils.getKey(rtcLine.getItemId(), rtcLine.getInvpNo()));
+                } catch (ParamsIncorrectException pe) {
+                    errMsgBuilder.append(rtcLine.getItemNo()).append("的子库").append(rtcLine.getInvpNo()).append(pe.getMessage()).append(";");
+                }
+            }
+        }
+        if (errMsgBuilder.length() > 0) {
+            throw new ParamsIncorrectException(errMsgBuilder.toString());
+        }
+    }
+
+    private void checkQty(BigDecimal sourceQty, Map<String, BigDecimal> qtyMap, String key) {
+        BigDecimal supplyQty = qtyMap.get(BatchProcessUtils.getKey(key));
+        if (Objects.isNull(supplyQty)) {
+            throw new ParamsIncorrectException("查不到现有量");
+        }
+        if (sourceQty.compareTo(supplyQty) > 0) {
+            throw new ParamsIncorrectException("现有量不足");
         }
     }
 

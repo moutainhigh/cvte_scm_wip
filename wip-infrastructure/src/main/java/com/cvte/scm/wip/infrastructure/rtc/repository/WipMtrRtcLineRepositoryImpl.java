@@ -3,6 +3,7 @@ package com.cvte.scm.wip.infrastructure.rtc.repository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;
 import com.cvte.scm.wip.infrastructure.rtc.mapper.dataobject.WipMtrRtcLDO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
@@ -26,7 +27,9 @@ public class WipMtrRtcLineRepositoryImpl
     @Override
     public List<WipMtrRtcLineEntity> selectByHeaderId(String headerId) {
         Example example = new Example(WipMtrRtcLDO.class);
-        example.createCriteria().andEqualTo("headerId", headerId);
+        example.createCriteria()
+                .andEqualTo("headerId", headerId)
+                .andNotIn("lineStatus", WipMtrRtcLineStatusEnum.getInvalidStatus());
         List<WipMtrRtcLDO> lineDOList = mapper.selectByExample(example);
         return this.batchBuildEntity(lineDOList);
     }

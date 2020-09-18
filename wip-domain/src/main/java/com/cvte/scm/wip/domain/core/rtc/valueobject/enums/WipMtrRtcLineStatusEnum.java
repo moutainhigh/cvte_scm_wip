@@ -27,16 +27,27 @@ public enum WipMtrRtcLineStatusEnum implements Codeable {
     private String code, desc;
 
     private static final Collection<String> unPostStatus;
+    private static final Collection<String> invalidStatus;
 
     static {
         Set<String> unPostStatusSet = new HashSet<>();
         unPostStatusSet.add(ASSIGNED.code);
         unPostStatusSet.add(FAILED.code);
         unPostStatus = unPostStatusSet;
+        Set<String> invalidStatusSet = new HashSet<>();
+        invalidStatusSet.add(CLOSED.code);
+        invalidStatusSet.add(CANCELED.code);
+        invalidStatus = invalidStatusSet;
     }
 
     // 获取未过账状态集合
     public static Collection<String> getUnPostStatus() {
         return unPostStatus;
     }
+
+    // 获取无效状态集合
+    public static Collection<String> getInvalidStatus() {
+        return invalidStatus;
+    }
+
 }

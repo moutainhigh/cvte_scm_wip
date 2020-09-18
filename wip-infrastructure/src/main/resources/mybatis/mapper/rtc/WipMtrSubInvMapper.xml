@@ -15,8 +15,9 @@
         select siq.organization_id,
                siq.factory_id,
                siq.factory_no,
-               siq.subinventory_code,
                siq.inventory_item_id,
+               siq.subinventory_code,
+               siq.lot_number,
                sum(siq.supply_qty) as supply_qty
         from wip_mtr_sub_inv_qty_v siq
         where siq.organization_id = #{subInvVOList[0].organizationId}
@@ -27,10 +28,13 @@
               <if test="subInv.subinventoryCode != null and subInv.subinventoryCode.length() > 0">
                   and siq.subinventory_code = #{subInv.subinventoryCode}
               </if>
+              <if test="subInv.lotNumber != null and subInv.lotNumber.length() > 0">
+                  and siq.lot_number = #{subInv.lotNumber}
+              </if>
               )
           </foreach>
           )
         group by siq.factory_no, siq.factory_id, siq.inventory_item_id, siq.organization_id,
-                 siq.subinventory_code
+                 siq.subinventory_code, siq.lot_number
     </select>
 </mapper>

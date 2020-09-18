@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.rtc.entity;
 
 import com.cvte.csb.toolkit.ArrayUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 /**
  * 领退料单行
@@ -98,6 +100,8 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private Date updTime;
 
+    private List<WipMtrRtcAssignEntity> assignList;
+
     public List<WipMtrRtcLineEntity> getByHeaderId(String headerId) {
         List<WipMtrRtcLineEntity> lineList = wipMtrRtcLineRepository.selectByHeaderId(headerId);
         lineList.forEach(this::wiredAfterSelect);
@@ -111,6 +115,21 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         List<WipMtrRtcLineEntity> lineList = wipMtrRtcLineRepository.selectListByIds(lineIdArr);
         lineList.forEach(this::wiredAfterSelect);
         return lineList;
+    }
+
+    public void batchGetAssign(List<WipMtrRtcLineEntity> rtcLineEntityList) {
+        List<String> lineIdList = rtcLineEntityList.stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toList());
+        List<WipMtrRtcAssignEntity> rtcAssignEntityList = WipMtrRtcAssignEntity.get().getByLineIds(lineIdList);
+        if (ListUtil.empty(rtcAssignEntityList)) {
+            return;
+        }
+        Map<String, List<WipMtrRtcAssignEntity>> lineAssignMap = rtcAssignEntityList.stream().collect(Collectors.groupingBy(WipMtrRtcAssignEntity::getLineId));
+        for (WipMtrRtcLineEntity rtcLineEntity : rtcLineEntityList) {
+            List<WipMtrRtcAssignEntity> lineAssignList = lineAssignMap.get(rtcLineEntity.getLineId());
+            if (ListUtil.notEmpty(lineAssignList)) {
+                rtcLineEntity.setAssignList(lineAssignList);
+            }
+        }
     }
 
     BigDecimal calculateQty(WipMtrRtcHeaderBuildVO rtcHeaderBuildVO, WipReqItemVO reqItemVO) {

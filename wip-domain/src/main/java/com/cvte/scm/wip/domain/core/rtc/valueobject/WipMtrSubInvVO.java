@@ -1,10 +1,14 @@
 package com.cvte.scm.wip.domain.core.rtc.valueobject;
 
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -32,5 +36,17 @@ public class WipMtrSubInvVO {
     private String subinventoryCode;
 
     private BigDecimal supplyQty;
+
+    public static Map<String, BigDecimal> groupQtyByItem(List<WipMtrSubInvVO> subInvVOList) {
+        return subInvVOList.stream().collect(Collectors.toMap(WipMtrSubInvVO::getInventoryItemId, WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
+    }
+
+    public static Map<String, BigDecimal> groupQtyByItemSub(List<WipMtrSubInvVO> subInvVOList) {
+        return subInvVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getInventoryItemId(), item.getSubinventoryCode()), WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
+    }
+
+    public static Map<String, BigDecimal> groupQtyByItemSubLot(List<WipMtrSubInvVO> subInvVOList) {
+        return subInvVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getInventoryItemId(), item.getSubinventoryCode(), item.getLotNumber()), WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
+    }
 
 }

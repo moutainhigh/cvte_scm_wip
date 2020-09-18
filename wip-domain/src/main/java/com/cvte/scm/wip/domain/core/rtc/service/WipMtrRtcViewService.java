@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.common.view.entity.PageResultEntity;
 import com.cvte.scm.wip.domain.common.view.service.ViewService;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
@@ -62,20 +63,20 @@ public class WipMtrRtcViewService {
         List<String> itemIdList = data.stream().map(line -> (String) line.get("itemId")).collect(Collectors.toList());
 
         List<WipMtrSubInvVO> mtrSubInvVOList = getMtrSubInv(data);
-        // 物料子库现有量
-        Map<String, BigDecimal> mtrSubInvQtyMap = mtrSubInvVOList.stream().collect(Collectors.toMap(item -> getKey(item.getInventoryItemId(), item.getSubinventoryCode()), WipMtrSubInvVO::getSupplyQty));
         // 物料库存现有量
-        Map<String, BigDecimal> mtrSupplyQtyMap = mtrSubInvVOList.stream().collect(Collectors.toMap(WipMtrSubInvVO::getInventoryItemId, WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
+        Map<String, BigDecimal> mtrSupplyQtyMap = WipMtrSubInvVO.groupQtyByItem(mtrSubInvVOList);
+        // 物料子库现有量
+        Map<String, BigDecimal> mtrSubInvQtyMap = WipMtrSubInvVO.groupQtyByItemSub(mtrSubInvVOList);
         // 物料可用量
         List<WipReqItemVO> unPostReqItemVOList = getReqItem(data.get(0), itemIdList);
-        Map<String, BigDecimal> unPostReqItemVOMap = unPostReqItemVOList.stream().collect(Collectors.toMap(item -> getKey(item.getItemId(), item.getInvpNo()), WipReqItemVO::getUnPostQty));
+        Map<String, BigDecimal> unPostReqItemVOMap = unPostReqItemVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getItemId(), item.getInvpNo()), WipReqItemVO::getUnPostQty));
         // 批次强管控物料
         List<String> rtcLotControlItemList = getLotControlItem(organizationId, moId, itemIdList);
 
         for (Map<String, Object> line : data) {
             String itemId = (String)line.get("itemId");
             String invpNo = (String)line.get("invpNo");
-            String subInvKey = getKey(itemId, invpNo);
+            String subInvKey = BatchProcessUtils.getKey(itemId, invpNo);
 
             BigDecimal supplyQty;
             if (StringUtils.isBlank(invpNo)) {
@@ -148,18 +149,6 @@ public class WipMtrRtcViewService {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderService.getBySourceId(moId);
         ScmItemEntity scmItemEntity = scmItemService.getByItemIds(organizationId, Collections.singletonList(reqHeaderEntity.getProductId())).get(0);
         return scmItemEntity.getRdMinClassCode();
-    }
-
-    private String getKey(String... keys) {
-        List<String> keyList = new ArrayList<>();
-        for (String key : keys) {
-            if (StringUtils.isBlank(key)) {
-                keyList.add("null");
-                continue;
-            }
-            keyList.add(key);
-        }
-        return String.join("_", keyList);
     }
 
 }
