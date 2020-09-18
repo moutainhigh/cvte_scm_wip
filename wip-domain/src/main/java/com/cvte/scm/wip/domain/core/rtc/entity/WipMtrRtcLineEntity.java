@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 
 /**
  * 领退料单行
@@ -169,11 +168,11 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         if (valueChanged.test(rtcLineBuildVO.getSerialNo(), this.serialNo)) {
             this.setSerialNo(rtcLineBuildVO.getSerialNo());
         }
-        if (valueChanged.test(rtcLineBuildVO.getBadReason(), this.badMtrReason)) {
-            this.setBadMtrReason(rtcLineBuildVO.getBadReason());
+        if (valueChanged.test(rtcLineBuildVO.getBadMtrReason(), this.badMtrReason)) {
+            this.setBadMtrReason(rtcLineBuildVO.getBadMtrReason());
         }
-        if (valueChanged.test(rtcLineBuildVO.getBadDesc(), this.badMtrDesc)) {
-            this.setBadMtrDesc(rtcLineBuildVO.getBadDesc());
+        if (valueChanged.test(rtcLineBuildVO.getBadMtrDesc(), this.badMtrDesc)) {
+            this.setBadMtrDesc(rtcLineBuildVO.getBadMtrDesc());
         }
     }
 

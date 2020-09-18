@@ -30,8 +30,8 @@ public class WipMtrRtcLineBuildVO {
 
     private String serialNo;
 
-    private String badReason;
+    private String badMtrReason;
 
-    private String badDesc;
+    private String badMtrDesc;
 
 }
