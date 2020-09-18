@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.app.rtc.update;
 
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,7 @@ public class WipMtrRtcLineUpdateApplication {
         this.wipMtrRtcLineService = wipMtrRtcLineService;
     }
 
-    public String doAction(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
+    public List<WipMtrInvQtyCheckVO> doAction(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
         return wipMtrRtcLineService.batchUpdate(rtcLineBuildVOList);
     }
 

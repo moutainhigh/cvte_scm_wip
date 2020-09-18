@@ -1,9 +1,13 @@
 package com.cvte.scm.wip.domain.core.requirement.valueobject;
 
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -45,6 +49,10 @@ public class WipReqItemVO {
 
     public String getKey() {
         return String.join("_", this.organizationId, this.moId, this.itemId, this.wkpNo);
+    }
+
+    public static Map<String, BigDecimal> groupUnPostQtyByItemSub(List<WipReqItemVO> reqItemVOList) {
+        return reqItemVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getItemId(), item.getInvpNo()), WipReqItemVO::getUnPostQty, BigDecimal::add));
     }
 
 }

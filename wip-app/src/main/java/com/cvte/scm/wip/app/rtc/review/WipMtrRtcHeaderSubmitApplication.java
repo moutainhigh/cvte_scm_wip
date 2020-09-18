@@ -1,8 +1,11 @@
 package com.cvte.scm.wip.app.rtc.review;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +31,11 @@ public class WipMtrRtcHeaderSubmitApplication {
     public void doAction(String headerId) {
         WipMtrRtcHeaderEntity rtcHeaderEntity = WipMtrRtcHeaderEntity.get().getById(headerId);
         List<WipMtrRtcLineEntity> rtcLineEntityList = rtcHeaderEntity.getLineList();
-        wipMtrRtcLineService.validateItemInvQty(rtcLineEntityList);
+        WipMtrRtcLineEntity.get().batchGetAssign(rtcLineEntityList);
+        List<WipMtrInvQtyCheckVO> invQtyCheckVOS = wipMtrRtcLineService.validateItemInvQty(rtcLineEntityList);
+        if (ListUtil.notEmpty(invQtyCheckVOS)) {
+            throw new ParamsIncorrectException(WipMtrInvQtyCheckVO.buildMsg(invQtyCheckVOS));
+        }
 
         rtcHeaderEntity.submit();
     }

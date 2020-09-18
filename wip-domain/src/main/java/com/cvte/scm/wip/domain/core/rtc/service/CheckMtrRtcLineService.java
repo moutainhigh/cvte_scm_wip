@@ -7,6 +7,7 @@ import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,46 +87,56 @@ public class CheckMtrRtcLineService {
         }
     }
 
-    public void checkInvQty(List<WipMtrRtcLineEntity> rtcLineEntityList, List<WipMtrSubInvVO> subInvVOList) {
+    public List<WipMtrInvQtyCheckVO> checkInvQty(List<WipMtrRtcLineEntity> rtcLineEntityList, List<WipMtrSubInvVO> subInvVOList) {
         Map<String, BigDecimal> subInvQtyMap = WipMtrSubInvVO.groupQtyByItemSub(subInvVOList);
         Map<String, BigDecimal> lotQtyMap = WipMtrSubInvVO.groupQtyByItemSubLot(subInvVOList);
-        StringBuilder errMsgBuilder = new StringBuilder();
+
+        List<WipMtrInvQtyCheckVO> invQtyCheckVOList = new ArrayList<>();
         for (WipMtrRtcLineEntity rtcLine : rtcLineEntityList) {
             try {
                 checkInvpNo(rtcLine.getInvpNo());
             } catch (ParamsIncorrectException pe) {
-                errMsgBuilder.append(rtcLine.getItemNo()).append(pe.getMessage()).append(";");
+                invQtyCheckVOList.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), null, null, pe.getMessage()));
                 continue;
             }
             List<WipMtrRtcAssignEntity> rtcAssignList = rtcLine.getAssignList();
+            BigDecimal supplyQty = subInvQtyMap.get(BatchProcessUtils.getKey(rtcLine.getItemId(), rtcLine.getInvpNo()));
+            try {
+                // 校验子库存在
+                checkSupplyExists(supplyQty);
+            } catch (ParamsIncorrectException pe) {
+                invQtyCheckVOList.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), supplyQty, supplyQty, pe.getMessage()));
+                continue;
+            }
             if (ListUtil.notEmpty(rtcAssignList)) {
                 // 校验分配的批次现有量
                 for (WipMtrRtcAssignEntity rtcAssign : rtcAssignList) {
                     try {
-                        checkQty(rtcAssign.getIssuedQty(), lotQtyMap, BatchProcessUtils.getKey(rtcLine.getItemId(), rtcAssign.getInvpNo(), rtcAssign.getMtrLotNo()));
+                        supplyQty = lotQtyMap.get(BatchProcessUtils.getKey(rtcLine.getItemId(), rtcAssign.getInvpNo(), rtcAssign.getMtrLotNo()));
+                        checkQty(rtcAssign.getIssuedQty(), supplyQty);
                     } catch (ParamsIncorrectException pe) {
-                        errMsgBuilder.append(rtcLine.getItemNo()).append("的批次").append(rtcAssign.getMtrLotNo()).append(pe.getMessage()).append(";");
+                        invQtyCheckVOList.add(WipMtrInvQtyCheckVO.buildItemSubLot(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), rtcAssign.getMtrLotNo(), supplyQty, supplyQty, pe.getMessage()));
                     }
                 }
             } else {
                 // 校验子库现有量
                 try {
-                    checkQty(rtcLine.getIssuedQty(), subInvQtyMap, BatchProcessUtils.getKey(rtcLine.getItemId(), rtcLine.getInvpNo()));
+                    checkQty(rtcLine.getIssuedQty(), supplyQty);
                 } catch (ParamsIncorrectException pe) {
-                    errMsgBuilder.append(rtcLine.getItemNo()).append("的子库").append(rtcLine.getInvpNo()).append(pe.getMessage()).append(";");
+                    invQtyCheckVOList.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), supplyQty, supplyQty, pe.getMessage()));
                 }
             }
         }
-        if (errMsgBuilder.length() > 0) {
-            throw new ParamsIncorrectException(errMsgBuilder.toString());
+        return invQtyCheckVOList;
+    }
+
+    private void checkSupplyExists(BigDecimal supplyQty) {
+        if (Objects.isNull(supplyQty)) {
+            throw new ParamsIncorrectException("查不到该子库的现有量");
         }
     }
 
-    private void checkQty(BigDecimal sourceQty, Map<String, BigDecimal> qtyMap, String key) {
-        BigDecimal supplyQty = qtyMap.get(BatchProcessUtils.getKey(key));
-        if (Objects.isNull(supplyQty)) {
-            throw new ParamsIncorrectException("查不到现有量");
-        }
+    private void checkQty(BigDecimal sourceQty, BigDecimal supplyQty) {
         if (sourceQty.compareTo(supplyQty) > 0) {
             throw new ParamsIncorrectException("现有量不足");
         }

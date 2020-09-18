@@ -31,20 +31,13 @@ import java.util.stream.Collectors;
 @Service
 public class WipMtrRtcViewService {
 
-    private static final String OPTION_NO = "PUR_RULE_01";
-    private static final String OPTION_VALUE = "1";
-
     private ViewService viewService;
-    private WipReqHeaderService wipReqHeaderService;
-    private ScmItemService scmItemService;
     private WipMtrRtcLineRepository wipMtrRtcLineRepository;
     private WipMtrSubInvRepository wipMtrSubInvRepository;
     private WipMtrRtcLotControlService wipMtrRtcLotControlService;
 
-    public WipMtrRtcViewService(ViewService viewService, WipReqHeaderService wipReqHeaderService, ScmItemService scmItemService, WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLotControlService wipMtrRtcLotControlService) {
+    public WipMtrRtcViewService(ViewService viewService, WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLotControlService wipMtrRtcLotControlService) {
         this.viewService = viewService;
-        this.wipReqHeaderService = wipReqHeaderService;
-        this.scmItemService = scmItemService;
         this.wipMtrRtcLineRepository = wipMtrRtcLineRepository;
         this.wipMtrSubInvRepository = wipMtrSubInvRepository;
         this.wipMtrRtcLotControlService = wipMtrRtcLotControlService;
@@ -69,9 +62,9 @@ public class WipMtrRtcViewService {
         Map<String, BigDecimal> mtrSubInvQtyMap = WipMtrSubInvVO.groupQtyByItemSub(mtrSubInvVOList);
         // 物料可用量
         List<WipReqItemVO> unPostReqItemVOList = getReqItem(data.get(0), itemIdList);
-        Map<String, BigDecimal> unPostReqItemVOMap = unPostReqItemVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getItemId(), item.getInvpNo()), WipReqItemVO::getUnPostQty));
+        Map<String, BigDecimal> unPostReqItemVOMap = WipReqItemVO.groupUnPostQtyByItemSub(unPostReqItemVOList);
         // 批次强管控物料
-        List<String> rtcLotControlItemList = getLotControlItem(organizationId, moId, itemIdList);
+        List<String> rtcLotControlItemList = wipMtrRtcLotControlService.getLotControlItem(organizationId, moId, itemIdList);
 
         for (Map<String, Object> line : data) {
             String itemId = (String)line.get("itemId");
@@ -126,29 +119,6 @@ public class WipMtrRtcViewService {
             queryVOList.add(queryVO);
         }
         return wipMtrSubInvRepository.selectByVO(queryVOList);
-    }
-
-    public List<String> getLotControlItem(String organizationId, String moId, List<String> itemIdList) {
-        String productMinClass = getProductMinClass(organizationId, moId);
-        List<WipMtrRtcLotControlVO> lotControlVOList = wipMtrRtcLotControlService.getLotControlByOptionNo(OPTION_NO, OPTION_VALUE);
-        List<WipMtrRtcLotControlVO> filteredControlList = lotControlVOList.stream().filter(vo -> productMinClass.equals(vo.getProductClass())).collect(Collectors.toList());
-        if (ListUtil.empty(filteredControlList)) {
-            return Collections.emptyList();
-        }
-        List<String> controlItemMinClassList = filteredControlList.stream().map(WipMtrRtcLotControlVO::getMtrClass).collect(Collectors.toList());
-
-        List<ScmItemEntity> itemEntityList = scmItemService.getByItemIds(organizationId, itemIdList);
-
-        return itemEntityList.stream()
-                .filter(item -> controlItemMinClassList.contains(item.getRdMinClassCode()))
-                .map(ScmItemEntity::getItemId)
-                .collect(Collectors.toList());
-    }
-
-    private String getProductMinClass(String organizationId, String moId) {
-        WipReqHeaderEntity reqHeaderEntity = wipReqHeaderService.getBySourceId(moId);
-        ScmItemEntity scmItemEntity = scmItemService.getByItemIds(organizationId, Collections.singletonList(reqHeaderEntity.getProductId())).get(0);
-        return scmItemEntity.getRdMinClassCode();
     }
 
 }

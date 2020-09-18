@@ -4,9 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
-import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
+import com.cvte.scm.wip.domain.core.item.entity.ScmItemEntity;
+import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
+import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLotControlService;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLotControlVO;
 import com.cvte.scm.wip.infrastructure.boot.config.api.BsmApiInfoConfiguration;
@@ -15,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -27,12 +31,19 @@ import java.util.Map;
 @Service
 public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlService {
 
+    private static final String OPTION_NO = "PUR_RULE_01";
+    private static final String OPTION_VALUE = "1";
+
     private AccessTokenService accessTokenService;
     private BsmApiInfoConfiguration bsmApiInfoConfiguration;
+    private WipReqHeaderService wipReqHeaderService;
+    private ScmItemService scmItemService;
 
-    public WipMtrRtcLotControlServiceImpl(AccessTokenService accessTokenService, BsmApiInfoConfiguration bsmApiInfoConfiguration) {
+    public WipMtrRtcLotControlServiceImpl(AccessTokenService accessTokenService, BsmApiInfoConfiguration bsmApiInfoConfiguration, WipReqHeaderService wipReqHeaderService, ScmItemService scmItemService) {
         this.accessTokenService = accessTokenService;
         this.bsmApiInfoConfiguration = bsmApiInfoConfiguration;
+        this.wipReqHeaderService = wipReqHeaderService;
+        this.scmItemService = scmItemService;
     }
 
     @Override
@@ -52,4 +63,30 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
         }
         return response.getData();
     }
+
+    @Override
+    public List<String> getLotControlItem(String organizationId, String moId, List<String> itemIdList) {
+        String productMinClass = getProductMinClass(organizationId, moId);
+        List<WipMtrRtcLotControlVO> lotControlVOList = getLotControlByOptionNo(OPTION_NO, OPTION_VALUE);
+        List<WipMtrRtcLotControlVO> filteredControlList = lotControlVOList.stream().filter(vo -> productMinClass.equals(vo.getProductClass())).collect(Collectors.toList());
+        if (ListUtil.empty(filteredControlList)) {
+            return Collections.emptyList();
+        }
+        List<String> controlItemMinClassList = filteredControlList.stream().map(WipMtrRtcLotControlVO::getMtrClass).collect(Collectors.toList());
+
+        List<ScmItemEntity> itemEntityList = scmItemService.getByItemIds(organizationId, itemIdList);
+
+        return itemEntityList.stream()
+                .filter(item -> controlItemMinClassList.contains(item.getRdMinClassCode()))
+                .map(ScmItemEntity::getItemId)
+                .collect(Collectors.toList());
+    }
+
+
+    private String getProductMinClass(String organizationId, String moId) {
+        WipReqHeaderEntity reqHeaderEntity = wipReqHeaderService.getBySourceId(moId);
+        ScmItemEntity scmItemEntity = scmItemService.getByItemIds(organizationId, Collections.singletonList(reqHeaderEntity.getProductId())).get(0);
+        return scmItemEntity.getRdMinClassCode();
+    }
+
 }

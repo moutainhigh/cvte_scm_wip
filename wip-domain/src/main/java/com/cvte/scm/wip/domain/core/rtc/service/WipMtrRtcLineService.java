@@ -2,22 +2,20 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
+import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,14 +33,16 @@ public class WipMtrRtcLineService {
     private WipReqItemService wipReqItemService;
     private CheckMtrRtcLineService checkMtrRtcLineService;
     private WipMtrSubInvRepository wipMtrSubInvRepository;
+    private WipMtrRtcLineRepository wipMtrRtcLineRepository;
 
-    public WipMtrRtcLineService(WipReqItemService wipReqItemService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrSubInvRepository wipMtrSubInvRepository) {
+    public WipMtrRtcLineService(WipReqItemService wipReqItemService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLineRepository wipMtrRtcLineRepository) {
         this.wipReqItemService = wipReqItemService;
         this.checkMtrRtcLineService = checkMtrRtcLineService;
         this.wipMtrSubInvRepository = wipMtrSubInvRepository;
+        this.wipMtrRtcLineRepository = wipMtrRtcLineRepository;
     }
 
-    public String batchUpdate(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
+    public List<WipMtrInvQtyCheckVO> batchUpdate(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
         String[] lineIdList = rtcLineBuildVOList.stream().map(WipMtrRtcLineBuildVO::getLineId).toArray(String[]::new);
         // 查询单据行
         List<WipMtrRtcLineEntity> rtcLineEntityList = WipMtrRtcLineEntity.get().getByLineIds(lineIdList);
@@ -54,10 +54,10 @@ public class WipMtrRtcLineService {
         List<WipReqItemVO> reqItemVOList = getItemVOList(rtcHeaderEntity, rtcLineEntityList);
         Map<String, WipReqItemVO> reqItemVOMap = reqItemVOList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
 
-        StringBuilder errMsgBuilder = new StringBuilder();
+        List<WipMtrInvQtyCheckVO> invQtyCheckVOS = new ArrayList<>();
         for (WipMtrRtcLineBuildVO rtcLineBuildVO : rtcLineBuildVOList) {
-            WipMtrRtcLineEntity rtcLineEntity = rtcLineEntityMap.get(rtcLineBuildVO.getLineId());
-            WipReqItemVO reqItemVO = reqItemVOMap.get(rtcLineEntity.getReqKey(rtcHeaderEntity.getMoId()));
+            WipMtrRtcLineEntity rtcLine = rtcLineEntityMap.get(rtcLineBuildVO.getLineId());
+            WipReqItemVO reqItemVO = reqItemVOMap.get(rtcLine.getReqKey(rtcHeaderEntity.getMoId()));
             try {
                 checkMtrRtcLineService.checkInvpNo(rtcLineBuildVO.getInvpNo());
                 // 校验数量下限
@@ -65,7 +65,7 @@ public class WipMtrRtcLineService {
                 // 取整
                 checkMtrRtcLineService.roundQty(rtcLineBuildVO);
                 // 校验实发数量
-                checkMtrRtcLineService.checkIssuedQty(rtcLineBuildVO, rtcLineEntity);
+                checkMtrRtcLineService.checkIssuedQty(rtcLineBuildVO, rtcLine);
                 // 限制数量
                 if (Objects.nonNull(rtcLineBuildVO.getReqQty())) {
                     checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getReqQty(), reqItemVO, rtcHeaderEntity.getBillType());
@@ -74,25 +74,39 @@ public class WipMtrRtcLineService {
                     checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getIssuedQty(), reqItemVO, rtcHeaderEntity.getBillType());
                 }
             } catch (ParamsIncorrectException pe) {
-                errMsgBuilder.append(rtcLineEntity.getItemNo()).append(pe.getMessage()).append(";");
+                invQtyCheckVOS.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), null, null, pe.getMessage()));
                 continue;
             }
             // 更新单据行
-            rtcLineEntity.update(rtcLineBuildVO);
+            rtcLine.update(rtcLineBuildVO);
         }
-        if (errMsgBuilder.length() > 0) {
-            throw new ParamsIncorrectException(errMsgBuilder.toString());
+        if (ListUtil.notEmpty(invQtyCheckVOS)) {
+            return invQtyCheckVOS;
+        }
+        invQtyCheckVOS = validateItemInvQty(rtcLineEntityList);
+        if (ListUtil.notEmpty(invQtyCheckVOS)) {
+            // 获取已申请未过账数量
+            List<WipReqItemVO> unPostReqItemVOList = getReqItem(rtcHeaderEntity, invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getItemId).collect(Collectors.toList()));
+            Map<String, BigDecimal> unPostReqItemVOMap = WipReqItemVO.groupUnPostQtyByItemSub(unPostReqItemVOList);
+            for (WipMtrInvQtyCheckVO invQtyCheckVO : invQtyCheckVOS) {
+                String subInvKey = BatchProcessUtils.getKey(invQtyCheckVO.getItemId(), invQtyCheckVO.getInvpNo());
+                BigDecimal unPostQty = unPostReqItemVOMap.get(subInvKey);
+                if (Objects.nonNull(unPostQty) && Objects.nonNull(invQtyCheckVO.getInvQty())) {
+                    // 设置可用量 = 现有量 - 已申请未过账数量
+                    invQtyCheckVO.setAvailQty(invQtyCheckVO.getInvQty().subtract(unPostQty));
+                }
+            }
+            return invQtyCheckVOS;
         }
         WipMtrRtcHeaderEntity.get().setLineList(rtcLineEntityList).saveLines(false);
-        return "";
+        return Collections.emptyList();
     }
 
-    public String validateItemInvQty(List<WipMtrRtcLineEntity> rtcLineEntityList) {
+    public List<WipMtrInvQtyCheckVO> validateItemInvQty(List<WipMtrRtcLineEntity> rtcLineEntityList) {
         if (ListUtil.empty(rtcLineEntityList)) {
-            return "";
+            return Collections.emptyList();
         }
         WipMtrRtcHeaderEntity rtcHeaderEntity = WipMtrRtcHeaderEntity.get().getById(rtcLineEntityList.get(0).getHeaderId());
-        WipMtrRtcLineEntity.get().batchGetAssign(rtcLineEntityList);
 
         List<WipMtrSubInvVO> subInvQueryList = new ArrayList<>();
         for (WipMtrRtcLineEntity rtcLineEntity : rtcLineEntityList) {
@@ -118,8 +132,7 @@ public class WipMtrRtcLineService {
                 .setFactoryId(rtcHeaderEntity.getFactoryId());
         List<WipMtrSubInvVO> subInvVOList = wipMtrSubInvRepository.selectByVO(subInvQueryList);
 
-        checkMtrRtcLineService.checkInvQty(rtcLineEntityList, subInvVOList);
-        return "";
+        return checkMtrRtcLineService.checkInvQty(rtcLineEntityList, subInvVOList);
     }
 
     private WipMtrRtcHeaderEntity getHeader(List<WipMtrRtcLineBuildVO> rtcLineModifyVOList) {
@@ -137,6 +150,11 @@ public class WipMtrRtcLineService {
                 .setWkpNo(rtcHeaderEntity.getWkpNo())
                 .setItemList(itemKeyList);
         return wipReqItemService.getReqItemList(rtcHeaderBuildVO);
+    }
+
+    private List<WipReqItemVO> getReqItem(WipMtrRtcHeaderEntity rtcHeader, List<String> itemIdList) {
+        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForUnPost(rtcHeader.getOrganizationId(), rtcHeader.getFactoryId(), rtcHeader.getHeaderId(), rtcHeader.getBillType(), itemIdList);
+        return wipMtrRtcLineRepository.batchSumUnPostQty(wipMtrRtcLineQueryVO);
     }
 
 }

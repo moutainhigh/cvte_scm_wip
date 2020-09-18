@@ -1,7 +1,9 @@
 package com.cvte.scm.wip.controller.rtc.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.app.rtc.update.WipMtrRtcLineUpdateApplication;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +33,14 @@ public class WipMtrRtcLineController {
 
     @PostMapping("/batch_update")
     public RestResponse create(@RequestBody List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
-        return new RestResponse().setData(wipMtrRtcLineUpdateApplication.doAction(rtcLineBuildVOList));
+        List<WipMtrInvQtyCheckVO> invQtyCheckVOS = wipMtrRtcLineUpdateApplication.doAction(rtcLineBuildVOList);
+        RestResponse restResponse = new RestResponse();
+        if (ListUtil.notEmpty(invQtyCheckVOS)) {
+            restResponse.setStatus("4000002").setMessage("保存失败");
+            restResponse.setData(invQtyCheckVOS);
+            return restResponse;
+        }
+        return restResponse;
     }
 
 }

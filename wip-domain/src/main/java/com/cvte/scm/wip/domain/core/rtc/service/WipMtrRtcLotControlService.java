@@ -15,4 +15,6 @@ public interface WipMtrRtcLotControlService {
 
     List<WipMtrRtcLotControlVO> getLotControlByOptionNo(String optionNo, String optionValue);
 
+    List<String> getLotControlItem(String organizationId, String moId, List<String> itemIdList);
+
 }
