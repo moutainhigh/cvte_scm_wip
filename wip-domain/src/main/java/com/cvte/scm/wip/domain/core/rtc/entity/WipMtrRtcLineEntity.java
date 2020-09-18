@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.rtc.entity;
 
 import com.cvte.csb.toolkit.ArrayUtils;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
@@ -101,6 +102,17 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
     private Date updTime;
 
     private List<WipMtrRtcAssignEntity> assignList;
+
+    public List<WipMtrRtcAssignEntity> getAssignList() {
+        if (ListUtil.notEmpty(this.assignList)) {
+            return this.assignList;
+        }
+        if (StringUtils.isBlank(this.lineId)) {
+            return new ArrayList<>();
+        }
+        this.assignList = WipMtrRtcAssignEntity.get().getByLineIds(Collections.singletonList(this.lineId));
+        return this.assignList;
+    }
 
     public List<WipMtrRtcLineEntity> getByHeaderId(String headerId) {
         List<WipMtrRtcLineEntity> lineList = wipMtrRtcLineRepository.selectByHeaderId(headerId);

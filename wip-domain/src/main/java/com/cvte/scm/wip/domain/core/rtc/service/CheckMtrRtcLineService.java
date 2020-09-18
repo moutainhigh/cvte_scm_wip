@@ -3,9 +3,11 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
@@ -20,16 +22,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
-  * 
-  * @author  : xueyuting
-  * @since    : 2020/9/10 16:55
-  * @version : 1.0
-  * email   : xueyuting@cvte.com
-  */
+ * @author : xueyuting
+ * @version : 1.0
+ * email   : xueyuting@cvte.com
+ * @since : 2020/9/10 16:55
+ */
 @Service
 public class CheckMtrRtcLineService {
+
+    private WipMtrRtcLotControlService wipMtrRtcLotControlService;
+
+    public CheckMtrRtcLineService(WipMtrRtcLotControlService wipMtrRtcLotControlService) {
+        this.wipMtrRtcLotControlService = wipMtrRtcLotControlService;
+    }
 
     public void checkQtyLower(WipMtrRtcLineBuildVO rtcLineBuildVO) {
         if (rtcLineBuildVO.getReqQty().compareTo(BigDecimal.ZERO) <= 0) {
@@ -128,6 +136,42 @@ public class CheckMtrRtcLineService {
             }
         }
         return invQtyCheckVOList;
+    }
+
+    public void checkLotControl(WipMtrRtcHeaderEntity rtcHeaderEntity) {
+        List<WipMtrRtcLineEntity> rtcLineList = rtcHeaderEntity.getLineList();
+        List<String> itemIdList = rtcLineList.stream().map(WipMtrRtcLineEntity::getItemId).collect(Collectors.toList());
+        List<String> controlItemIdList = wipMtrRtcLotControlService.getLotControlItem(rtcHeaderEntity.getOrganizationId(), rtcHeaderEntity.getMoId(), itemIdList);
+        StringBuilder errMsgBuilder = new StringBuilder();
+        for (WipMtrRtcLineEntity rtcLine : rtcLineList) {
+            List<WipMtrRtcAssignEntity> assignEntityList = rtcLine.getAssignList().stream().filter(assign -> StatusEnum.NORMAL.getCode().equals(assign.getAssignStatus())).collect(Collectors.toList());
+            if (controlItemIdList.contains(rtcLine.getItemId()) && ListUtil.empty(assignEntityList)) {
+                errMsgBuilder.append("物料").append(rtcLine.getItemNo()).append("启用批次管控,必须分配批次;");
+            }
+            if (ListUtil.notEmpty(assignEntityList)) {
+                List<String> qtyErrMsgList = new ArrayList<>();
+                // 校验申请数量 = 批次分配数量之和
+                BigDecimal assignQty = assignEntityList.stream()
+                        .map(WipMtrRtcAssignEntity::getAssignQty)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                if (rtcLine.getReqQty().compareTo(assignQty) != 0) {
+                    qtyErrMsgList.add("申请数量必须与批次分配数量相等");
+                }
+                // 校验实发数量 = 批次实发数量之和
+                BigDecimal issuedQty = assignEntityList.stream()
+                        .map(WipMtrRtcAssignEntity::getIssuedQty)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                if (rtcLine.getIssuedQty().compareTo(issuedQty) != 0) {
+                    qtyErrMsgList.add("实发数量必须与批次实发数量相等");
+                }
+                if (ListUtil.notEmpty(qtyErrMsgList)) {
+                    errMsgBuilder.append("物料").append(rtcLine.getItemNo()).append(String.join(",", qtyErrMsgList));
+                }
+            }
+        }
+        if (errMsgBuilder.length() > 0) {
+            throw new ParamsIncorrectException(errMsgBuilder.toString());
+        }
     }
 
     private void checkSupplyExists(BigDecimal supplyQty) {

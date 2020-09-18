@@ -50,6 +50,7 @@ public class WipMtrRtcLineService {
 
         // 查询单据头
         WipMtrRtcHeaderEntity rtcHeaderEntity = getHeader(rtcLineBuildVOList);
+        rtcHeaderEntity.setLineList(rtcLineEntityList);
         // 查询工单投料信息
         List<WipReqItemVO> reqItemVOList = getItemVOList(rtcHeaderEntity, rtcLineEntityList);
         Map<String, WipReqItemVO> reqItemVOMap = reqItemVOList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
@@ -83,7 +84,7 @@ public class WipMtrRtcLineService {
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
             return invQtyCheckVOS;
         }
-        invQtyCheckVOS = validateItemInvQty(rtcLineEntityList);
+        invQtyCheckVOS = validateItemInvQty(rtcHeaderEntity);
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
             // 获取已申请未过账数量
             List<WipReqItemVO> unPostReqItemVOList = getReqItem(rtcHeaderEntity, invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getItemId).collect(Collectors.toList()));
@@ -102,11 +103,11 @@ public class WipMtrRtcLineService {
         return Collections.emptyList();
     }
 
-    public List<WipMtrInvQtyCheckVO> validateItemInvQty(List<WipMtrRtcLineEntity> rtcLineEntityList) {
+    public List<WipMtrInvQtyCheckVO> validateItemInvQty(WipMtrRtcHeaderEntity rtcHeaderEntity) {
+        List<WipMtrRtcLineEntity> rtcLineEntityList = rtcHeaderEntity.getLineList();
         if (ListUtil.empty(rtcLineEntityList)) {
             return Collections.emptyList();
         }
-        WipMtrRtcHeaderEntity rtcHeaderEntity = WipMtrRtcHeaderEntity.get().getById(rtcLineEntityList.get(0).getHeaderId());
 
         List<WipMtrSubInvVO> subInvQueryList = new ArrayList<>();
         for (WipMtrRtcLineEntity rtcLineEntity : rtcLineEntityList) {
