@@ -66,7 +66,7 @@
              , software_code
              , bill_person
              , plan_start_date
-             , mtr_ready_time
+             , mtr_ready_time as mtr_ready_date
              , completion_date
              , bill_person   as crt_user
              , now()         as crt_date
@@ -75,10 +75,14 @@
              , source_id
              , bom_version
              , source_lot_no
-             , '3' as status_type
+             , wip_status_type as status_type
              , department_id
         from wip.xxwip_mo_v x
-        where x.date_released > now()::timestamp + '-1 hour'
+        where (
+               x.date_released > now()::timestamp + '-1 hour'
+               /* 未发放七天内齐套 */
+           or (x.wip_status_type = '1' and date_trunc('day', x.mtr_ready_time) <![CDATA[ <= ]]> date_trunc('day', current_timestamp + '7 day'))
+          )
           and x.organization_id in
           <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
               #{organizationId}
@@ -89,6 +93,12 @@
           <if test="factoryId != null and factoryId.length() > 0">
           and x.factory_id = to_number(#{factoryId})
           </if>
+        and exists(
+            /* 投料行已被缓存 */
+            select 1
+            from scm_fdw.xxaps_mo_item xoi
+            where x.header_id = xoi.wip_entity_id
+        )
     </select>
 
     <select id="existLotNumber" resultType="java.lang.Boolean">
