@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.item.mapper.ScmItemOrgMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.item.mapper.dataobject.ScmItemOrgDO">
+        <result column="ebs_organization_id" property="organizationId"/>
+        <result column="inventory_item_id" property="itemId"/>
+        <result column="item_code" property="itemNo"/>
+        <result column="lot_control_code" property="lotControlCode"/>
+    </resultMap>
+
+</mapper>

@@ -6,15 +6,10 @@ import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.common.view.entity.PageResultEntity;
 import com.cvte.scm.wip.domain.common.view.service.ViewService;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
-import com.cvte.scm.wip.domain.core.item.entity.ScmItemEntity;
-import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
-import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
-import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLotControlVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +47,6 @@ public class WipMtrRtcViewService {
         }
 
         String organizationId = (String) data.get(0).get("organizationId");
-        String moId = (String) data.get(0).get("moId");
         List<String> itemIdList = data.stream().map(line -> (String) line.get("itemId")).collect(Collectors.toList());
 
         List<WipMtrSubInvVO> mtrSubInvVOList = getMtrSubInv(data);
@@ -64,7 +58,7 @@ public class WipMtrRtcViewService {
         List<WipReqItemVO> unPostReqItemVOList = getReqItem(data.get(0), itemIdList);
         Map<String, BigDecimal> unPostReqItemVOMap = WipReqItemVO.groupUnPostQtyByItemSub(unPostReqItemVOList);
         // 批次强管控物料
-        List<String> rtcLotControlItemList = wipMtrRtcLotControlService.getLotControlItem(organizationId, moId, itemIdList);
+        List<String> rtcLotControlItemList = wipMtrRtcLotControlService.getLotControlItem(organizationId, itemIdList);
 
         for (Map<String, Object> line : data) {
             String itemId = (String)line.get("itemId");

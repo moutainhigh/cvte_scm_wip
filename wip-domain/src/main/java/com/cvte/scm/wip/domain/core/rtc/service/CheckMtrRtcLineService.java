@@ -141,7 +141,7 @@ public class CheckMtrRtcLineService {
     public void checkLotControl(WipMtrRtcHeaderEntity rtcHeaderEntity) {
         List<WipMtrRtcLineEntity> rtcLineList = rtcHeaderEntity.getLineList();
         List<String> itemIdList = rtcLineList.stream().map(WipMtrRtcLineEntity::getItemId).collect(Collectors.toList());
-        List<String> controlItemIdList = wipMtrRtcLotControlService.getLotControlItem(rtcHeaderEntity.getOrganizationId(), rtcHeaderEntity.getMoId(), itemIdList);
+        List<String> controlItemIdList = wipMtrRtcLotControlService.getLotControlItem(rtcHeaderEntity.getOrganizationId(), itemIdList);
         StringBuilder errMsgBuilder = new StringBuilder();
         for (WipMtrRtcLineEntity rtcLine : rtcLineList) {
             List<WipMtrRtcAssignEntity> assignEntityList = rtcLine.getAssignList().stream().filter(assign -> StatusEnum.NORMAL.getCode().equals(assign.getAssignStatus())).collect(Collectors.toList());

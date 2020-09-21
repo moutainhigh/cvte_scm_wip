@@ -1,7 +1,5 @@
 package com.cvte.scm.wip.domain.core.rtc.service;
 
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLotControlVO;
-
 import java.util.List;
 
 /**
@@ -13,8 +11,13 @@ import java.util.List;
   */
 public interface WipMtrRtcLotControlService {
 
-    List<WipMtrRtcLotControlVO> getLotControlByOptionNo(String optionNo, String optionValue);
-
-    List<String> getLotControlItem(String organizationId, String moId, List<String> itemIdList);
+    /**
+     * 获取启用批次管控的物料ID
+     * @since 2020/9/21 3:02 下午
+     * @author xueyuting
+     * @param organizationId 组织ID
+     * @param itemIdList 物料ID列表, 为空时返回空列表
+     */
+    List<String> getLotControlItem(String organizationId, List<String> itemIdList);
 
 }
