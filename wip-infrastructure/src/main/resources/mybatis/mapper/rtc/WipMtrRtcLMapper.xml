@@ -42,7 +42,9 @@
         inner join wip_mtr_rtc_h mrh
         on mrl.header_id = mrh.header_id
         where mrh.mo_id = #{queryVO.moId}
-        and mrl.wkp_no = #{queryVO.wkpNo}
+        <if test="queryVO.wkpNo != null">
+            and mrl.wkp_no = #{queryVO.wkpNo}
+        </if>
         and mrh.bill_type = #{queryVO.billType}
         <if test="queryVO.itemId != null">
             and mrl.item_id = #{queryVO.itemId}
