@@ -2,6 +2,7 @@ package com.cvte.scm.wip.controller.rtc.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.app.rtc.status.WipMtrRtcLineCancelApplication;
 import com.cvte.scm.wip.app.rtc.update.WipMtrRtcLineUpdateApplication;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
@@ -26,9 +27,11 @@ import java.util.List;
 public class WipMtrRtcLineController {
 
     private WipMtrRtcLineUpdateApplication wipMtrRtcLineUpdateApplication;
+    private WipMtrRtcLineCancelApplication wipMtrRtcLineCancelApplication;
 
-    public WipMtrRtcLineController(WipMtrRtcLineUpdateApplication wipMtrRtcLineUpdateApplication) {
+    public WipMtrRtcLineController(WipMtrRtcLineUpdateApplication wipMtrRtcLineUpdateApplication, WipMtrRtcLineCancelApplication wipMtrRtcLineCancelApplication) {
         this.wipMtrRtcLineUpdateApplication = wipMtrRtcLineUpdateApplication;
+        this.wipMtrRtcLineCancelApplication = wipMtrRtcLineCancelApplication;
     }
 
     @PostMapping("/batch_update")
@@ -41,6 +44,12 @@ public class WipMtrRtcLineController {
             return restResponse;
         }
         return restResponse;
+    }
+
+    @PostMapping("/batch_cancel")
+    public RestResponse batchCancel(@RequestBody String[] lineIds) {
+        wipMtrRtcLineCancelApplication.doAction(lineIds);
+        return new RestResponse();
     }
 
 }

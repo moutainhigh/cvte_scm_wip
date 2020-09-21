@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.rtc.entity;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
@@ -14,6 +15,7 @@ import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -27,6 +29,8 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
+
+import static com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum.*;
 
 /**
  * 领退料单行
@@ -129,6 +133,42 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         return lineList;
     }
 
+    public void batchClose(List<WipMtrRtcLineEntity> closeLineList) {
+        if (ListUtil.empty(closeLineList)) {
+            return;
+        }
+        for (WipMtrRtcLineEntity closeLine : closeLineList) {
+            if (POSTED.getCode().equals(closeLine.getLineStatus())) {
+                throw new ParamsIncorrectException("已过账的单据无法关闭");
+            }
+            closeLine.setLineStatus(WipMtrRtcLineStatusEnum.CLOSED.getCode());
+            EntityUtils.writeStdUpdInfoToEntity(closeLine, EntityUtils.getWipUserId());
+        }
+        this.deleteLineAssigns(closeLineList);
+        wipMtrRtcLineRepository.updateList(closeLineList);
+    }
+
+    public void batchCancel(List<WipMtrRtcLineEntity> cancelLineList) {
+        if (ListUtil.empty(cancelLineList)) {
+            return;
+        }
+        Iterator<WipMtrRtcLineEntity> iterator = cancelLineList.iterator();
+        while (iterator.hasNext()) {
+            WipMtrRtcLineEntity rtcLine = iterator.next();
+            if (POSTED.getCode().equals(rtcLine.getLineStatus())) {
+                throw new ParamsIncorrectException("已过账的单据无法取消");
+            }
+            if (CLOSED.getCode().equals(rtcLine.getLineStatus())) {
+                iterator.remove();
+                continue;
+            }
+            rtcLine.setLineStatus(CANCELED.getCode());
+            EntityUtils.writeStdUpdInfoToEntity(rtcLine, EntityUtils.getWipUserId());
+        }
+        this.deleteLineAssigns(cancelLineList);
+        wipMtrRtcLineRepository.updateList(cancelLineList);
+    }
+
     public void batchGetAssign(List<WipMtrRtcLineEntity> rtcLineEntityList) {
         List<String> lineIdList = rtcLineEntityList.stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toList());
         List<WipMtrRtcAssignEntity> rtcAssignEntityList = WipMtrRtcAssignEntity.get().getByLineIds(lineIdList);
@@ -223,6 +263,20 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
             EntityUtils.writeStdUpdInfoToEntity(deleteAssignEntity, EntityUtils.getWipUserId());
         }
         wipMtrRtcAssignRepository.updateList(rtcAssignEntityList);
+    }
+
+    public void deleteLineAssigns(List<WipMtrRtcLineEntity> rtcLineList) {
+        List<String> lineIdList = rtcLineList.stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toList());
+        List<WipMtrRtcAssignEntity> closeAssignList = WipMtrRtcAssignEntity.get().getByLineIds(lineIdList);
+        closeAssignList = closeAssignList.stream().filter(assign -> StatusEnum.NORMAL.getCode().equals(assign.getAssignStatus())).collect(Collectors.toList());
+        if (ListUtil.empty(closeAssignList)) {
+            return;
+        }
+        for (WipMtrRtcAssignEntity assign : closeAssignList) {
+            assign.setAssignStatus(StatusEnum.CLOSE.getCode());
+            EntityUtils.writeStdUpdInfoToEntity(assign, EntityUtils.getWipUserId());
+        }
+        wipMtrRtcAssignRepository.updateList(closeAssignList);
     }
 
     public String getReqKey(String moId) {

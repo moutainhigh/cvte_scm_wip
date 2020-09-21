@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.app.rtc.review;
+package com.cvte.scm.wip.app.rtc.status;
 
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import org.springframework.stereotype.Service;

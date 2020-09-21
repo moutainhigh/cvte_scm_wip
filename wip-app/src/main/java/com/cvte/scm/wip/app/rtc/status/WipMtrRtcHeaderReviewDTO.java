@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.app.rtc.review;
+package com.cvte.scm.wip.app.rtc.status;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.app.rtc.review;
+package com.cvte.scm.wip.app.rtc.status;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;

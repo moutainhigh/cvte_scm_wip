@@ -102,6 +102,9 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
     private List<WipMtrRtcLineEntity> lineList;
 
     public WipMtrRtcHeaderEntity getById(String headerId) {
+        if (StringUtils.isBlank(headerId)) {
+            throw new ParamsIncorrectException("单据ID不可为空");
+        }
         WipMtrRtcHeaderEntity selectEntity = wipMtrRtcHeaderRepository.selectById(headerId);
         this.wiredAfterSelect(selectEntity);
         return selectEntity;
@@ -174,13 +177,19 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         this.setBillStatus(CLOSED.getCode());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
         List<WipMtrRtcLineEntity> unCompleteRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
-        if (ListUtil.notEmpty(unCompleteRtcLineList)) {
-            for (WipMtrRtcLineEntity unCompleteRtcLine : unCompleteRtcLineList) {
-                unCompleteRtcLine.setLineStatus(WipMtrRtcLineStatusEnum.CLOSED.getCode());
-                EntityUtils.writeStdUpdInfoToEntity(unCompleteRtcLine, EntityUtils.getWipUserId());
-            }
-            wipMtrRtcLineRepository.updateList(unCompleteRtcLineList);
+        WipMtrRtcLineEntity.get().batchClose(unCompleteRtcLineList);
+        wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
+    public void cancel() {
+        List<WipMtrRtcLineEntity> postedRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.POSTED.getCode().equals(line.getLineStatus())).collect(Collectors.toList());
+        if (POSTING.getCode().equals(this.billStatus) || ListUtil.notEmpty(postedRtcLineList) || COMPLETED.getCode().equals(this.billStatus)) {
+            throw new ParamsIncorrectException("已过账的单据无法取消");
         }
+        this.setBillStatus(CANCELED.getCode());
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        List<WipMtrRtcLineEntity> unPostRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        WipMtrRtcLineEntity.get().batchCancel(unPostRtcLineList);
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
     }
 
