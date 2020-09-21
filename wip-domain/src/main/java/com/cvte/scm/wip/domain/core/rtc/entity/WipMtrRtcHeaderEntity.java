@@ -153,6 +153,11 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
     }
 
+    public void update() {
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
     public void submit() {
         this.setBillStatus(REVIEW.getCode());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
