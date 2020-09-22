@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -240,7 +241,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
             }
 
             // 计算数量
-            BigDecimal rtcLineReqQty = rtcLineEntity.calculateQty(rtcHeaderBuildVO, reqItemVO);
+            BigDecimal rtcLineReqQty = rtcLineEntity.calculateQty(rtcHeaderBuildVO, reqItemVO).setScale(0, RoundingMode.CEILING);
             rtcLineEntity.setReqQty(rtcLineReqQty)
                     .setIssuedQty(rtcLineReqQty);
             if (rtcLineReqQty.compareTo(BigDecimal.ZERO) <= 0) {
