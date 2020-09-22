@@ -84,16 +84,17 @@ public class WipMtrRtcLineService {
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
             return invQtyCheckVOS;
         }
+        // 校验现有量
         invQtyCheckVOS = validateItemInvQty(rtcHeaderEntity);
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
-            // 获取已申请未过账数量
+            // 获取物料已申请未过账数量
             List<WipReqItemVO> unPostReqItemVOList = getReqItem(rtcHeaderEntity, invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getItemId).collect(Collectors.toList()));
             Map<String, BigDecimal> unPostReqItemVOMap = WipReqItemVO.groupUnPostQtyByItemSub(unPostReqItemVOList);
             for (WipMtrInvQtyCheckVO invQtyCheckVO : invQtyCheckVOS) {
                 String subInvKey = BatchProcessUtils.getKey(invQtyCheckVO.getItemId(), invQtyCheckVO.getInvpNo());
                 BigDecimal unPostQty = unPostReqItemVOMap.get(subInvKey);
                 if (Objects.nonNull(unPostQty) && Objects.nonNull(invQtyCheckVO.getInvQty())) {
-                    // 设置可用量 = 现有量 - 已申请未过账数量
+                    // 设置可用量 = 现有量 - 物料已申请未过账数量
                     invQtyCheckVO.setAvailQty(invQtyCheckVO.getInvQty().subtract(unPostQty));
                 }
             }
@@ -143,14 +144,9 @@ public class WipMtrRtcLineService {
 
     private List<WipReqItemVO> getItemVOList(WipMtrRtcHeaderEntity rtcHeaderEntity, List<WipMtrRtcLineEntity> rtcLineEntityList) {
         List<String> itemKeyList = rtcLineEntityList.stream().map(WipMtrRtcLineEntity::getItemId).collect(Collectors.toList());
-        WipMtrRtcHeaderBuildVO rtcHeaderBuildVO = new WipMtrRtcHeaderBuildVO();
-        rtcHeaderBuildVO.setOrganizationId(rtcHeaderEntity.getOrganizationId())
-                .setMoId(rtcHeaderEntity.getMoId())
-                .setHeaderId(rtcHeaderEntity.getHeaderId())
-                .setBillType(rtcHeaderEntity.getBillType())
-                .setWkpNo(rtcHeaderEntity.getWkpNo())
-                .setItemList(itemKeyList);
-        return wipReqItemService.getReqItemList(rtcHeaderBuildVO);
+        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForMoUnPost(rtcHeaderEntity.getOrganizationId(), rtcHeaderEntity.getMoId(), rtcHeaderEntity.getHeaderId(),
+                rtcHeaderEntity.getBillType(), rtcHeaderEntity.getWkpNo(), itemKeyList);
+        return wipReqItemService.getReqItemWithUnPost(wipMtrRtcLineQueryVO);
     }
 
     private List<WipReqItemVO> getReqItem(WipMtrRtcHeaderEntity rtcHeader, List<String> itemIdList) {

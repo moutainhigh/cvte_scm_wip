@@ -48,7 +48,7 @@ public class WipReqItemVO {
     private BigDecimal unPostQty;
 
     public String getKey() {
-        return String.join("_", this.organizationId, this.moId, this.itemId, this.wkpNo);
+        return BatchProcessUtils.getKey(this.organizationId, this.moId, this.itemId, this.wkpNo);
     }
 
     public static Map<String, BigDecimal> groupUnPostQtyByItemSub(List<WipReqItemVO> reqItemVOList) {

@@ -10,6 +10,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,9 @@ public class WipMtrRtcHeaderService {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderRepository.selectByMoNo(wipMtrRtcHeaderBuildVO.getMoNo());
         wipMtrRtcHeaderBuildVO.fillMoInfo(reqHeaderEntity);
         // 获取工单工序投料信息
-        List<WipReqItemVO> reqItemVOList = wipReqItemService.getReqItemList(wipMtrRtcHeaderBuildVO);
+        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForMoUnPost(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getHeaderId(),
+                wipMtrRtcHeaderBuildVO.getBillType(), wipMtrRtcHeaderBuildVO.getWkpNo(), wipMtrRtcHeaderBuildVO.getItemList());
+        List<WipReqItemVO> reqItemVOList = wipReqItemService.getReqItemWithUnPost(wipMtrRtcLineQueryVO);
         if (ListUtil.empty(reqItemVOList)) {
             throw new ParamsIncorrectException("工单没有可领/退的物料");
         }

@@ -6,7 +6,9 @@ import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.common.view.entity.PageResultEntity;
 import com.cvte.scm.wip.domain.common.view.service.ViewService;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -27,12 +30,14 @@ import java.util.stream.Collectors;
 public class WipMtrRtcViewService {
 
     private ViewService viewService;
+    private WipReqItemService wipReqItemService;
     private WipMtrRtcLineRepository wipMtrRtcLineRepository;
     private WipMtrSubInvRepository wipMtrSubInvRepository;
     private WipMtrRtcLotControlService wipMtrRtcLotControlService;
 
-    public WipMtrRtcViewService(ViewService viewService, WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLotControlService wipMtrRtcLotControlService) {
+    public WipMtrRtcViewService(ViewService viewService, WipReqItemService wipReqItemService, WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLotControlService wipMtrRtcLotControlService) {
         this.viewService = viewService;
+        this.wipReqItemService = wipReqItemService;
         this.wipMtrRtcLineRepository = wipMtrRtcLineRepository;
         this.wipMtrSubInvRepository = wipMtrSubInvRepository;
         this.wipMtrRtcLotControlService = wipMtrRtcLotControlService;
@@ -47,15 +52,19 @@ public class WipMtrRtcViewService {
         }
 
         String organizationId = (String) data.get(0).get("organizationId");
+        String moId = (String) data.get(0).get("moId");
         List<String> itemIdList = data.stream().map(line -> (String) line.get("itemId")).collect(Collectors.toList());
+
+        List<WipReqItemVO> reqItemList = getReqItem(organizationId, moId, itemIdList);
+        Map<String, WipReqItemVO> reqItemMap = reqItemList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
 
         List<WipMtrSubInvVO> mtrSubInvVOList = getMtrSubInv(data);
         // 物料库存现有量
         Map<String, BigDecimal> mtrSupplyQtyMap = WipMtrSubInvVO.groupQtyByItem(mtrSubInvVOList);
         // 物料子库现有量
         Map<String, BigDecimal> mtrSubInvQtyMap = WipMtrSubInvVO.groupQtyByItemSub(mtrSubInvVOList);
-        // 物料可用量
-        List<WipReqItemVO> unPostReqItemVOList = getReqItem(data.get(0), itemIdList);
+        // 物料已申请未过账数量
+        List<WipReqItemVO> unPostReqItemVOList = getItemUnPost(data.get(0), itemIdList);
         Map<String, BigDecimal> unPostReqItemVOMap = WipReqItemVO.groupUnPostQtyByItemSub(unPostReqItemVOList);
         // 批次强管控物料
         List<String> rtcLotControlItemList = wipMtrRtcLotControlService.getLotControlItem(organizationId, itemIdList);
@@ -64,6 +73,14 @@ public class WipMtrRtcViewService {
             String itemId = (String)line.get("itemId");
             String invpNo = (String)line.get("invpNo");
             String subInvKey = BatchProcessUtils.getKey(itemId, invpNo);
+            String itemKey = BatchProcessUtils.getKey(organizationId, moId, itemId, (String) line.get("wkpNo"));
+
+            WipReqItemVO reqItem = reqItemMap.get(itemKey);
+            if (Objects.nonNull(reqItem)) {
+                line.put("itemQty", reqItem.getReqQty());
+                line.put("itemIssuedQty", reqItem.getIssuedQty());
+                line.put("itemUnissuedQty", reqItem.getUnIssuedQty());
+            }
 
             BigDecimal supplyQty;
             if (StringUtils.isBlank(invpNo)) {
@@ -91,7 +108,12 @@ public class WipMtrRtcViewService {
         return feignPageResult;
     }
 
-    private List<WipReqItemVO> getReqItem(Map<String, Object> firstLine, List<String> itemIdList) {
+    private List<WipReqItemVO> getReqItem(String organizationId, String moId, List<String> itemIdList) {
+        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(organizationId, moId, null, itemIdList);
+        return wipReqItemService.getReqItem(reqLineQueryVO);
+    }
+
+    private List<WipReqItemVO> getItemUnPost(Map<String, Object> firstLine, List<String> itemIdList) {
         WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForUnPost(
                 (String) firstLine.get("organizationId"),
                 (String) firstLine.get("factoryId"),

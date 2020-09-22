@@ -63,7 +63,7 @@ public class WipReqLineKeyQueryVO {
         return buildForReqItem(organizationId, moId, wkpNo, null);
     }
 
-    public static WipReqLineKeyQueryVO buildForReqItem(String organizationId, String moId, String wkpNo, List<String> itemList) {
+    public static WipReqLineKeyQueryVO buildForReqItem(String organizationId, String moId, String wkpNo, Collection<String> itemList) {
         WipReqLineKeyQueryVO queryVO = new WipReqLineKeyQueryVO();
         queryVO.setOrganizationId(organizationId)
                 .setHeaderId(moId)

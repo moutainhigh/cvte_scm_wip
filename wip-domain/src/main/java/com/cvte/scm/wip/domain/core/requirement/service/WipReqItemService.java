@@ -34,17 +34,25 @@ public class WipReqItemService {
     }
 
     /**
-     * 获取工单工序投料信息
+     * 查询工单投料信息
+     * @since 2020/9/22 11:21 上午
+     * @author xueyuting
+     * @param
+     */
+    public List<WipReqItemVO> getReqItem(WipReqLineKeyQueryVO reqLineQueryVO) {
+        return wipReqLineRepository.selectReqItem(reqLineQueryVO);
+    }
+
+    /**
+     * 获取工单投料及其未完成领料信息
      * @since 2020/9/9 10:24 上午
      * @author xueyuting
      */
-    public List<WipReqItemVO> getReqItemList(WipMtrRtcHeaderBuildVO wipMtrRtcHeaderBuildVO) {
-        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getWkpNo(), wipMtrRtcHeaderBuildVO.getItemList());
+    public List<WipReqItemVO> getReqItemWithUnPost(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO) {
+        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(wipMtrRtcLineQueryVO.getOrganizationId(), wipMtrRtcLineQueryVO.getMoId(), wipMtrRtcLineQueryVO.getWkpNo(), wipMtrRtcLineQueryVO.getItemKeyColl());
         // 查询工单投料信息
-        List<WipReqItemVO> reqItemVOList = wipReqLineRepository.selectReqItem(reqLineQueryVO);
+        List<WipReqItemVO> reqItemVOList = getReqItem(reqLineQueryVO);
         // 查询投料申请未过账数量
-        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForMoUnPost(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getHeaderId(),
-                wipMtrRtcHeaderBuildVO.getBillType(), wipMtrRtcHeaderBuildVO.getWkpNo(), wipMtrRtcHeaderBuildVO.getItemList());
         List<WipReqItemVO> unPostReqItemVOList = wipMtrRtcLineRepository.batchSumMoUnPostQty(wipMtrRtcLineQueryVO);
         Map<String, WipReqItemVO> unPostReqItemVOMap = unPostReqItemVOList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
 
