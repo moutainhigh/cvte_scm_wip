@@ -245,6 +245,9 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         if (valueChanged.test(rtcLineBuildVO.getBadMtrDesc(), this.badMtrDesc)) {
             this.setBadMtrDesc(rtcLineBuildVO.getBadMtrDesc());
         }
+        if (valueChanged.test(rtcLineBuildVO.getRemark(), this.remark)) {
+            this.setRemark(rtcLineBuildVO.getRemark());
+        }
     }
 
     public void createAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {

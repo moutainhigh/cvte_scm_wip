@@ -34,4 +34,6 @@ public class WipMtrRtcLineBuildVO {
 
     private String badMtrDesc;
 
+    private String remark;
+
 }
