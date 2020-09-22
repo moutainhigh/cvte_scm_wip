@@ -28,4 +28,19 @@ public class WipMtrSubInvRepositoryImpl implements WipMtrSubInvRepository {
         return wipMtrSubInvMapper.selectByVO(subInvVOList);
     }
 
+    @Override
+    public List<WipMtrSubInvVO> selectReworkControl(String organizationId, String factoryId, String itemId, String moId, String subinventoryCode) {
+        return wipMtrSubInvMapper.selectReworkControl(organizationId, factoryId, itemId, moId, subinventoryCode);
+    }
+
+    @Override
+    public List<WipMtrSubInvVO> selectConfigControl(String organizationId, String factoryId, String itemId, String subinventoryCode) {
+        return wipMtrSubInvMapper.selectConfigControl(organizationId, factoryId, itemId, subinventoryCode);
+    }
+
+    @Override
+    public List<WipMtrSubInvVO> selectWeakControl(String organizationId, String factoryId, String itemId, String subinventoryCode) {
+        return wipMtrSubInvMapper.selectWeakControl(organizationId, factoryId, itemId, subinventoryCode);
+    }
+
 }

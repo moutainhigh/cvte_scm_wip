@@ -2,7 +2,7 @@ package com.cvte.scm.wip.infrastructure.rtc.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import com.cvte.scm.wip.infrastructure.base.WipBaseRepositoryImpl;
 import com.cvte.scm.wip.infrastructure.rtc.mapper.dataobject.WipMtrRtcLDO;
@@ -35,13 +35,18 @@ public class WipMtrRtcLineRepositoryImpl
     }
 
     @Override
-    public List<WipReqItemVO> batchSumMoUnPostQty(WipMtrRtcLineQueryVO queryVO) {
+    public List<WipReqItemVO> batchSumMoUnPostQty(WipMtrRtcQueryVO queryVO) {
         return mapper.batchSumMoUnPostQty(queryVO);
     }
 
     @Override
-    public List<WipReqItemVO> batchSumUnPostQty(WipMtrRtcLineQueryVO queryVO) {
-        return mapper.batchSumUnPostQty(queryVO);
+    public List<WipReqItemVO> batchSumItemUnPostQty(WipMtrRtcQueryVO queryVO) {
+        return mapper.batchSumItemUnPostQty(queryVO);
+    }
+
+    @Override
+    public List<WipReqItemVO> batchSumItemLotUnPostQty(WipMtrRtcQueryVO queryVO) {
+        return mapper.batchSumItemLotUnPostQty(queryVO);
     }
 
 }

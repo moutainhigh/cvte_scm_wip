@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
-import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
@@ -14,9 +13,12 @@ import com.cvte.scm.wip.domain.core.item.repository.ScmItemOrgRepository;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
+import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLotControlService;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLotControlVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.ScmLotControlVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLotControlCodeEnum;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLotControlTypeEnum;
 import com.cvte.scm.wip.infrastructure.boot.config.api.BsmApiInfoConfiguration;
 import com.cvte.scm.wip.spi.subrule.dto.ApsResponse;
 import org.springframework.stereotype.Service;
@@ -43,13 +45,15 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
     private BsmApiInfoConfiguration bsmApiInfoConfiguration;
     private WipReqHeaderService wipReqHeaderService;
     private ScmItemService scmItemService;
+    private WipMtrSubInvRepository wipMtrSubInvRepository;
 
-    public WipMtrRtcLotControlServiceImpl(ScmItemOrgRepository scmItemOrgRepository, AccessTokenService accessTokenService, BsmApiInfoConfiguration bsmApiInfoConfiguration, WipReqHeaderService wipReqHeaderService, ScmItemService scmItemService) {
+    public WipMtrRtcLotControlServiceImpl(ScmItemOrgRepository scmItemOrgRepository, AccessTokenService accessTokenService, BsmApiInfoConfiguration bsmApiInfoConfiguration, WipReqHeaderService wipReqHeaderService, ScmItemService scmItemService, WipMtrSubInvRepository wipMtrSubInvRepository) {
         this.scmItemOrgRepository = scmItemOrgRepository;
         this.accessTokenService = accessTokenService;
         this.bsmApiInfoConfiguration = bsmApiInfoConfiguration;
         this.wipReqHeaderService = wipReqHeaderService;
         this.scmItemService = scmItemService;
+        this.wipMtrSubInvRepository = wipMtrSubInvRepository;
     }
 
     @Override
@@ -61,14 +65,45 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
         return itemOrgList.stream().filter(itemOrg -> WipMtrRtcLotControlCodeEnum.ACTIVE.getCode().equals(itemOrg.getLotControlCode())).map(ScmItemOrgEntity::getItemId).collect(Collectors.toList());
     }
 
+    @Override
+    public List<WipMtrSubInvVO> getItemLot(String organizationId, String factoryId, String itemId, String moId, String subinventoryCode) {
+        List<WipMtrSubInvVO> mtrSubInvVOList;
+
+        // 返工批次管控
+        mtrSubInvVOList = wipMtrSubInvRepository.selectReworkControl(organizationId, factoryId, itemId, moId, subinventoryCode);
+        if (ListUtil.notEmpty(mtrSubInvVOList)) {
+            mtrSubInvVOList.forEach(vo -> vo.setLotControlType(WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode()));
+            return mtrSubInvVOList;
+        }
+
+        // 配置强管控
+        List<String> configItemList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
+        if (ListUtil.notEmpty(configItemList)) {
+            mtrSubInvVOList = wipMtrSubInvRepository.selectConfigControl(organizationId, factoryId, itemId, subinventoryCode);
+            if (ListUtil.notEmpty(mtrSubInvVOList)) {
+                mtrSubInvVOList.forEach(vo -> vo.setLotControlType(WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode()));
+                return mtrSubInvVOList;
+            }
+        }
+
+        // 弱管控
+        mtrSubInvVOList = wipMtrSubInvRepository.selectWeakControl(organizationId, factoryId, itemId, subinventoryCode);
+        if (ListUtil.notEmpty(mtrSubInvVOList)) {
+            mtrSubInvVOList.forEach(vo -> vo.setLotControlType(WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode()));
+            return mtrSubInvVOList;
+        }
+
+        return Collections.emptyList();
+    }
+
     private List<String> getForceControlLot(String organizationId, String moId, List<String> itemIdList) {
         String productMinClass = getProductMinClass(organizationId, moId);
-        List<WipMtrRtcLotControlVO> lotControlVOList = getLotControlByOptionNo(OPTION_NO, OPTION_VALUE);
-        List<WipMtrRtcLotControlVO> filteredControlList = lotControlVOList.stream().filter(vo -> productMinClass.equals(vo.getProductClass())).collect(Collectors.toList());
+        List<ScmLotControlVO> lotControlVOList = getLotControlByOptionNo(OPTION_NO, OPTION_VALUE);
+        List<ScmLotControlVO> filteredControlList = lotControlVOList.stream().filter(vo -> productMinClass.equals(vo.getProductClass())).collect(Collectors.toList());
         if (ListUtil.empty(filteredControlList)) {
             return Collections.emptyList();
         }
-        List<String> controlItemMinClassList = filteredControlList.stream().map(WipMtrRtcLotControlVO::getMtrClass).collect(Collectors.toList());
+        List<String> controlItemMinClassList = filteredControlList.stream().map(ScmLotControlVO::getMtrClass).collect(Collectors.toList());
 
         List<ScmItemEntity> itemEntityList = scmItemService.getByItemIds(organizationId, itemIdList);
 
@@ -78,7 +113,7 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
                 .collect(Collectors.toList());
     }
 
-    private List<WipMtrRtcLotControlVO> getLotControlByOptionNo(String optionNo, String optionValue) {
+    private List<ScmLotControlVO> getLotControlByOptionNo(String optionNo, String optionValue) {
         String url = String.format("%s%s%s%s%s", bsmApiInfoConfiguration.getBaseUrl(), "/common_query/mtr/lot_control/", optionNo, "/", optionValue);
         String token;
         try {
@@ -88,7 +123,7 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
         }
 
         String restResponse = RestCallUtils.callRest(RestCallUtils.RequestMethod.GET, url, token, Collections.emptyMap());
-        ApsResponse<List<WipMtrRtcLotControlVO>> response = JSON.parseObject(restResponse, new TypeReference<ApsResponse<List<WipMtrRtcLotControlVO>>>(){});
+        ApsResponse<List<ScmLotControlVO>> response = JSON.parseObject(restResponse, new TypeReference<ApsResponse<List<ScmLotControlVO>>>(){});
         if (!"0".equals(response.getStatus())) {
             throw new ParamsIncorrectException(String.format("BSM系统接口调用异常, 异常信息: %s", response.getMessage()));
         }

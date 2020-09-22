@@ -37,14 +37,21 @@ public class WipMtrSubInvVO {
 
     private BigDecimal supplyQty;
 
+    private BigDecimal availQty;
+
+    private String lotControlType;
+
+    // 物料
     public static Map<String, BigDecimal> groupQtyByItem(List<WipMtrSubInvVO> subInvVOList) {
         return subInvVOList.stream().collect(Collectors.toMap(WipMtrSubInvVO::getInventoryItemId, WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
     }
 
+    // 物料+子库
     public static Map<String, BigDecimal> groupQtyByItemSub(List<WipMtrSubInvVO> subInvVOList) {
         return subInvVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getInventoryItemId(), item.getSubinventoryCode()), WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
     }
 
+    // 物料+子库+批次
     public static Map<String, BigDecimal> groupQtyByItemSubLot(List<WipMtrSubInvVO> subInvVOList) {
         return subInvVOList.stream().collect(Collectors.toMap(item -> BatchProcessUtils.getKey(item.getInventoryItemId(), item.getSubinventoryCode(), item.getLotNumber()), WipMtrSubInvVO::getSupplyQty, BigDecimal::add));
     }

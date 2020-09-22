@@ -31,7 +31,7 @@
         <result column="upd_time" property="updTime"/>
     </resultMap>
 
-    <select id="batchSumMoUnPostQty" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO"
+    <select id="batchSumMoUnPostQty" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO"
             resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
         select mrh.organization_id as organizationId,
         mrh.mo_id as moId,
@@ -70,7 +70,7 @@
         group by mrh.organization_id, mrh.mo_id, mrl.item_id, mrl.wkp_no
     </select>
 
-    <select id="batchSumUnPostQty" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO"
+    <select id="batchSumItemUnPostQty" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO"
             resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
         select mrh.organization_id as organizationId,
         mrh.factory_id as factoryId,
@@ -105,5 +105,45 @@
             #{status}
         </foreach>
         group by mrh.organization_id, mrh.factory_id, mrl.invp_no, mrl.item_id
+    </select>
+    <select id="batchSumItemLotUnPostQty" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO"
+            resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
+        select mrh.organization_id as organizationId,
+        mrh.factory_id as factoryId,
+        mrl.item_id as itemId,
+        mra.invp_no as invpNo,
+        mra.mtr_lot_no as lotNumber,
+        sum(coalesce(mra.issued_qty, 0)) as unPostQty
+        from wip_mtr_rtc_assign mra
+        inner join wip_mtr_rtc_l mrl
+        on mra.line_id = mrl.line_id
+        inner join wip_mtr_rtc_h mrh
+        on mrl.header_id = mrh.header_id
+        where mrh.organization_id = #{queryVO.organizationId}
+        and mrh.factory_id = #{queryVO.factoryId}
+        and mrl.item_id = #{queryVO.itemId}
+        and mra.assign_status = '110'
+        and mrh.bill_type = #{queryVO.billType}
+        <if test="queryVO.invpNo != null and queryVO.invpNo.length() > 0">
+            and mra.invp_no = #{queryVO.invpNo}
+        </if>
+        <if test="queryVO.mtrLotNoColl != null and queryVO.mtrLotNoColl.size() > 0">
+            and mra.mtr_lot_no in
+            <foreach collection="queryVO.mtrLotNoColl" item="mtrLotNo" open="(" separator="," close=")">
+                #{mtrLotNo}
+            </foreach>
+        </if>
+        <if test="queryVO.lineId != null and queryVO.lineId.length() > 0">
+            and mrl.line_id <![CDATA[ <> ]]> #{queryVO.lineId}
+        </if>
+        and mrl.line_status in
+        <foreach collection="queryVO.statusColl" item="status" open="(" separator="," close=")">
+            #{status}
+        </foreach>
+        group by mrh.organization_id,
+        mrh.factory_id,
+        mrl.item_id,
+        mra.invp_no,
+        mra.mtr_lot_no
     </select>
 </mapper>

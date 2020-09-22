@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
   */
 @Data
 @Accessors(chain = true)
-public class WipMtrRtcLotControlVO {
+public class ScmLotControlVO {
 
     private String organizationId;
 

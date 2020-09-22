@@ -32,6 +32,8 @@ public class WipReqItemVO {
 
     private String invpNo;
 
+    private String lotNumber;
+
     private BigDecimal unitQty;
 
     private BigDecimal reqQty;

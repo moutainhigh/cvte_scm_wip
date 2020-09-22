@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.rtc.service;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
@@ -11,8 +12,9 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -108,23 +110,53 @@ public class WipMtrRtcViewService {
         return feignPageResult;
     }
 
+    public List<WipMtrSubInvVO> lotView(WipMtrRtcQueryVO lotQuery, String lotNumber) {
+        if (StringUtils.isBlank(lotQuery.getOrganizationId()) || StringUtils.isBlank(lotQuery.getFactoryId()) || StringUtils.isBlank(lotQuery.getItemId()) || StringUtils.isBlank(lotQuery.getMoId())) {
+            throw new ParamsIncorrectException("参数不全");
+        }
+        List<WipMtrSubInvVO> mtrSubInvVOList = wipMtrRtcLotControlService.getItemLot(lotQuery.getOrganizationId(), lotQuery.getFactoryId(), lotQuery.getItemId(), lotQuery.getMoId(), lotQuery.getInvpNo());
+
+        if (StringUtils.isNotBlank(lotNumber)) {
+            mtrSubInvVOList.removeIf(vo -> !vo.getLotNumber().contains(lotNumber));
+        }
+
+        List<String> mtrLotNoColl = mtrSubInvVOList.stream().map(WipMtrSubInvVO::getLotNumber).collect(Collectors.toList());
+        lotQuery.setMtrLotNoColl(mtrLotNoColl)
+                // 未过账状态
+                .setStatusColl(WipMtrRtcLineStatusEnum.getUnPostStatus());
+        // 获取物料批次已申请未过账数量
+        List<WipReqItemVO> lotUnPostList = wipMtrRtcLineRepository.batchSumItemLotUnPostQty(lotQuery);
+        Map<String, WipReqItemVO> lotUnPostMap = lotUnPostList.stream().collect(Collectors.toMap(item -> item.getInvpNo() + item.getLotNumber(), Function.identity()));
+        for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
+            // 计算可用量
+            BigDecimal availQty = mtrSubInvVO.getSupplyQty();
+            WipReqItemVO lotUnPost = lotUnPostMap.get(mtrSubInvVO.getSubinventoryCode() + mtrSubInvVO.getLotNumber());
+            if (Objects.nonNull(lotUnPost)) {
+                availQty = availQty.subtract(Optional.ofNullable(lotUnPost.getUnPostQty()).orElse(BigDecimal.ZERO));
+            }
+            mtrSubInvVO.setAvailQty(availQty);
+        }
+
+        return mtrSubInvVOList;
+    }
+
     private List<WipReqItemVO> getReqItem(String organizationId, String moId, List<String> itemIdList) {
         WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(organizationId, moId, null, itemIdList);
         return wipReqItemService.getReqItem(reqLineQueryVO);
     }
 
     private List<WipReqItemVO> getItemUnPost(Map<String, Object> firstLine, List<String> itemIdList) {
-        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForUnPost(
+        WipMtrRtcQueryVO wipMtrRtcQueryVO = WipMtrRtcQueryVO.buildForItemUnPost(
                 (String) firstLine.get("organizationId"),
                 (String) firstLine.get("factoryId"),
                 (String) firstLine.get("headerId"),
                 (String) firstLine.get("billType"),
                 itemIdList
         );
-        return wipMtrRtcLineRepository.batchSumUnPostQty(wipMtrRtcLineQueryVO);
+        return wipMtrRtcLineRepository.batchSumItemUnPostQty(wipMtrRtcQueryVO);
     }
 
-    public List<WipMtrSubInvVO> getMtrSubInv(List<Map<String, Object>> data) {
+    private List<WipMtrSubInvVO> getMtrSubInv(List<Map<String, Object>> data) {
         List<WipMtrSubInvVO> queryVOList = new ArrayList<>();
         for (Map<String, Object> line : data) {
             WipMtrSubInvVO queryVO = new WipMtrSubInvVO();

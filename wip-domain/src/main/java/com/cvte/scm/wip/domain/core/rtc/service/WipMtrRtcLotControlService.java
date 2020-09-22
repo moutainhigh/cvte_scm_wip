@@ -1,5 +1,7 @@
 package com.cvte.scm.wip.domain.core.rtc.service;
 
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
+
 import java.util.List;
 
 /**
@@ -19,5 +21,7 @@ public interface WipMtrRtcLotControlService {
      * @param itemIdList 物料ID列表, 为空时返回空列表
      */
     List<String> getLotControlItem(String organizationId, List<String> itemIdList);
+
+    List<WipMtrSubInvVO> getItemLot(String organizationId, String factoryId, String itemId, String moId, String subinventoryCode);
 
 }

@@ -1,10 +1,15 @@
 package com.cvte.scm.wip.controller.rtc.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.scm.wip.controller.rtc.admin.dto.WipMtrRtcLotViewDTO;
 import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcViewService;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
   * 
@@ -25,8 +30,21 @@ public class WipMtrRtcViewController {
     }
 
     @PostMapping("/line")
-    public RestResponse create(@RequestBody SysViewPageParamVO sysViewPageParam) {
+    public RestResponse lineView(@RequestBody SysViewPageParamVO sysViewPageParam) {
         return new RestResponse().setData(wipMtrRtcViewService.lineView(sysViewPageParam));
+    }
+
+    @PostMapping("/lot")
+    public RestResponse lotView(@RequestBody WipMtrRtcLotViewDTO rtcLotViewDTO) {
+        WipMtrRtcQueryVO lotQuery = new WipMtrRtcQueryVO();
+        lotQuery.setOrganizationId(rtcLotViewDTO.getOrganizationId())
+                .setFactoryId(rtcLotViewDTO.getFactoryId())
+                .setItemId(rtcLotViewDTO.getItemId())
+                .setBillType(rtcLotViewDTO.getBillType())
+                .setMoId(rtcLotViewDTO.getMoId())
+                .setLineId(rtcLotViewDTO.getLineId())
+                .setInvpNo(rtcLotViewDTO.getInvpNo());
+        return new RestResponse().setData(wipMtrRtcViewService.lotView(lotQuery, rtcLotViewDTO.getLotNumber()));
     }
 
 }

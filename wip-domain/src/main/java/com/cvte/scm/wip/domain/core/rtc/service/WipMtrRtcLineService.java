@@ -144,14 +144,14 @@ public class WipMtrRtcLineService {
 
     private List<WipReqItemVO> getItemVOList(WipMtrRtcHeaderEntity rtcHeaderEntity, List<WipMtrRtcLineEntity> rtcLineEntityList) {
         List<String> itemKeyList = rtcLineEntityList.stream().map(WipMtrRtcLineEntity::getItemId).collect(Collectors.toList());
-        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForMoUnPost(rtcHeaderEntity.getOrganizationId(), rtcHeaderEntity.getMoId(), rtcHeaderEntity.getHeaderId(),
+        WipMtrRtcQueryVO wipMtrRtcQueryVO = WipMtrRtcQueryVO.buildForMoUnPost(rtcHeaderEntity.getOrganizationId(), rtcHeaderEntity.getMoId(), rtcHeaderEntity.getHeaderId(),
                 rtcHeaderEntity.getBillType(), rtcHeaderEntity.getWkpNo(), itemKeyList);
-        return wipReqItemService.getReqItemWithUnPost(wipMtrRtcLineQueryVO);
+        return wipReqItemService.getReqItemWithUnPost(wipMtrRtcQueryVO);
     }
 
     private List<WipReqItemVO> getReqItem(WipMtrRtcHeaderEntity rtcHeader, List<String> itemIdList) {
-        WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO = WipMtrRtcLineQueryVO.buildForUnPost(rtcHeader.getOrganizationId(), rtcHeader.getFactoryId(), rtcHeader.getHeaderId(), rtcHeader.getBillType(), itemIdList);
-        return wipMtrRtcLineRepository.batchSumUnPostQty(wipMtrRtcLineQueryVO);
+        WipMtrRtcQueryVO wipMtrRtcQueryVO = WipMtrRtcQueryVO.buildForItemUnPost(rtcHeader.getOrganizationId(), rtcHeader.getFactoryId(), rtcHeader.getHeaderId(), rtcHeader.getBillType(), itemIdList);
+        return wipMtrRtcLineRepository.batchSumItemUnPostQty(wipMtrRtcQueryVO);
     }
 
 }

@@ -14,7 +14,7 @@ import java.util.Collection;
  */
 @Data
 @Accessors(chain = true)
-public class WipMtrRtcLineQueryVO {
+public class WipMtrRtcQueryVO {
 
     private String lineId;
 
@@ -42,8 +42,10 @@ public class WipMtrRtcLineQueryVO {
 
     private Collection<String> itemKeyColl;
 
-    public static WipMtrRtcLineQueryVO buildForMoUnPost(String organizationId, String moId, String headerId, String billType, String wkpNo, Collection<String> itemKeyColl) {
-        WipMtrRtcLineQueryVO rtcLineQueryVO = new WipMtrRtcLineQueryVO();
+    private Collection<String> mtrLotNoColl;
+
+    public static WipMtrRtcQueryVO buildForMoUnPost(String organizationId, String moId, String headerId, String billType, String wkpNo, Collection<String> itemKeyColl) {
+        WipMtrRtcQueryVO rtcLineQueryVO = new WipMtrRtcQueryVO();
         rtcLineQueryVO.setOrganizationId(organizationId)
                 .setMoId(moId)
                 .setHeaderId(headerId)
@@ -55,8 +57,8 @@ public class WipMtrRtcLineQueryVO {
         return rtcLineQueryVO;
     }
 
-    public static WipMtrRtcLineQueryVO buildForUnPost(String organizationId, String factoryId, String headerId, String billType, Collection<String> itemKeyColl) {
-        WipMtrRtcLineQueryVO rtcLineQueryVO = new WipMtrRtcLineQueryVO();
+    public static WipMtrRtcQueryVO buildForItemUnPost(String organizationId, String factoryId, String headerId, String billType, Collection<String> itemKeyColl) {
+        WipMtrRtcQueryVO rtcLineQueryVO = new WipMtrRtcQueryVO();
         rtcLineQueryVO.setOrganizationId(organizationId)
                 .setFactoryId(factoryId)
                 .setHeaderId(headerId)

@@ -4,8 +4,7 @@ import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,12 +47,12 @@ public class WipReqItemService {
      * @since 2020/9/9 10:24 上午
      * @author xueyuting
      */
-    public List<WipReqItemVO> getReqItemWithUnPost(WipMtrRtcLineQueryVO wipMtrRtcLineQueryVO) {
-        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(wipMtrRtcLineQueryVO.getOrganizationId(), wipMtrRtcLineQueryVO.getMoId(), wipMtrRtcLineQueryVO.getWkpNo(), wipMtrRtcLineQueryVO.getItemKeyColl());
+    public List<WipReqItemVO> getReqItemWithUnPost(WipMtrRtcQueryVO wipMtrRtcQueryVO) {
+        WipReqLineKeyQueryVO reqLineQueryVO = WipReqLineKeyQueryVO.buildForReqItem(wipMtrRtcQueryVO.getOrganizationId(), wipMtrRtcQueryVO.getMoId(), wipMtrRtcQueryVO.getWkpNo(), wipMtrRtcQueryVO.getItemKeyColl());
         // 查询工单投料信息
         List<WipReqItemVO> reqItemVOList = getReqItem(reqLineQueryVO);
         // 查询投料申请未过账数量
-        List<WipReqItemVO> unPostReqItemVOList = wipMtrRtcLineRepository.batchSumMoUnPostQty(wipMtrRtcLineQueryVO);
+        List<WipReqItemVO> unPostReqItemVOList = wipMtrRtcLineRepository.batchSumMoUnPostQty(wipMtrRtcQueryVO);
         Map<String, WipReqItemVO> unPostReqItemVOMap = unPostReqItemVOList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
 
         for (WipReqItemVO reqItemVO : reqItemVOList) {
