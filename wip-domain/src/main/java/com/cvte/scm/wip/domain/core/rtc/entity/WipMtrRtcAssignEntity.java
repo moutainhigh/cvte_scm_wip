@@ -66,6 +66,8 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
 
     private BigDecimal issuedQty;
 
+    private String lotControlType;
+
     private String sourceOrderId;
 
     private String assignStatus;
@@ -104,7 +106,8 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
                 .setMtrLotNo(assignBuildVO.getMtrLotNo())
                 .setAssignQty(assignBuildVO.getAssignQty())
                 .setIssuedQty(assignBuildVO.getIssuedQty())
-                .setAssignStatus(StatusEnum.NORMAL.getCode());
+                .setAssignStatus(StatusEnum.NORMAL.getCode())
+                .setLotControlType(assignBuildVO.getLotControlType());
     }
 
     public void update(WipMtrRtcAssignBuildVO assignBuildVO) {
@@ -120,6 +123,9 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
         }
         if (valueChanged.test(assignBuildVO.getIssuedQty(), this.issuedQty)) {
             this.setIssuedQty(assignBuildVO.getIssuedQty());
+        }
+        if (valueChanged.test(assignBuildVO.getLotControlType(), this.lotControlType)) {
+            this.setLotControlType(assignBuildVO.getLotControlType());
         }
     }
 

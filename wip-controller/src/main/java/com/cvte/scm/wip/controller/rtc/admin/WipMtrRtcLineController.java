@@ -3,7 +3,7 @@ package com.cvte.scm.wip.controller.rtc.admin;
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.app.rtc.status.WipMtrRtcLineCancelApplication;
-import com.cvte.scm.wip.app.rtc.update.WipMtrRtcLineUpdateApplication;
+import com.cvte.scm.wip.app.rtc.save.WipMtrRtcLineUpdateApplication;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import lombok.extern.slf4j.Slf4j;

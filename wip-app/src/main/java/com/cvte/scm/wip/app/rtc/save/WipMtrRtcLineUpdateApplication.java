@@ -1,4 +1,4 @@
-package com.cvte.scm.wip.app.rtc.update;
+package com.cvte.scm.wip.app.rtc.save;
 
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;

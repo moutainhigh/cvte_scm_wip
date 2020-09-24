@@ -38,4 +38,6 @@ public class WipMtrRtcAssignBuildVO {
 
     private String changeType;
 
+    private String lotControlType;
+
 }

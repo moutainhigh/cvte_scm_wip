@@ -82,6 +82,12 @@ public class WipMtrRtcAssignDO extends BaseModel {
     @ApiModelProperty(value = "实发数量")
     private BigDecimal issuedQty;
     /**
+     * 批次管控类型
+     */
+    @Column(name = "lot_control_type")
+    @ApiModelProperty(value = "批次管控类型")
+    private String lotControlType;
+    /**
      * 源单据ID
      */
     @Column(name = "source_order_id")
