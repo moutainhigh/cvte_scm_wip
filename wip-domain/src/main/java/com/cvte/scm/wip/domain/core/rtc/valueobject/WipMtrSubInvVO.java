@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.rtc.valueobject;
 
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -31,6 +32,7 @@ public class WipMtrSubInvVO {
 
     private String lotNumber;
 
+    @JsonFormat(pattern="yyyy-MM-dd")
     private Date firstStockinDate;
 
     private String subinventoryCode;
