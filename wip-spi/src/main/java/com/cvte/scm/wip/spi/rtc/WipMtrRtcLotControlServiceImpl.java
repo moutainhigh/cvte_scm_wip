@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -133,7 +134,8 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
     private String getProductMinClass(String organizationId, String moId) {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderService.getBySourceId(moId);
         ScmItemEntity scmItemEntity = scmItemService.getByItemIds(organizationId, Collections.singletonList(reqHeaderEntity.getProductId())).get(0);
-        return scmItemEntity.getRdMinClassCode();
+        String productMinClass = scmItemEntity.getRdMinClassCode();
+        return Optional.ofNullable(productMinClass).orElse("");
     }
 
 }
