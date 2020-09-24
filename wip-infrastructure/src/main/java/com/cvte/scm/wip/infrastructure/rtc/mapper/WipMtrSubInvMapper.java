@@ -16,20 +16,12 @@ import java.util.List;
 public interface WipMtrSubInvMapper extends CommonMapper<WipMtrSubInvVO> {
 
     List<WipMtrSubInvVO> selectByVO(@Param("subInvVOList") List<WipMtrSubInvVO> subInvVOList);
-
-    /**
-     * 成品返工批次管控
-     * @since 2020/9/21 4:35 下午
-     * @author xueyuting
-     */
-    List<WipMtrSubInvVO> selectReworkControl(@Param("organizationId") String organizationId, @Param("factoryId") String factoryId, @Param("itemId") String itemId, @Param("moId") String moId, @Param("subinventoryCode") String subinventoryCode);
-
     /**
      * 强管控批次
      * @since 2020/9/21 4:35 下午
      * @author xueyuting
      */
-    List<WipMtrSubInvVO> selectConfigControl(@Param("organizationId") String organizationId, @Param("factoryId") String factoryId, @Param("itemId") String itemId, @Param("subinventoryCode") String subinventoryCode);
+    List<WipMtrSubInvVO> selectLotControl(@Param("organizationId") String organizationId, @Param("factoryId") String factoryId, @Param("itemId") String itemId, @Param("subinventoryCode") String subinventoryCode);
 
     /**
      * 启用批次管控但无领料批次, 直接获取可用量

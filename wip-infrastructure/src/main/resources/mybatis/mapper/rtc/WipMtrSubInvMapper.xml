@@ -11,6 +11,7 @@
         <result column="subinventory_code" property="subinventoryCode" />
         <result column="supply_qty" property="supplyQty" />
     </resultMap>
+
     <select id="selectByVO" resultMap="BaseResultMap">
         select siq.organization_id,
                siq.factory_id,
@@ -37,72 +38,36 @@
         group by siq.factory_no, siq.factory_id, siq.inventory_item_id, siq.organization_id,
                  siq.subinventory_code, siq.lot_number
     </select>
-    <select id="selectReworkControl" resultType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
-        select siq.organization_id,
-               siq.factory_id,
-               siq.factory_no,
-               siq.subinventory_code,
-               siq.inventory_item_id,
-               siq.lot_number,
-               siq.first_stockin_date,
-               case
-               when rli.issued_qty <![CDATA[ < ]]> siq.supply_qty
-                   then rli.issued_qty
-                   else siq.supply_qty
-               end as supply_qty
-        from wip_req_header wrh
-                 inner join wip_cn_bill wcb
-                            on wrh.source_lot_no = wcb.to_mo_lot_no /* 领料单对应工单批次=更改单改后批次 */
-                 inner join wip_cn_bill_d cbd
-                            on wcb.bill_id = cbd.bill_id
-                 inner join scm.md_item mi
-                            on cbd.item_id_old = mi.inventory_item_id
-                 inner join wip_req_lot_issued rli
-                            on wrh.header_id = rli.header_id
-                                and mi.item_code = rli.item_no
-                 inner join wip_mtr_sub_inv_qty_v siq
-                            on wrh.factory_id = siq.factory_id
-                                and wrh.organization_id = siq.organization_id
-                                and rli.mtr_lot_no = siq.lot_number
-                                and cbd.item_id_old = siq.inventory_item_id
-        where siq.organization_id = #{organizationId}
-          and siq.factory_id = #{factoryId}
-          and cbd.item_id_old = #{itemId} /* 修改项的改前物料=领料行物料 */
-          and wrh.source_id = #{moId}
-          <if test="subinventoryCode != null and subinventoryCode.length() > 0">
-            and siq.subinventory_code = #{subinventoryCode}
-          </if>
-    </select>
-    <select id="selectConfigControl" resultType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
-        select siq.organization_id,
-               siq.factory_id,
-               siq.factory_no,
-               siq.subinventory_code,
-               siq.inventory_item_id,
-               siq.lot_number,
-               siq.first_stockin_date,
-               case
-               when rli.issued_qty <![CDATA[ < ]]> siq.supply_qty
-                   then rli.issued_qty
-                   else siq.supply_qty
-               end as supply_qty
+
+    <select id="selectLotControl" resultType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
+        select wrh.organization_id
+             , wrh.factory_id
+             , siq.factory_no
+             , siq.subinventory_code
+             , mi.inventory_item_id
+             , rli.mtr_lot_no as lot_number
+             , siq.first_stockin_date
+             , siq.supply_qty
+             , rli.issued_qty as item_qty
+             , (rli.issued_qty - coalesce(rli.unissued_qty, rli.issued_qty)) as item_issued_qty
         from wip_req_lot_issued rli
-                 inner join scm.md_item mi
-                            on rli.item_no = mi.item_code
-                 inner join wip_req_header wrh
-                            on rli.header_id = wrh.header_id
-                 inner join wip_mtr_sub_inv_qty_v siq
-                            on wrh.organization_id = siq.organization_id
-                                and wrh.factory_id = siq.factory_id
-                                and rli.mtr_lot_no = siq.lot_number
-                                and mi.inventory_item_id = siq.inventory_item_id
-        where siq.organization_id = #{organizationId}
-          and siq.factory_id = #{factoryId}
-          and siq.inventory_item_id = #{itemId}
-          <if test="subinventoryCode != null and subinventoryCode.length() > 0">
+        inner join scm.md_item mi
+            on rli.item_no = mi.item_code
+        inner join wip_req_header wrh
+            on rli.header_id = wrh.header_id
+        left join wip_mtr_sub_inv_qty_v siq
+            on wrh.organization_id = siq.organization_id
+           and wrh.factory_id = siq.factory_id
+           and rli.mtr_lot_no = siq.lot_number
+           and mi.inventory_item_id = siq.inventory_item_id
+        <if test="subinventoryCode != null and subinventoryCode.length() > 0">
             and siq.subinventory_code = #{subinventoryCode}
-          </if>
+        </if>
+        where wrh.organization_id = #{organizationId}
+          and wrh.factory_id = #{factoryId}
+          and mi.inventory_item_id = #{itemId}
     </select>
+
     <select id="selectWeakControl" resultType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
         select siq.organization_id,
                siq.factory_id,

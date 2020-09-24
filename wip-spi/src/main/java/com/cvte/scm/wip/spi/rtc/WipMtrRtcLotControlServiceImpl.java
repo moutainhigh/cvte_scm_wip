@@ -69,32 +69,26 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
     @Override
     public List<WipMtrSubInvVO> getItemLot(String organizationId, String factoryId, String itemId, String moId, String subinventoryCode) {
         List<WipMtrSubInvVO> mtrSubInvVOList;
+        String lotControlType = WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode();
 
-        // 返工批次管控
-        mtrSubInvVOList = wipMtrSubInvRepository.selectReworkControl(organizationId, factoryId, itemId, moId, subinventoryCode);
+        // 强管控
+        mtrSubInvVOList = wipMtrSubInvRepository.selectLotControl(organizationId, factoryId, itemId, subinventoryCode);
         if (ListUtil.notEmpty(mtrSubInvVOList)) {
-            mtrSubInvVOList.forEach(vo -> vo.setLotControlType(WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode()));
-            return mtrSubInvVOList;
-        }
-
-        // 配置强管控
-        List<String> configItemList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
-        if (ListUtil.notEmpty(configItemList)) {
-            mtrSubInvVOList = wipMtrSubInvRepository.selectConfigControl(organizationId, factoryId, itemId, subinventoryCode);
-            if (ListUtil.notEmpty(mtrSubInvVOList)) {
-                mtrSubInvVOList.forEach(vo -> vo.setLotControlType(WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode()));
-                return mtrSubInvVOList;
+            // 是否配置批次强管控
+            List<String> configItemList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
+            if (ListUtil.notEmpty(configItemList)) {
+                lotControlType = WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode();
             }
+        } else {
+            // 弱管控
+            mtrSubInvVOList = wipMtrSubInvRepository.selectWeakControl(organizationId, factoryId, itemId, subinventoryCode);
+            lotControlType = WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode();
         }
 
-        // 弱管控
-        mtrSubInvVOList = wipMtrSubInvRepository.selectWeakControl(organizationId, factoryId, itemId, subinventoryCode);
-        if (ListUtil.notEmpty(mtrSubInvVOList)) {
-            mtrSubInvVOList.forEach(vo -> vo.setLotControlType(WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode()));
-            return mtrSubInvVOList;
+        for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
+            mtrSubInvVO.setLotControlType(lotControlType);
         }
-
-        return Collections.emptyList();
+        return mtrSubInvVOList;
     }
 
     private List<String> getForceControlLot(String organizationId, String moId, List<String> itemIdList) {

@@ -120,6 +120,20 @@ public class WipMtrRtcViewService {
             mtrSubInvVOList.removeIf(vo -> !vo.getLotNumber().contains(lotNumber));
         }
 
+        if (ListUtil.empty(mtrSubInvVOList)) {
+            return Collections.emptyList();
+        }
+        if (Objects.isNull(mtrSubInvVOList.get(0).getItemQty())) {
+            // 非投料批次, 补充物料需求&领料数量
+            List<WipReqItemVO> reqItemList = getReqItem(lotQuery.getOrganizationId(), lotQuery.getMoId(), Collections.singletonList(lotQuery.getItemId()));
+            BigDecimal itemQty = reqItemList.stream().map(WipReqItemVO::getReqQty).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal itemIssuedQty = reqItemList.stream().map(WipReqItemVO::getIssuedQty).reduce(BigDecimal.ZERO, BigDecimal::add);
+            for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
+                mtrSubInvVO.setItemQty(itemQty);
+                mtrSubInvVO.setItemIssuedQty(itemIssuedQty);
+            }
+        }
+
         List<String> mtrLotNoColl = mtrSubInvVOList.stream().map(WipMtrSubInvVO::getLotNumber).collect(Collectors.toList());
         lotQuery.setMtrLotNoColl(mtrLotNoColl)
                 // 未过账状态
