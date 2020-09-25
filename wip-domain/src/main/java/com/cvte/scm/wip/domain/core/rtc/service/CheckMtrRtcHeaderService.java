@@ -1,6 +1,8 @@
 package com.cvte.scm.wip.domain.core.rtc.service;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -15,6 +17,20 @@ import java.util.Objects;
   */
 @Component
 public class CheckMtrRtcHeaderService {
+
+    public void checkBillStatus(String status) {
+        BillStatusEnum statusEnum = CodeableEnumUtils.getCodeableEnumByCode(status, BillStatusEnum.class);
+        if (Objects.isNull(statusEnum)) {
+            throw new ParamsIncorrectException("非法工单状态");
+        }
+        switch (statusEnum) {
+            case CLOSED:
+            case CANCELLED:
+            case FINISH:
+                throw new ParamsIncorrectException("工单" + statusEnum.getDesc());
+            default:
+        }
+    }
 
     public void checkBillQtyLower(BigDecimal billQty) {
         if (billQty.compareTo(BigDecimal.ZERO) <= 0) {

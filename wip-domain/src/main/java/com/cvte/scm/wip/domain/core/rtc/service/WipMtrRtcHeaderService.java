@@ -3,6 +3,8 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.Codeable;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
@@ -11,6 +13,7 @@ import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -50,6 +54,9 @@ public class WipMtrRtcHeaderService {
     public String refresh(WipMtrRtcHeaderBuildVO wipMtrRtcHeaderBuildVO) {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderRepository.selectByMoNo(wipMtrRtcHeaderBuildVO.getMoNo());
         wipMtrRtcHeaderBuildVO.fillMoInfo(reqHeaderEntity);
+        // 校验工单状态
+        checkMtrRtcHeaderService.checkBillStatus(reqHeaderEntity.getBillStatus());
+
         // 获取工单工序投料信息
         WipMtrRtcQueryVO wipMtrRtcQueryVO = WipMtrRtcQueryVO.buildForMoUnPost(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getHeaderId(),
                 wipMtrRtcHeaderBuildVO.getBillType(), wipMtrRtcHeaderBuildVO.getWkpNo(), wipMtrRtcHeaderBuildVO.getItemList());
@@ -95,7 +102,15 @@ public class WipMtrRtcHeaderService {
 
         if (CollectionUtils.isEmpty(rtcHeaderEntity.getLineList().stream().map(WipMtrRtcLineEntity::getLineStatus).filter(WipMtrRtcLineStatusEnum.getUnPostStatus()::contains).collect(Collectors.toSet()))) {
             // 有效行为空
-            throw new ParamsIncorrectException("无可领/退的物料");
+            String errMsg;
+            WipMtrRtcHeaderTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(reqHeaderEntity.getBillType(), WipMtrRtcHeaderTypeEnum.class);
+            if (StringUtils.isNotBlank(rtcHeaderEntity.getWkpNo())) {
+                errMsg = "所选工序物料已%s完成";
+            } else {
+                errMsg = "工单物料已%s完成";
+            }
+            errMsg = String.format(errMsg, Optional.ofNullable(typeEnum).orElse(WipMtrRtcHeaderTypeEnum.RECEIVE).getDesc());
+            throw new ParamsIncorrectException(errMsg);
         }
         // 保存单据
         rtcHeaderEntity.saveLines(isCreate);

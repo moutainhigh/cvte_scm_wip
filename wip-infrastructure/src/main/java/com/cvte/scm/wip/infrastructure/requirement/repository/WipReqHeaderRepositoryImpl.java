@@ -174,9 +174,7 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
         }
         Example example = new Example(WipReqHeaderDO.class);
         example.createCriteria()
-                .andEqualTo("sourceNo", moNo)
-                .andNotEqualTo("billStatus", BillStatusEnum.CLOSED.getCode())
-                .andNotEqualTo("billStatus", BillStatusEnum.CANCELLED.getCode());
+                .andEqualTo("sourceNo", moNo);
         List<WipReqHeaderDO> reqHeaderDOList = wipReqHeaderMapper.selectByExample(example);
         if (ListUtil.notEmpty(reqHeaderDOList)) {
             return WipReqHeaderDO.buildEntity(reqHeaderDOList.get(0));
