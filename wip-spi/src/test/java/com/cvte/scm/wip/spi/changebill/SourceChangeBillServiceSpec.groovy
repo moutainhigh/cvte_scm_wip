@@ -118,4 +118,18 @@ class SourceChangeBillServiceSpec extends Specification {
         posNoList[2] == three.posNo && three.itemQty == null && three.itemUnitQty == new BigDecimal("1")
     }
 
+    def "Non-breaking space"() {
+        def unitQtyStr = "2"
+        def posNoList = ["DIS_1", "DIS_2"]
+        given: "二个位号, 用量为空, 单位用量为" + unitQtyStr
+        def onePosNo = new ChangeBillDetailBuildVO(posNo: "DIS_1,DIS_2 ", itemUnitQty: new BigDecimal(unitQtyStr))
+        when:
+        def multiList = sourceChangeBillService.splitBillDetailByPos(onePosNo, splitter)
+        then: "用量为空"
+        def one = multiList[0]
+        def two = multiList[1]
+        posNoList[0] == one.posNo && one.itemQty == null && one.itemUnitQty == new BigDecimal("1")
+        posNoList[1] == two.posNo && two.itemQty == null && two.itemUnitQty == new BigDecimal("1")
+    }
+
 }
