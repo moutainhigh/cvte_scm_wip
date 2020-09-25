@@ -14,6 +14,7 @@ import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.factory.ReqInsDetailEntityFactory;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsDetailRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipLotRepository;
+import com.cvte.scm.wip.domain.core.requirement.util.ReqInsSplitHelper;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsDetailBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipLotVO;
@@ -296,7 +297,7 @@ public class ReqInsDetailEntity implements Entity<String> {
             // 如果工序为空, 则设置为默认工序10
             resultList.forEach(line -> line.setWkpNo("10"));
         }
-        return this.allocateQty(resultList, wipLotMap, this.getItemUnitQty());
+        return ReqInsSplitHelper.allocateQty(this, resultList, wipLotMap, this.getItemUnitQty());
     }
 
     private List<WipReqLineEntity> parseDeleteType(List<WipReqLineEntity> reqLineList) {
@@ -350,7 +351,7 @@ public class ReqInsDetailEntity implements Entity<String> {
     }
 
     private List<WipReqLineEntity> parseReduceType(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap) {
-        return this.allocateQty(reqLineList, wipLotMap, this.getItemUnitQty().negate());
+        return ReqInsSplitHelper.allocateQty(this, reqLineList, wipLotMap, this.getItemUnitQty().negate());
     }
 
     @VisibleForTesting
@@ -359,133 +360,7 @@ public class ReqInsDetailEntity implements Entity<String> {
             // 如果投料行为空, 则新增
             return parseAddType(wipLotMap);
         }
-        return this.allocateQty(reqLineList, wipLotMap, this.getItemUnitQty());
-    }
-
-    /**
-     * 将批次数量分配到投料行上, 单位用量可为负, 为负时扣减数量
-     * @since 2020/6/13 10:54 上午
-     * @author xueyuting
-     * @param reqLineList 投料行
-     * @param wipLotMap 工单批次
-     * @param updateUnitQty 单位用量
-     */
-    @VisibleForTesting
-    List<WipReqLineEntity> allocateQty(List<WipReqLineEntity> reqLineList, Map<String, WipLotVO> wipLotMap, BigDecimal updateUnitQty) {
-        List<WipReqLineEntity> resultList = new ArrayList<>();
-
-        // 用于分配给小批次的总数量
-        BigDecimal remainLotQty;
-        if (Objects.nonNull(this.getItemQty())) {
-            // 用量不为空时取用量
-            remainLotQty = this.getItemQty();
-            if (updateUnitQty.compareTo(BigDecimal.ZERO) < 0) {
-                remainLotQty = remainLotQty.negate();
-            }
-        } else {
-            List<String> lineLotNumberList = reqLineList.stream().map(WipReqLineEntity::getLotNumber).collect(Collectors.toList());
-            Iterator<Map.Entry<String, WipLotVO>> wipLotIterator = wipLotMap.entrySet().iterator();
-            while (wipLotIterator.hasNext()) {
-                Map.Entry<String, WipLotVO> wipLotEntry = wipLotIterator.next();
-                String lotNumber = wipLotEntry.getKey();
-                if (!lineLotNumberList.contains(lotNumber)) {
-                    wipLotIterator.remove();
-                }
-            }
-            if (CollectionUtils.isEmpty(wipLotMap)) {
-                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LOT_INVALID.getDesc());
-            }
-
-            // 用量为空时取 小批次数量之和(工单数量) * 单位用量
-            remainLotQty = wipLotMap.values().stream().map(WipLotVO::getLotQuantity)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .multiply(updateUnitQty)
-                    .setScale(1, RoundingMode.FLOOR)
-                    .setScale(0, RoundingMode.CEILING);
-        }
-
-        Map<String, List<WipReqLineEntity>> lotGroupLineMap = reqLineList.stream().collect(Collectors.groupingBy(WipReqLineEntity::getLotNumber));
-        Iterator<Map.Entry<String, List<WipReqLineEntity>>> lotGroupLineMapIterator = lotGroupLineMap.entrySet().iterator();
-        while (lotGroupLineMapIterator.hasNext()) {
-            Map.Entry<String, List<WipReqLineEntity>> lotGroupLineEntry = lotGroupLineMapIterator.next();
-            String lotNumber = lotGroupLineEntry.getKey();
-            WipLotVO wipLot = wipLotMap.get(lotNumber);
-            if (Objects.isNull(wipLot)) {
-                // 小批次不存在, 报错
-                throw new ServerException(ReqInsErrEnum.TARGET_LOT_INVALID.getCode(), ReqInsErrEnum.TARGET_LOT_INVALID.getDesc());
-            }
-            // 向上取整的原因: 分配数量可以是负数, 如果向下取整, 可能出现前几个小批次刚好没扣完, 而分配到最后一个数量又过剩, 不合理
-            // 如: 3个小批次, 用量各为334, 分配总量1001, -333.37向下取整为-333, 最后一个-335, 结果是1,1,0;而向上取整的结果是0,0,1
-            BigDecimal updateQty = updateUnitQty.multiply(wipLot.getLotQuantity()).setScale(1, RoundingMode.DOWN).setScale(0, RoundingMode.UP);
-            if (!lotGroupLineMapIterator.hasNext()) {
-                updateQty = remainLotQty;
-            }
-            // 工单数量扣减已分配到该小批次上的数量
-            remainLotQty = remainLotQty.subtract(updateQty);
-
-            List<WipReqLineEntity> lotGroupLineList = lotGroupLineEntry.getValue();
-            // 因为原子服务update的回写EBS不会被处理, 所以要同时生成新增/删除类型的参数用于回写EBS的行
-            List<WipReqLineEntity> reduceOrIncreaseList = new ArrayList<>();
-
-            // 分配策略: 将分配数量均匀加/减到批次对应的投料行上, 若出现小数, 向上取整
-            BigDecimal allocateQty = updateQty.divide(new BigDecimal(lotGroupLineList.size()), 0, RoundingMode.UP);
-            Iterator<WipReqLineEntity> lotGroupLineIterator = lotGroupLineList.iterator();
-            while (lotGroupLineIterator.hasNext()) {
-                WipReqLineEntity lotGroupLine = lotGroupLineIterator.next();
-                // 计算更新后的需求数量
-                if (!lotGroupLineIterator.hasNext()) {
-                    // 把剩余的数量都分配到最后一个行上
-                    allocateQty = updateQty;
-                }
-                long resultQty = lotGroupLine.getReqQty() + allocateQty.longValue();
-
-                BigDecimal realAllocateQty = allocateQty;
-                if (resultQty < 0) {
-                    // 可能减少到0, 此时实际分配数量 = 需求数量
-                    if (allocateQty.compareTo(BigDecimal.ZERO) >= 0) {
-                        realAllocateQty = new BigDecimal(lotGroupLine.getReqQty());
-                    } else {
-                        realAllocateQty = new BigDecimal(-lotGroupLine.getReqQty());
-                    }
-                    resultQty = 0;
-                }
-                lotGroupLine.setReqQty(resultQty);
-
-                // 单位用量 = 更新后需求数量 / 工单批次数量, 非最后一个, 向接近0的方向取整
-                RoundingMode roundingMode = RoundingMode.UP;
-                if (!lotGroupLineIterator.hasNext()) {
-                    // 最后一行 向远离0的方向取整
-                    roundingMode = RoundingMode.DOWN;
-                }
-                lotGroupLine.setUnitQty(new BigDecimal(resultQty).divide(wipLot.getLotQuantity(), 6, roundingMode).doubleValue());
-
-                // 若行变更类型为空(以防新增类型重复处理), 则再生成一个变更类型=指令的行, 用于回写EBS, 原因是EBS接口表不处理update类型的数据
-                if (StringUtils.isBlank(lotGroupLine.getChangeType())) {
-                    WipReqLineEntity reduceOrIncreaseLine = new WipReqLineEntity();
-                    BeanUtils.copyProperties(lotGroupLine, reduceOrIncreaseLine);
-                    reduceOrIncreaseLine.setReqQty(realAllocateQty.abs().longValue())
-                            .setUnitQty(realAllocateQty.abs().divide(wipLot.getLotQuantity(), 6, roundingMode).doubleValue());
-                    if (InsOperationTypeEnum.REDUCE.getCode().equals(this.getOperationType())) {
-                        reduceOrIncreaseLine.setChangeType(ChangedTypeEnum.REDUCE.getCode());
-                    } else {
-                        reduceOrIncreaseLine.setChangeType(ChangedTypeEnum.INCREASE.getCode());
-                    }
-                    reduceOrIncreaseList.add(reduceOrIncreaseLine);
-                }
-
-                // 小批次数量扣减已分配到位号的数量
-                updateQty = updateQty.subtract(realAllocateQty);
-            }
-            resultList.addAll(lotGroupLineList);
-            resultList.addAll(reduceOrIncreaseList);
-        }
-        for (WipReqLineEntity line : resultList) {
-            if (StringUtils.isBlank(line.getChangeType())) {
-                // 变更类型为"更新"
-                line.setChangeType(ChangedTypeEnum.UPDATE.getCode());
-            }
-        }
-        return resultList;
+        return ReqInsSplitHelper.allocateQty(this, reqLineList, wipLotMap, this.getItemUnitQty());
     }
 
     public void processSuccess() {
