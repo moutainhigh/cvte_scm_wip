@@ -92,6 +92,12 @@
           <if test="factoryId != null and factoryId.length() > 0">
           and x.factory_id = to_number(#{factoryId})
           </if>
+        and exists(
+            /* 投料行已被缓存 */
+            select 1
+            from scm_fdw.xxaps_mo_item xoi
+            where x.header_id = xoi.wip_entity_id
+        )
     </select>
 
     <select id="existLotNumber" resultType="java.lang.Boolean">
