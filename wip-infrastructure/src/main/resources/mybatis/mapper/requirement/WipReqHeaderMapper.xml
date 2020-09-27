@@ -80,7 +80,7 @@
         where (
                x.date_released > now()::timestamp + '-1 hour'
                /* 未发放七天内齐套 */
-           or (x.wip_status_type = '1' and x.mtr_ready_time <![CDATA[ < ]]> current_timestamp + '7 day')
+           or (x.wip_status_type = '1' and date_trunc('day', x.mtr_ready_time) <![CDATA[ <= ]]> date_trunc('day', current_timestamp + '7 day'))
           )
           and x.organization_id in
           <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
