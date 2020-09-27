@@ -22,4 +22,13 @@ public interface WipReqInsHMapper extends CommonMapper<WipReqInsHeaderDO> {
      */
     List<String> selectPreparedById(@Param("idList") List<String> idList);
 
+    /**
+     * 获取需要自动执行的更改单
+     * @since 2020/9/27 9:29 上午
+     * @author xueyuting
+     * @param organizationIds 组织ID, 为空时所有组织
+     * @param factoryIds 工厂ID, 为空时所有工厂
+     */
+    List<String> getAutoConfirm(@Param("organizationIds") List<String> organizationIds, @Param("factoryIds") List<String> factoryIds, @Param("billTypes") List<String> billTypes);
+
 }

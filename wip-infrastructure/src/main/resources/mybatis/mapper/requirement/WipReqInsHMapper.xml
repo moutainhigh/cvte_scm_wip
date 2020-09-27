@@ -1,50 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqInsHMapper">
-    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsHeaderDO">
-            <result column="ins_h_id" property="insHId" />
-            <result column="source_cn_bill_id" property="sourceCnBillId" />
-            <result column="ins_h_status" property="status" />
-            <result column="aim_header_id" property="aimHeaderId" />
-            <result column="aim_req_lot_no" property="aimReqLotNo" />
-            <result column="enable_date" property="enableDate" />
-            <result column="disable_date" property="disableDate" />
-            <result column="rmk01" property="rmk01" />
-            <result column="rmk02" property="rmk02" />
-            <result column="rmk03" property="rmk03" />
-            <result column="rmk04" property="rmk04" />
-            <result column="rmk05" property="rmk05" />
-            <result column="crt_time" property="crtTime" />
-            <result column="crt_user" property="crtUser" />
-            <result column="crt_host" property="crtHost" />
-            <result column="upd_time" property="updTime" />
-            <result column="upd_user" property="updUser" />
-            <result column="upd_host" property="updHost" />
-            <result column="execute_result" property="executeResult" />
-        </resultMap>
+    <resultMap id="BaseResultMap"
+               type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqInsHeaderDO">
+        <result column="ins_h_id" property="insHId"/>
+        <result column="source_cn_bill_id" property="sourceCnBillId"/>
+        <result column="ins_h_status" property="status"/>
+        <result column="aim_header_id" property="aimHeaderId"/>
+        <result column="aim_req_lot_no" property="aimReqLotNo"/>
+        <result column="enable_date" property="enableDate"/>
+        <result column="disable_date" property="disableDate"/>
+        <result column="rmk01" property="rmk01"/>
+        <result column="rmk02" property="rmk02"/>
+        <result column="rmk03" property="rmk03"/>
+        <result column="rmk04" property="rmk04"/>
+        <result column="rmk05" property="rmk05"/>
+        <result column="crt_time" property="crtTime"/>
+        <result column="crt_user" property="crtUser"/>
+        <result column="crt_host" property="crtHost"/>
+        <result column="upd_time" property="updTime"/>
+        <result column="upd_user" property="updUser"/>
+        <result column="upd_host" property="updHost"/>
+        <result column="execute_result" property="executeResult"/>
+    </resultMap>
 
-        <select id="selectPreparedById" resultType="java.lang.String">
-            select cb.source_no
-            from wip_req_ins_h ih
-                     inner join wip_cn_bill cb
-                                on ih.source_cn_bill_id = cb.bill_id
-                     inner join wip_req_ins_d id
-                                on ih.ins_h_id = id.ins_h_id
-            where ih.ins_h_id in
-            <foreach collection="idList" item = "id" open="(" separator="," close=")">
-                #{id}
+    <select id="selectPreparedById" resultType="java.lang.String">
+        select cb.source_no
+        from wip_req_ins_h ih
+        inner join wip_cn_bill cb
+        on ih.source_cn_bill_id = cb.bill_id
+        inner join wip_req_ins_d id
+        on ih.ins_h_id = id.ins_h_id
+        where ih.ins_h_id in
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and exists(
+        select 1
+        from wip_req_lines rl
+        where ih.aim_header_id = rl.header_id
+        and (id.item_id_old is null or id.item_id_old = '' or rl.item_id = id.item_id_old)
+        and (id.mo_lot_no is null or id.mo_lot_no = '' or rl.lot_number = id.mo_lot_no)
+        and (id.pos_no is null or id.pos_no = '' or rl.pos_no = id.pos_no)
+        and (id.wkp_no is null or id.wkp_no = '' or rl.wkp_no = id.wkp_no)
+        and rl.line_status = '30'
+        )
+        group by cb.source_no
+    </select>
+
+    <select id="getAutoConfirm" resultType="java.lang.String">
+        select rih.ins_h_id
+        from wip_req_ins_h rih
+        inner join wip_cn_bill wcb
+            on rih.source_cn_bill_id = wcb.bill_id
+        inner join wip_req_header wrh
+            on rih.aim_header_id = wrh.header_id
+        where rih.status in ('0', '2')
+        <if test="organizationIds != null and organizationIds.size() > 0">
+            and wrh.organization_id in
+            <foreach collection="organizationIds" item="organizationId" open="(" separator="," close=")">
+                #{organizationId}
             </foreach>
-              and exists(
-                          select 1
-                          from wip_req_lines rl
-                          where ih.aim_header_id = rl.header_id
-                            and (id.item_id_old is null or id.item_id_old = '' or rl.item_id = id.item_id_old)
-                            and (id.mo_lot_no is null or id.mo_lot_no = '' or rl.lot_number = id.mo_lot_no)
-                            and (id.pos_no is null or id.pos_no = '' or rl.pos_no = id.pos_no)
-                            and (id.wkp_no is null or id.wkp_no = '' or rl.wkp_no = id.wkp_no)
-                            and rl.line_status = '30'
-                      )
-            group by cb.source_no
-        </select>
+        </if>
+        <if test="factoryIds != null and factoryIds.size() > 0">
+            and wrh.factory_id in
+            <foreach collection="factoryIds" item="factoryId" open="(" separator="," close=")">
+                #{factoryId}
+            </foreach>
+        </if>
+        <if test="billTypes != null and billTypes.size() > 0">
+            and wcb.bill_type in
+            <foreach collection="billTypes" item="billType" open="(" separator="," close=")">
+                #{billType}
+            </foreach>
+        </if>
+          and (wrh.status_type = '1' and date_trunc('day', wrh.mtr_ready_date + '-7 day') <![CDATA[ <= ]]> date_trunc('day', current_timestamp))
+        order by rih.enable_date
+    </select>
 
 </mapper>

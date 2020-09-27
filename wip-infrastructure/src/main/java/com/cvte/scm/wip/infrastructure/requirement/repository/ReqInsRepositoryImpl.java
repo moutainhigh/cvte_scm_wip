@@ -82,4 +82,9 @@ public class ReqInsRepositoryImpl implements ReqInsRepository {
         return insHMapper.selectPreparedById(idList);
     }
 
+    @Override
+    public List<String> getAutoConfirm(List<String> organizationIds, List<String> factoryIds, List<String> billTypes) {
+        return insHMapper.getAutoConfirm(organizationIds, factoryIds, billTypes);
+    }
+
 }
