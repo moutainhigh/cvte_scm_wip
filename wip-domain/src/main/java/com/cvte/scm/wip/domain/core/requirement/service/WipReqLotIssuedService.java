@@ -8,7 +8,6 @@ import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLotProcessVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.LotIssuedLockTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,16 +37,6 @@ public class WipReqLotIssuedService {
 
     public WipReqLotIssuedEntity selectById(String id) {
         return wipReqLotIssuedRepository.selectById(id);
-    }
-
-    public List<WipReqLotIssuedEntity> selectLockedByKey(WipReqLotProcessVO vo) {
-        WipReqLotIssuedEntity queryEntity = new WipReqLotIssuedEntity();
-        queryEntity.setOrganizationId(vo.getOrganizationId())
-                .setItemNo(vo.getItemNo())
-                .setMtrLotNo(vo.getMtrLotNo())
-                .setLockStatus(YoNEnum.Y.getCode())
-                .setStatus(StatusEnum.NORMAL.getCode());
-        return wipReqLotIssuedRepository.selectList(queryEntity);
     }
 
     public void save(WipReqLotIssuedEntity wipReqLotIssued) {
@@ -95,7 +84,7 @@ public class WipReqLotIssuedService {
         }
     }
 
-    public void save(List<WipReqLotIssuedEntity> reqLotIssuedList) {
+    public void saveAll(List<WipReqLotIssuedEntity> reqLotIssuedList) {
         reqLotIssuedList.forEach(WipReqLotIssuedEntity::validate);
 
         Map<String, List<WipReqLotIssuedEntity>> reqLotIssuedMap = reqLotIssuedList.stream().collect(Collectors.groupingBy(WipReqLotIssuedEntity::getItemKey));
@@ -107,6 +96,8 @@ public class WipReqLotIssuedService {
             List<WipReqLotIssuedEntity> updateList = new ArrayList<>();
             List<WipReqLotIssuedEntity> deleteList = new ArrayList<>();
             this.classifyChanged(itemLotIssuedList, dbLotIssuedList, insertList, updateList, deleteList);
+            // 校验物料存在
+            checkReqLineService.checkItemExists(itemKeyEntity.getOrganizationId(), itemKeyEntity.getHeaderId(), itemKeyEntity.getWkpNo(), itemKeyEntity.getItemNo());
             // 校验批次存在
             checkReqLotIssuedService.checkLotValid(insertList);
             List<WipReqLotIssuedEntity> qtyCheckList = new ArrayList<>(insertList);

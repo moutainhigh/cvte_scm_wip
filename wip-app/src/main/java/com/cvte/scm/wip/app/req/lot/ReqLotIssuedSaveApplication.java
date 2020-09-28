@@ -41,7 +41,7 @@ public class ReqLotIssuedSaveApplication {
     @Transactional(transactionManager = "pgTransactionManager")
     public void doAction(List<WipReqLotIssuedEntity> wipReqLotIssuedList) {
         // 新增领料
-        wipReqLotIssuedService.save(wipReqLotIssuedList);
+        wipReqLotIssuedService.saveAll(wipReqLotIssuedList);
     }
 
 }

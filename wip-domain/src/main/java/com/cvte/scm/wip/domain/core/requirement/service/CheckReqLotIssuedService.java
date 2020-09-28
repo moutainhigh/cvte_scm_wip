@@ -101,7 +101,7 @@ public class CheckReqLotIssuedService {
 
     public void checkIssuedQty(List<WipReqLotIssuedEntity> itemLotIssuedList) {
         long reqQty = this.getItemReqQty(itemLotIssuedList.get(0));
-        long totalMtrQty = itemLotIssuedList.stream().mapToLong(WipReqLotIssuedEntity::getIssuedQty).sum();
+        long totalMtrQty = itemLotIssuedList.stream().mapToLong(lot -> Optional.ofNullable(lot.getIssuedQty()).orElse(0L)).sum();
         if (reqQty != totalMtrQty) {
             throw new ParamsIncorrectException(String.format("批次总投料量%d必须等于物料需求数量%d", totalMtrQty, reqQty));
         }

@@ -2,7 +2,7 @@ package com.cvte.scm.wip.controller.requirement.api;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.req.lot.ReqLotProcessApplication;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLotProcessVO;
+import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotProcessEntity;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -34,8 +34,8 @@ public class WipReqLotApiController {
     }
 
     @PostMapping("/lock")
-    public RestResponse changeLockStatus(@RequestBody List<WipReqLotProcessVO> reqLotIssuedDTOList) {
-        reqLotProcessApplication.doAction(reqLotIssuedDTOList);
+    public RestResponse changeLockStatus(@RequestBody List<WipReqLotProcessEntity> wipReqLotProcessList) {
+        reqLotProcessApplication.doAction(wipReqLotProcessList);
         return new RestResponse();
     }
 

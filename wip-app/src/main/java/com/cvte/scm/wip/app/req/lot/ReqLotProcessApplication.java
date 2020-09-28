@@ -1,9 +1,7 @@
 package com.cvte.scm.wip.app.req.lot;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotProcessEntity;
-import com.cvte.scm.wip.domain.core.requirement.factory.WipReqLotPrecessEntityFactor;
-import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotProcessDomainService;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLotProcessVO;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotProcessService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,23 +18,14 @@ import java.util.List;
 @Transactional(transactionManager = "pgTransactionManager")
 public class ReqLotProcessApplication {
 
-    private WipReqLotPrecessEntityFactor wipReqLotPrecessEntityFactor;
-    private WipReqLotProcessDomainService processDomainService;
+    private WipReqLotProcessService wipReqLotProcessService;
 
-    public ReqLotProcessApplication(WipReqLotPrecessEntityFactor wipReqLotPrecessEntityFactor, WipReqLotProcessDomainService processDomainService) {
-        this.wipReqLotPrecessEntityFactor = wipReqLotPrecessEntityFactor;
-        this.processDomainService = processDomainService;
+    public ReqLotProcessApplication(WipReqLotProcessService wipReqLotProcessService) {
+        this.wipReqLotProcessService = wipReqLotProcessService;
     }
 
-    public String doAction(List<WipReqLotProcessVO> voList) {
-        for (WipReqLotProcessVO vo : voList) {
-            vo.validate();
-            WipReqLotProcessEntity lotProcessEntity = wipReqLotPrecessEntityFactor.perfect(vo);
-            lotProcessEntity.create(vo);
-
-            processDomainService.process(lotProcessEntity);
-        }
-
+    public String doAction(List<WipReqLotProcessEntity> wipReqLotProcessList) {
+        wipReqLotProcessService.createAndProcess(wipReqLotProcessList);
         return "";
     }
 
