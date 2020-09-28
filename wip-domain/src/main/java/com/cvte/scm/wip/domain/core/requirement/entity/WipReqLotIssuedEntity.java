@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -10,6 +11,10 @@ import org.hibernate.validator.constraints.NotBlank;
 import javax.validation.constraints.Min;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author yt
@@ -75,5 +80,13 @@ public class WipReqLotIssuedEntity extends BaseModel {
 
     @ApiModelProperty(value = "锁定类型")
     private String lockType;
+
+    public String getItemKey() {
+        return BatchProcessUtils.getKey(this.organizationId, this.headerId, this.itemNo, this.wkpNo);
+    }
+
+    public static Map<String, WipReqLotIssuedEntity> toLotMap(List<WipReqLotIssuedEntity> reqLotIssuedList) {
+        return reqLotIssuedList.stream().collect(Collectors.toMap(WipReqLotIssuedEntity::getMtrLotNo, Function.identity()));
+    }
 
 }

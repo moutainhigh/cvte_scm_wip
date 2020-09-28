@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -34,6 +36,12 @@ public class ReqLotIssuedSaveApplication {
         // 回写EBS
         lotIssuedWriteBackService.writeBack(LotIssuedOpTypeEnum.ADD, wipReqLotIssued);
         log.info("新增领料批次成功,id = {}", wipReqLotIssued.getId());
+    }
+
+    @Transactional(transactionManager = "pgTransactionManager")
+    public void doAction(List<WipReqLotIssuedEntity> wipReqLotIssuedList) {
+        // 新增领料
+        wipReqLotIssuedService.save(wipReqLotIssuedList);
     }
 
 }

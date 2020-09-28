@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
   * 
@@ -39,6 +40,12 @@ public class WipReqLotIssuedController {
     @PostMapping("/save")
     public RestResponse save(@Valid @RequestBody WipReqLotIssuedEntity wipReqLotIssued) {
         reqLotIssuedSaveApplication.doAction(wipReqLotIssued);
+        return new RestResponse();
+    }
+
+    @PostMapping("/save_all")
+    public RestResponse saveAll(@RequestBody List<WipReqLotIssuedEntity> itemLotIssuedList) {
+        reqLotIssuedSaveApplication.doAction(itemLotIssuedList);
         return new RestResponse();
     }
 
