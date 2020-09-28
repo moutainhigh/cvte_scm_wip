@@ -72,6 +72,15 @@ public class WipMtrRtcHeaderBuildVO implements VO {
             // 设置工厂ID
             this.setFactoryId(headerEntity.getFactoryId());
         }
+        if (StringUtils.isBlank(this.deptNo)) {
+            // 设置部门ID
+            String departmentId = headerEntity.getDepartmentId();
+            if (StringUtils.isBlank(departmentId)) {
+                this.setDeptNo("1");
+            } else {
+                this.setDeptNo(departmentId.split(",")[0]);
+            }
+        }
         BigDecimal reqBillQty = BigDecimal.valueOf(headerEntity.getBillQty());
         BigDecimal reqCompleteQty = Optional.ofNullable(headerEntity.getCompleteQty()).orElse(BigDecimal.ZERO);
         this.setOriginQty(reqBillQty);

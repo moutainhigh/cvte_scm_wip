@@ -103,7 +103,7 @@ public class WipMtrRtcHeaderService {
         if (CollectionUtils.isEmpty(rtcHeaderEntity.getLineList().stream().map(WipMtrRtcLineEntity::getLineStatus).filter(WipMtrRtcLineStatusEnum.getUnPostStatus()::contains).collect(Collectors.toSet()))) {
             // 有效行为空
             String errMsg;
-            WipMtrRtcHeaderTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(reqHeaderEntity.getBillType(), WipMtrRtcHeaderTypeEnum.class);
+            WipMtrRtcHeaderTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(rtcHeaderEntity.getBillType(), WipMtrRtcHeaderTypeEnum.class);
             if (StringUtils.isNotBlank(rtcHeaderEntity.getWkpNo())) {
                 errMsg = "所选工序物料已%s完成";
             } else {
