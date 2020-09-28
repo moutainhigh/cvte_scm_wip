@@ -153,5 +153,17 @@ public class WipMtrRtcHDO extends BaseModel {
     @Column(name = "upd_time")
     @ApiModelProperty(value = "${field.comment}")
     private Date updTime;
+    /**
+     * 审核人
+     */
+    @Column(name = "reviewer")
+    @ApiModelProperty(value = "审核人")
+    private String reviewer;
+    /**
+     * 审核时间
+     */
+    @Column(name = "review_time")
+    @ApiModelProperty(value = "审核时间")
+    private Date reviewTime;
 
 }

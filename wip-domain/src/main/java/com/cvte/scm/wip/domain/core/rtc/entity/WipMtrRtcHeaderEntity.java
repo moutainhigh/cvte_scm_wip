@@ -100,6 +100,10 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
 
     private Date updTime;
 
+    private String reviewer;
+
+    private Date reviewTime;
+
     private List<WipMtrRtcLineEntity> lineList;
 
     public WipMtrRtcHeaderEntity getById(String headerId) {
@@ -174,7 +178,9 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         } else {
             throw new ParamsIncorrectException("非法的审核指令");
         }
-        this.setBillStatus(approvedBillStatus);
+        this.setBillStatus(approvedBillStatus)
+                .setReviewer(EntityUtils.getWipUserId())
+                .setReviewTime(new Date());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
     }
