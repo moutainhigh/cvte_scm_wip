@@ -3,7 +3,6 @@ package com.cvte.scm.wip.app.req.lot;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.LotIssuedWriteBackService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
-import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.LotIssuedOpTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,10 +49,8 @@ public class ReqLotIssuedDeleteApplication {
 
                 // 作废领料
                 wipReqLotIssuedService.invalid(id);
-                // 生成日志
-                WipReqLotIssuedEntity invalidedEntity = wipReqLotIssuedService.selectById(id);
-                wipReqLotIssuedService.generateIssuedLog(invalidedEntity, invalidedEntity, ChangedTypeEnum.ISSUED_INVALID.getCode());
                 // 回写EBS
+                WipReqLotIssuedEntity invalidedEntity = wipReqLotIssuedService.selectById(id);
                 lotIssuedWriteBackService.writeBack(LotIssuedOpTypeEnum.REMOVE, invalidedEntity);
                 log.info("失效领料批次成功,idList = {}", id);
 

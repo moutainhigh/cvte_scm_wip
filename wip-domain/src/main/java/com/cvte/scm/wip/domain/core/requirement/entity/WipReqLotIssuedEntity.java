@@ -1,24 +1,26 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
-
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.Min;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
  * @author yt
  * @since 2020-01-17
  */
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
-public class WipReqLotIssuedEntity {
+public class WipReqLotIssuedEntity extends BaseModel {
 
     private String id;
-
 
     @ApiModelProperty(value = "投料单头ID")
     @NotBlank(message = "投料单头不可为空")
@@ -67,6 +69,9 @@ public class WipReqLotIssuedEntity {
 
     @ApiModelProperty(value = "锁定状态")
     private String lockStatus;
+
+    @ApiModelProperty(value = "未发料数量")
+    private BigDecimal unissuedQty;
 
     @ApiModelProperty(value = "锁定类型")
     private String lockType;
