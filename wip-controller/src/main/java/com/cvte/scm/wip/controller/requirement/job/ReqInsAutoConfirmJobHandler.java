@@ -52,8 +52,6 @@ public class ReqInsAutoConfirmJobHandler extends IJobHandler {
             billTypeList = Arrays.asList(billTypes.split(","));
         }
         List<String> insHeaderIdList = reqInsRepository.getAutoConfirm(organizationIdList, factoryIdList, billTypeList);
-        insHeaderIdList.add("01b4bc15c5ec48deaa3b3c086dee6505");
-        insHeaderIdList.add("5d29966c57314582a5ad2dffa3b3f355");
 
         String msg;
         if (ListUtil.empty(insHeaderIdList)) {
