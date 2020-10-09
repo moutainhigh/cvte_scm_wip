@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.app.rtc.status;
 
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
+import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcWriteBackService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(transactionManager = "pgTransactionManager")
 public class WipMtrRtcHeaderCloseApplication {
 
+    private WipMtrRtcWriteBackService wipMtrRtcWriteBackService;
+
+    public WipMtrRtcHeaderCloseApplication(WipMtrRtcWriteBackService wipMtrRtcWriteBackService) {
+        this.wipMtrRtcWriteBackService = wipMtrRtcWriteBackService;
+    }
+
     public void doAction(String headerId) {
-        WipMtrRtcHeaderEntity rtcHeaderEntity = WipMtrRtcHeaderEntity.get().getById(headerId);
-        rtcHeaderEntity.close();
+        WipMtrRtcHeaderEntity rtcHeader = WipMtrRtcHeaderEntity.get().getById(headerId);
+        rtcHeader.close();
+        wipMtrRtcWriteBackService.close(rtcHeader);
     }
 
 }

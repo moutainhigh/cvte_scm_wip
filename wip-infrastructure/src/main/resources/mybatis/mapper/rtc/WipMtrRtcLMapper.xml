@@ -29,6 +29,7 @@
         <result column="crt_time" property="crtTime"/>
         <result column="upd_user" property="updUser"/>
         <result column="upd_time" property="updTime"/>
+        <result column="source_line_id" property="sourceLineId"/>
     </resultMap>
 
     <select id="batchSumMoUnPostQty" parameterType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO"

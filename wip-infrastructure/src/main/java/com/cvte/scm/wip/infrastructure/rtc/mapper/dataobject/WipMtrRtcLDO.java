@@ -183,5 +183,11 @@ public class WipMtrRtcLDO extends BaseModel {
     @Column(name = "upd_time")
     @ApiModelProperty(value = "${field.comment}")
     private Date updTime;
+    /**
+     * 来源行ID
+     */
+    @Column(name = "source_line_id")
+    @ApiModelProperty(value = "来源行ID")
+    private String sourceLineId;
 
 }

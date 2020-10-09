@@ -25,14 +25,16 @@ public class WipMtrRtcController {
     private WipMtrRtcHeaderCloseApplication wipMtrRtcHeaderCloseApplication;
     private WipMtrRtcHeaderCancelApplication wipMtrRtcHeaderCancelApplication;
     private WipMtrRtcHeaderSaveApplication wipMtrRtcHeaderSaveApplication;
+    private WipMtrRtcPostApplication wipMtrRtcPostApplication;
 
-    public WipMtrRtcController(WipMtrRtcRefreshApplication wipMtrRtcRefreshApplication, WipMtrRtcHeaderSubmitApplication wipMtrRtcHeaderSubmitApplication, WipMtrRtcHeaderReviewApplication wipMtrRtcHeaderReviewApplication, WipMtrRtcHeaderCloseApplication wipMtrRtcHeaderCloseApplication, WipMtrRtcHeaderCancelApplication wipMtrRtcHeaderCancelApplication, WipMtrRtcHeaderSaveApplication wipMtrRtcHeaderSaveApplication) {
+    public WipMtrRtcController(WipMtrRtcRefreshApplication wipMtrRtcRefreshApplication, WipMtrRtcHeaderSubmitApplication wipMtrRtcHeaderSubmitApplication, WipMtrRtcHeaderReviewApplication wipMtrRtcHeaderReviewApplication, WipMtrRtcHeaderCloseApplication wipMtrRtcHeaderCloseApplication, WipMtrRtcHeaderCancelApplication wipMtrRtcHeaderCancelApplication, WipMtrRtcHeaderSaveApplication wipMtrRtcHeaderSaveApplication, WipMtrRtcPostApplication wipMtrRtcPostApplication) {
         this.wipMtrRtcRefreshApplication = wipMtrRtcRefreshApplication;
         this.wipMtrRtcHeaderSubmitApplication = wipMtrRtcHeaderSubmitApplication;
         this.wipMtrRtcHeaderReviewApplication = wipMtrRtcHeaderReviewApplication;
         this.wipMtrRtcHeaderCloseApplication = wipMtrRtcHeaderCloseApplication;
         this.wipMtrRtcHeaderCancelApplication = wipMtrRtcHeaderCancelApplication;
         this.wipMtrRtcHeaderSaveApplication = wipMtrRtcHeaderSaveApplication;
+        this.wipMtrRtcPostApplication = wipMtrRtcPostApplication;
     }
 
     @PostMapping("/refresh")
@@ -67,6 +69,12 @@ public class WipMtrRtcController {
     @PostMapping("/cancel/{headerId}")
     public RestResponse cancel(@PathVariable("headerId") String headerId) {
         wipMtrRtcHeaderCancelApplication.doAction(headerId);
+        return new RestResponse();
+    }
+
+    @PostMapping("/post/{headerId}")
+    public RestResponse post(@PathVariable("headerId") String headerId) {
+        wipMtrRtcPostApplication.doAction(headerId);
         return new RestResponse();
     }
 

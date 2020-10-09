@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.sys.org.mapper.SysOrganizationMapper">
+
+    <select id="getOrgCodeById" resultType="java.lang.String">
+        select so.remark
+        from scm.sys_org so
+                 inner join scm.sys_org_ext soe
+                            on so.id = soe.id
+                 inner join scm.sys_org_relation sor
+                            on so.id = sor.org_id
+        where sor.dimension_id = 'a95a94fcece04485ac26259ffb218b28'
+          and so.org_type = 'business'
+          and soe.ebs_code = #{organizationId}
+    </select>
+
+    <select id="getFactoryCodeById" resultType="java.lang.String">
+        select so.abbr_name
+        from scm.sys_org so
+                 inner join scm.sys_org_ext soe
+                            on so.id = soe.id
+                 inner join scm.sys_org_relation sor
+                            on so.id = sor.org_id
+        where sor.dimension_id = '425e33ab9f394230b131ad29bfa90986'
+          and so.org_type = 'business'
+          and soe.ebs_code = #{factoryId}
+    </select>
+
+</mapper>

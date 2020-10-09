@@ -14,6 +14,7 @@ import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcAssignRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.Data;
@@ -105,6 +106,8 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private Date updTime;
 
+    private String sourceLineId;
+
     private List<WipMtrRtcAssignEntity> assignList;
 
     public List<WipMtrRtcAssignEntity> getAssignList() {
@@ -155,10 +158,7 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         Iterator<WipMtrRtcLineEntity> iterator = cancelLineList.iterator();
         while (iterator.hasNext()) {
             WipMtrRtcLineEntity rtcLine = iterator.next();
-            if (POSTED.getCode().equals(rtcLine.getLineStatus())) {
-                throw new ParamsIncorrectException("已过账的单据无法取消");
-            }
-            if (CLOSED.getCode().equals(rtcLine.getLineStatus())) {
+            if (getInvalidStatus().contains(rtcLine.getLineStatus())) {
                 iterator.remove();
                 continue;
             }
@@ -182,6 +182,14 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
                 rtcLineEntity.setAssignList(lineAssignList);
             }
         }
+    }
+
+    public void batchPost(List<WipMtrRtcLineEntity> rtcLineList) {
+        for (WipMtrRtcLineEntity rtcLine : rtcLineList) {
+            rtcLine.setLineStatus(POSTED.getCode());
+            EntityUtils.writeStdUpdInfoToEntity(rtcLine, EntityUtils.getWipUserId());
+        }
+        wipMtrRtcLineRepository.updateList(rtcLineList);
     }
 
     BigDecimal calculateQty(WipMtrRtcHeaderBuildVO rtcHeaderBuildVO, WipReqItemVO reqItemVO) {

@@ -81,8 +81,21 @@ public class WipReqLotIssuedEntity extends BaseModel {
     @ApiModelProperty(value = "锁定类型")
     private String lockType;
 
+    @ApiModelProperty(value = "过账数量")
+    private BigDecimal postQty;
+
     public String getItemKey() {
         return BatchProcessUtils.getKey(this.organizationId, this.headerId, this.itemNo, this.wkpNo);
+    }
+
+    public static WipReqLotIssuedEntity buildForPost(String organizationId, String headerId, String itemNo, String wkpNo, BigDecimal postQty) {
+        WipReqLotIssuedEntity lotIssued = new WipReqLotIssuedEntity();
+        lotIssued.setOrganizationId(organizationId)
+                .setHeaderId(headerId)
+                .setItemNo(itemNo)
+                .setWkpNo(wkpNo)
+                .setPostQty(postQty);
+        return lotIssued;
     }
 
     public static Map<String, WipReqLotIssuedEntity> toLotMap(List<WipReqLotIssuedEntity> reqLotIssuedList) {

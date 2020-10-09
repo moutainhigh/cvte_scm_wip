@@ -4,6 +4,7 @@ import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.app.rtc.status.WipMtrRtcLineCancelApplication;
 import com.cvte.scm.wip.app.rtc.save.WipMtrRtcLineUpdateApplication;
+import com.cvte.scm.wip.app.rtc.status.WipMtrRtcPostApplication;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +29,12 @@ public class WipMtrRtcLineController {
 
     private WipMtrRtcLineUpdateApplication wipMtrRtcLineUpdateApplication;
     private WipMtrRtcLineCancelApplication wipMtrRtcLineCancelApplication;
+    private WipMtrRtcPostApplication wipMtrRtcPostApplication;
 
-    public WipMtrRtcLineController(WipMtrRtcLineUpdateApplication wipMtrRtcLineUpdateApplication, WipMtrRtcLineCancelApplication wipMtrRtcLineCancelApplication) {
+    public WipMtrRtcLineController(WipMtrRtcLineUpdateApplication wipMtrRtcLineUpdateApplication, WipMtrRtcLineCancelApplication wipMtrRtcLineCancelApplication, WipMtrRtcPostApplication wipMtrRtcPostApplication) {
         this.wipMtrRtcLineUpdateApplication = wipMtrRtcLineUpdateApplication;
         this.wipMtrRtcLineCancelApplication = wipMtrRtcLineCancelApplication;
+        this.wipMtrRtcPostApplication = wipMtrRtcPostApplication;
     }
 
     @PostMapping("/batch_update")
@@ -49,6 +52,12 @@ public class WipMtrRtcLineController {
     @PostMapping("/batch_cancel")
     public RestResponse batchCancel(@RequestBody String[] lineIds) {
         wipMtrRtcLineCancelApplication.doAction(lineIds);
+        return new RestResponse();
+    }
+
+    @PostMapping("/post")
+    public RestResponse batchPost(@RequestBody String[] lineIds) {
+        wipMtrRtcPostApplication.doAction(lineIds);
         return new RestResponse();
     }
 

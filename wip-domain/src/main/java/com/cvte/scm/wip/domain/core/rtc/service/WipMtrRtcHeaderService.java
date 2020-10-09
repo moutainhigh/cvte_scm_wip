@@ -3,12 +3,14 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
-import com.cvte.scm.wip.common.enums.Codeable;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
+import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
@@ -39,11 +42,13 @@ public class WipMtrRtcHeaderService {
     private CheckMtrRtcHeaderService checkMtrRtcHeaderService;
     private WipReqHeaderRepository wipReqHeaderRepository;
     private WipReqItemService wipReqItemService;
+    private WipReqLotIssuedService wipReqLotIssuedService;
 
-    public WipMtrRtcHeaderService(CheckMtrRtcHeaderService checkMtrRtcHeaderService, WipReqHeaderRepository wipReqHeaderRepository, WipReqItemService wipReqItemService) {
+    public WipMtrRtcHeaderService(CheckMtrRtcHeaderService checkMtrRtcHeaderService, WipReqHeaderRepository wipReqHeaderRepository, WipReqItemService wipReqItemService, WipReqLotIssuedService wipReqLotIssuedService) {
         this.checkMtrRtcHeaderService = checkMtrRtcHeaderService;
         this.wipReqHeaderRepository = wipReqHeaderRepository;
         this.wipReqItemService = wipReqItemService;
+        this.wipReqLotIssuedService = wipReqLotIssuedService;
     }
 
     /**
@@ -118,6 +123,18 @@ public class WipMtrRtcHeaderService {
         return rtcHeaderEntity.getHeaderId();
     }
 
+    public void post(WipMtrRtcHeaderEntity rtcHeader) {
+        // 更新行状态
+        WipMtrRtcLineEntity.get().batchPost(rtcHeader.getLineList());
+        // 更新头状态
+        rtcHeader.post();
+        // 更新批次领料数量
+        List<WipReqLotIssuedEntity> lotIssuedList = generateIssuedLot(rtcHeader);
+        if (ListUtil.notEmpty(lotIssuedList)) {
+            wipReqLotIssuedService.issue(lotIssuedList);
+        }
+    }
+
     /**
      * 判断是否需要重新生成领退料行
      * @since 2020/9/9 10:01 上午
@@ -128,6 +145,22 @@ public class WipMtrRtcHeaderService {
         // 工单或工序变更时需要重新生成
         return valueChanged.test(headerBuildVO.getMoId(), headerEntity.getMoId())
                 || valueChanged.test(headerBuildVO.getWkpNo(), headerEntity.getWkpNo());
+    }
+
+    private List<WipReqLotIssuedEntity> generateIssuedLot(WipMtrRtcHeaderEntity rtcHeader) {
+        List<WipReqLotIssuedEntity> lotIssuedList = new ArrayList<>();
+        for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
+            if (ListUtil.notEmpty(rtcLine.getAssignList())) {
+                for (WipMtrRtcAssignEntity rtcAssign : rtcLine.getAssignList()) {
+                    WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getIssuedQty());
+                    lotIssuedList.add(lotIssued);
+                }
+            } else if (StringUtils.isNotBlank(rtcLine.getMoLotNo())) {
+                WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getIssuedQty());
+                lotIssuedList.add(lotIssued);
+            }
+        }
+        return lotIssuedList;
     }
 
 }

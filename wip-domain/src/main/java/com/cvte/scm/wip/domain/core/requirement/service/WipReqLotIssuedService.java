@@ -12,6 +12,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.LotIssuedLockT
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -124,6 +125,33 @@ public class WipReqLotIssuedService {
         }
     }
 
+    public void issue(List<WipReqLotIssuedEntity> reqLotIssuedList) {
+        List<WipReqLotIssuedEntity> updateList = new ArrayList<>();
+
+        Map<String, List<WipReqLotIssuedEntity>> reqLotIssuedMap = reqLotIssuedList.stream().collect(Collectors.groupingBy(WipReqLotIssuedEntity::getItemKey));
+        for (Map.Entry<String, List<WipReqLotIssuedEntity>> reqLotIssuedEntry : reqLotIssuedMap.entrySet()) {
+            List<WipReqLotIssuedEntity> itemLotIssuedList = reqLotIssuedEntry.getValue();
+            WipReqLotIssuedEntity itemKeyEntity = itemLotIssuedList.get(0);
+            List<WipReqLotIssuedEntity> dbLotIssuedList = getByItemKey(itemKeyEntity.getOrganizationId(), itemKeyEntity.getHeaderId(), itemKeyEntity.getItemNo(), itemKeyEntity.getWkpNo());
+            Map<String, WipReqLotIssuedEntity> dbLotIssuedMap = WipReqLotIssuedEntity.toLotMap(dbLotIssuedList);
+
+            for (WipReqLotIssuedEntity itemLotIssued : itemLotIssuedList) {
+                WipReqLotIssuedEntity dbLotIssued = dbLotIssuedMap.get(itemLotIssued.getMtrLotNo());
+                if (Objects.isNull(dbLotIssued)) {
+                    throw new ParamsIncorrectException("投料批次%s不存在", itemLotIssued.getMtrLotNo());
+                }
+                // 更新未领料数量
+                dbLotIssued.setUnissuedQty(this.calculateUnissuedQty(itemLotIssued, dbLotIssued));
+                updateList.add(dbLotIssued);
+            }
+        }
+
+        for (WipReqLotIssuedEntity updateEntity : updateList) {
+            EntityUtils.writeStdUpdInfoToEntity(updateEntity, EntityUtils.getWipUserId());
+        }
+        wipReqLotIssuedRepository.updateList(updateList);
+    }
+
     private List<WipReqLotIssuedEntity> getByItemKey(String organizationId, String headerId, String itemNo, String wkpNo) {
         WipReqLotIssuedEntity queryEntity = new WipReqLotIssuedEntity().setOrganizationId(organizationId).setHeaderId(headerId).setItemNo(itemNo).setWkpNo(wkpNo);
         return wipReqLotIssuedRepository.selectList(queryEntity);
@@ -150,6 +178,14 @@ public class WipReqLotIssuedService {
                 updateList.add(dbLotIssued);
             }
         }
+    }
+
+    private BigDecimal calculateUnissuedQty(WipReqLotIssuedEntity itemLotIssued, WipReqLotIssuedEntity dbLotIssued) {
+        if (Objects.isNull(itemLotIssued.getPostQty())) {
+            throw new ParamsIncorrectException("过账数量不可为空");
+        }
+        BigDecimal unIssuedQty = Optional.ofNullable(dbLotIssued.getUnissuedQty()).orElse(new BigDecimal(dbLotIssued.getIssuedQty()));
+        return unIssuedQty.subtract(itemLotIssued.getPostQty());
     }
 
 }

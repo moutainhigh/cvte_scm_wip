@@ -4,6 +4,10 @@ import com.cvte.scm.wip.common.enums.Codeable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
   * 
   * @author  : xueyuting
@@ -24,4 +28,21 @@ public enum WipMtrRtcHeaderStatusEnum implements Codeable {
     CANCELED("60", "取消"),
     ;
     private String code, desc;
+
+    private static final Collection<WipMtrRtcHeaderStatusEnum> cancelableStatus;
+
+    static {
+        Set<WipMtrRtcHeaderStatusEnum> cancelableStatusSet = new HashSet<>();
+        cancelableStatusSet.add(DRAFT);
+        cancelableStatusSet.add(REVIEW);
+        cancelableStatusSet.add(EFFECTIVE);
+        cancelableStatusSet.add(WITHDRAW);
+        cancelableStatus = cancelableStatusSet;
+    }
+
+    // 获取未过账状态集合
+    public static Collection<WipMtrRtcHeaderStatusEnum> getCancelableStatus() {
+        return cancelableStatus;
+    }
+
 }

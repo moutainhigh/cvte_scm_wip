@@ -5,6 +5,7 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
+import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
@@ -13,6 +14,7 @@ import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -171,6 +173,19 @@ public class CheckMtrRtcLineService {
         }
         if (errMsgBuilder.length() > 0) {
             throw new ParamsIncorrectException(errMsgBuilder.toString());
+        }
+    }
+
+    public void checkLineCanPost(String[] lineIds) {
+        List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByLineIds(lineIds);
+        List<WipMtrRtcLineEntity> alreadyPostLineList = rtcLineList.stream().filter(line -> !WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        if (ListUtil.notEmpty(alreadyPostLineList)) {
+            StringBuilder errMsg = new StringBuilder();
+            for (WipMtrRtcLineEntity alreadyPostLine : alreadyPostLineList) {
+                WipMtrRtcLineStatusEnum rtcLineStatusEnum = CodeableEnumUtils.getCodeableEnumByCode(alreadyPostLine.getLineStatus(), WipMtrRtcLineStatusEnum.class);
+                errMsg.append("物料").append(alreadyPostLine.getItemNo()).append("的状态为").append(rtcLineStatusEnum.getDesc()).append(",无法提交过账;");
+            }
+            throw new ParamsIncorrectException(errMsg.toString());
         }
     }
 

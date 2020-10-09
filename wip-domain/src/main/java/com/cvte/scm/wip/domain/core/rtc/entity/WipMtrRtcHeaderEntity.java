@@ -14,6 +14,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcHeaderRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -185,24 +186,45 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
     }
 
-    public void close() {
+    public boolean close() {
+        this.checkClosable();
         this.setBillStatus(CLOSED.getCode());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
         List<WipMtrRtcLineEntity> unCompleteRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        // 关闭未过账的行
         WipMtrRtcLineEntity.get().batchClose(unCompleteRtcLineList);
+        // 关闭单据
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
+
+        // 是否已有过账的行
+        List<WipMtrRtcLineEntity> postLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.POSTED.getCode().equals(line.getLineStatus())).collect(Collectors.toList());
+        return ListUtil.notEmpty(postLineList);
     }
 
     public void cancel() {
-        List<WipMtrRtcLineEntity> postedRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.POSTED.getCode().equals(line.getLineStatus())).collect(Collectors.toList());
-        if (POSTING.getCode().equals(this.billStatus) || ListUtil.notEmpty(postedRtcLineList) || COMPLETED.getCode().equals(this.billStatus)) {
-            throw new ParamsIncorrectException("已过账的单据无法取消");
-        }
+        this.checkCancelable();
         this.setBillStatus(CANCELED.getCode());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
         List<WipMtrRtcLineEntity> unPostRtcLineList = getLineList().stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
         WipMtrRtcLineEntity.get().batchCancel(unPostRtcLineList);
         wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
+    public void post() {
+        List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByHeaderId(this.headerId);;
+        List<WipMtrRtcLineEntity> unPostLineList = rtcLineList.stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        if (ListUtil.empty(unPostLineList)) {
+            // 所有行均过账, 更新状态为已完成
+            this.setBillStatus(COMPLETED.getCode());
+            wipMtrRtcHeaderRepository.updateSelectiveById(this);
+        } else {
+            // 还有未过账的行, 更新状态为部分过账; 若已是部分过账, 无需更新
+            if (!POSTING.getCode().equals(this.getBillStatus())) {
+                this.setBillStatus(POSTING.getCode());
+                wipMtrRtcHeaderRepository.updateSelectiveById(this);
+            }
+        }
     }
 
     /**
@@ -277,6 +299,18 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
             EntityUtils.writeStdUpdInfoToEntity(rtcLineEntity, EntityUtils.getWipUserId());
         }
         wipMtrRtcLineRepository.updateList(lineEntityList);
+    }
+
+    public void checkCancelable() {
+        if (!WipMtrRtcHeaderStatusEnum.getCancelableStatus().stream().map(WipMtrRtcHeaderStatusEnum::getCode).collect(Collectors.toSet()).contains(this.getBillStatus())) {
+            throw new ParamsIncorrectException(String.format("仅%s状态的单据可取消", String.join("/", WipMtrRtcHeaderStatusEnum.getCancelableStatus().stream().map(WipMtrRtcHeaderStatusEnum::getDesc).collect(Collectors.toSet()))));
+        }
+    }
+
+    public void checkClosable() {
+        if (!WipMtrRtcHeaderStatusEnum.POSTING.getCode().equals(this.getBillStatus())) {
+            throw new ParamsIncorrectException("仅部分过账的单据可以关闭");
+        }
     }
 
     private void wiredAfterSelect(WipMtrRtcHeaderEntity selectEntity) {
