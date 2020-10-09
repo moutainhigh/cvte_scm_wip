@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.app.rtc.status;
 
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcWriteBackService;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,9 @@ public class WipMtrRtcHeaderCancelApplication {
     public void doAction(String headerId) {
         WipMtrRtcHeaderEntity rtcHeader = WipMtrRtcHeaderEntity.get().getById(headerId);
         rtcHeader.cancel();
-        wipMtrRtcWriteBackService.cancel(rtcHeader);
+        if (StringUtils.isNotBlank(rtcHeader.getSourceBillNo())) {
+            wipMtrRtcWriteBackService.cancel(rtcHeader);
+        }
     }
 
 }
