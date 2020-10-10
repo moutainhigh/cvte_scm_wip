@@ -83,7 +83,13 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                 .setOrganizationId(rtcHeader.getOrganizationId())
                 .setTransactionNumber(transactionNumber)
                 .setUserName(rtcHeader.getUpdUser());
-        action(actionDTO, iacToken);
+        try {
+            action(actionDTO, iacToken);
+        } catch (Exception e) {
+            actionDTO.setAction("CANCEL");
+            action(actionDTO, iacToken);
+            throw e;
+        }
 
         return "同步成功";
     }
