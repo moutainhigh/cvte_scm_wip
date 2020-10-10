@@ -166,7 +166,14 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
 
     private void checkSuccess(CommonResponse<Map<String, Object>> commonResponse) {
         if (!"0".equals(commonResponse.getStatus()) || !"S".equals(commonResponse.getData().get("rtStatus"))) {
-            throw new EbsInvokeException(commonResponse.getMessage() + "_" + commonResponse.getData().get("rtMessage"));
+            String msg;
+            String rtMessage = (String)commonResponse.getData().get("rtMessage");
+            if (!"success".equals(commonResponse.getMessage())) {
+                msg = commonResponse.getMessage() + "_" + rtMessage;
+            } else {
+                msg = rtMessage;
+            }
+            throw new EbsInvokeException(msg);
         }
     }
 
