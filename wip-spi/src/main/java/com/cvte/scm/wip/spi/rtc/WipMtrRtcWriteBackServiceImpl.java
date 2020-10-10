@@ -220,6 +220,9 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
     }
 
     private String getLocator(String invpNo, String factoryId) {
+        if (StringUtils.isBlank(invpNo)) {
+            return null;
+        }
         String factoryCode = factoryIdCodeMap.get(factoryId);
         if (StringUtils.isBlank(factoryCode)) {
             factoryCode = sysOrganizationMapper.getFactoryCodeById(factoryId);
