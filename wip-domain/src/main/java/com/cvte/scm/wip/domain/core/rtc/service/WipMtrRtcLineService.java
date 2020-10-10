@@ -101,7 +101,9 @@ public class WipMtrRtcLineService {
             }
             return invQtyCheckVOS;
         }
-        WipMtrRtcHeaderEntity.get().setLineList(rtcLineEntityList).saveLines(false);
+        for (WipMtrRtcLineEntity updateLine : rtcLineEntityList) {
+            wipMtrRtcLineRepository.updateSelectiveById(updateLine);
+        }
         return Collections.emptyList();
     }
 

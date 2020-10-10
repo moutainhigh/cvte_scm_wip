@@ -1,9 +1,7 @@
 package com.cvte.scm.wip.infrastructure.base;
 
-import org.apache.ibatis.type.TypeException;
-import org.apache.ibatis.type.TypeReference;
+import com.cvte.scm.wip.common.utils.ClassUtils;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
@@ -17,28 +15,8 @@ public class RepositoryTypeReference<T, E> {
     private final Type domainEntityRawType;
 
     protected RepositoryTypeReference() {
-        dataObjectRawType = getSuperclassTypeParameter(getClass(), 1);
-        domainEntityRawType = getSuperclassTypeParameter(getClass(), 2);
-    }
-
-    Type getSuperclassTypeParameter(Class<?> clazz, int index) {
-        Type genericSuperclass = clazz.getGenericSuperclass();
-        if (genericSuperclass instanceof Class) {
-            // try to climb up the hierarchy until meet something useful
-            if (TypeReference.class != genericSuperclass) {
-                return getSuperclassTypeParameter(clazz.getSuperclass(), index);
-            }
-
-            throw new TypeException("'" + getClass() + "' extends TypeReference but misses the type parameter. "
-                    + "Remove the extension or add a type parameter to it.");
-        }
-
-        Type rawType = ((ParameterizedType) genericSuperclass).getActualTypeArguments()[index];
-        if (rawType instanceof ParameterizedType) {
-            rawType = ((ParameterizedType) rawType).getRawType();
-        }
-
-        return rawType;
+        dataObjectRawType = ClassUtils.getSuperclassTypeParameter(getClass(), 1);
+        domainEntityRawType = ClassUtils.getSuperclassTypeParameter(getClass(), 2);
     }
 
     public final Type getDataObjectRawType() {

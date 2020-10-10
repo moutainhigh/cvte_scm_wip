@@ -4,6 +4,10 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.audit.AuditField;
+import com.cvte.scm.wip.common.audit.AuditEntity;
+import com.cvte.scm.wip.common.audit.AuditId;
+import com.cvte.scm.wip.common.audit.AuditParentId;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.BooleanEnum;
@@ -45,6 +49,7 @@ import static com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeader
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@AuditEntity(modelName = "rtc", entityName = "header")
 public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
 
     private static String SERIAL_CODE = "SCM_WIP_MTR_RTC_BILL_NO";
@@ -67,26 +72,33 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         return headerId;
     }
 
+    @AuditId
+    @AuditParentId
     private String headerId;
 
     private String organizationId;
 
     private String billNo;
 
+    @AuditField(fieldName = "类型")
     private String billType;
 
     private String moId;
 
+    @AuditField(fieldName = "工序")
     private String wkpNo;
 
     private String deptNo;
 
     private String factoryId;
 
+    @AuditField(fieldName = "备注")
     private String remark;
 
+    @AuditField(fieldName = "领料套数")
     private BigDecimal billQty;
 
+    @AuditField(fieldName = "子库")
     private String invpNo;
 
     private String billStatus;

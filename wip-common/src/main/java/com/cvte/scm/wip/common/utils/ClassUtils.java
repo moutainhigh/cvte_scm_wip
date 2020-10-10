@@ -2,12 +2,16 @@ package com.cvte.scm.wip.common.utils;
 
 import cn.hutool.core.util.ClassUtil;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import org.apache.ibatis.type.TypeException;
+import org.apache.ibatis.type.TypeReference;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.Table;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -129,4 +133,36 @@ public class ClassUtils extends ClassUtil {
         fieldList.addAll(Arrays.asList(clazz.getSuperclass().getFields()));
         return fieldList;
     }
+
+    public static Object getFiledByAnnotation(Object entity, Class<? extends Annotation> annotationClazz) {
+        Field[] fields = entity.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            Annotation annotation = field.getAnnotation(annotationClazz);
+            if (null != annotation) {
+                return getFieldValue(entity, field);
+            }
+        }
+        return null;
+    }
+
+    public static Type getSuperclassTypeParameter(Class<?> clazz, int index) {
+        Type genericSuperclass = clazz.getGenericSuperclass();
+        if (genericSuperclass instanceof Class) {
+            // try to climb up the hierarchy until meet something useful
+            if (TypeReference.class != genericSuperclass) {
+                return getSuperclassTypeParameter(clazz.getSuperclass(), index);
+            }
+
+            throw new TypeException("'" + clazz + "' extends TypeReference but misses the type parameter. "
+                    + "Remove the extension or add a type parameter to it.");
+        }
+
+        Type rawType = ((ParameterizedType) genericSuperclass).getActualTypeArguments()[index];
+        if (rawType instanceof ParameterizedType) {
+            rawType = ((ParameterizedType) rawType).getRawType();
+        }
+
+        return rawType;
+    }
+
 }

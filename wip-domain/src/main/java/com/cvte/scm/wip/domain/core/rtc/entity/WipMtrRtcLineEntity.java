@@ -4,6 +4,10 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.audit.AuditEntity;
+import com.cvte.scm.wip.common.audit.AuditField;
+import com.cvte.scm.wip.common.audit.AuditId;
+import com.cvte.scm.wip.common.audit.AuditParentId;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
@@ -44,6 +48,7 @@ import static com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineSt
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@AuditEntity(modelName = "rtc", entityName = "line")
 public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private WipMtrRtcLineRepository wipMtrRtcLineRepository;
@@ -62,8 +67,10 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         return lineId;
     }
 
+    @AuditId
     private String lineId;
 
+    @AuditParentId
     private String headerId;
 
     private String organizationId;
@@ -76,10 +83,13 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private String wkpNo;
 
+    @AuditField(fieldName = "子库")
     private String invpNo;
 
+    @AuditField(fieldName = "需求数量")
     private BigDecimal reqQty;
 
+    @AuditField(fieldName = "实发数量")
     private BigDecimal issuedQty;
 
     private String lineStatus;
@@ -96,6 +106,7 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private String badMtrDesc;
 
+    @AuditField(fieldName = "备注")
     private String remark;
 
     private String crtUser;
@@ -265,7 +276,9 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     public void updateAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {
         rtcAssignEntityList.forEach(assign -> EntityUtils.writeStdUpdInfoToEntity(assign, EntityUtils.getWipUserId()));
-        wipMtrRtcAssignRepository.updateList(rtcAssignEntityList);
+        for (WipMtrRtcAssignEntity updateAssign : rtcAssignEntityList) {
+            wipMtrRtcAssignRepository.updateSelectiveById(updateAssign);
+        }
     }
 
     public void deleteAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {

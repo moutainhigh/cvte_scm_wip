@@ -3,6 +3,10 @@ package com.cvte.scm.wip.domain.core.rtc.entity;
 import cn.hutool.core.collection.CollectionUtil;
 import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.scm.wip.common.audit.AuditEntity;
+import com.cvte.scm.wip.common.audit.AuditField;
+import com.cvte.scm.wip.common.audit.AuditId;
+import com.cvte.scm.wip.common.audit.AuditParentId;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
@@ -32,6 +36,7 @@ import java.util.function.BiPredicate;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@AuditEntity(modelName = "rtc", entityName = "assign")
 public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
 
     private WipMtrRtcAssignRepository wipMtrRtcAssignRepository;
@@ -48,8 +53,10 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
         return assignId;
     }
 
+    @AuditId
     private String assignId;
 
+    @AuditParentId
     private String lineId;
 
     private String headerId;
@@ -58,12 +65,16 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
 
     private String factoryId;
 
+    @AuditField(fieldName = "子库")
     private String invpNo;
 
+    @AuditField(fieldName = "批次")
     private String mtrLotNo;
 
+    @AuditField(fieldName = "分配数量")
     private BigDecimal assignQty;
 
+    @AuditField(fieldName = "实发数量")
     private BigDecimal issuedQty;
 
     private String lotControlType;
