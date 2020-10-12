@@ -189,8 +189,6 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                 .setApplyDate(dateFormat.format(rtcHeader.getUpdTime()))
                 .setTransactionDate(dateFormat.format(rtcHeader.getUpdTime()))
                 .setTransactionTypeDesc(CodeableEnumUtils.getCodeableEnumByCode(rtcHeader.getBillType(), WipMtrRtcHeaderTypeEnum.class).getDesc() + "单")
-                .setSubinventoryCode(rtcHeader.getInvpNo())
-                .setLocator(this.getLocator(rtcHeader.getInvpNo(), rtcHeader.getFactoryId()))
                 .setWipEntityName(reqHeader.getSourceNo())
                 .setWipLotNumber(reqHeader.getSourceLotNo())
                 .setStartQuantity(rtcHeader.getBillQty().toString())
