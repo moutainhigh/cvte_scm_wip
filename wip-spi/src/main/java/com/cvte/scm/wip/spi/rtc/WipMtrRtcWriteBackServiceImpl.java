@@ -9,6 +9,7 @@ import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.DateUtils;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
@@ -180,14 +181,14 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
     private XxwipTransactionHeadersDTO generateSyncDTO(WipMtrRtcHeaderEntity rtcHeader) {
         WipReqHeaderEntity reqHeader = wipReqHeaderService.getBySourceId(rtcHeader.getMoId());
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         XxwipTransactionHeadersDTO headersDTO = new XxwipTransactionHeadersDTO();
         headersDTO.setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
                 .setInterfaceOrigSourceId(rtcHeader.getHeaderId())
                 .setInterfaceAction("INSERT")
                 .setOrganizationId(rtcHeader.getOrganizationId())
-                .setApplyDate(dateFormat.format(rtcHeader.getUpdTime()))
-                .setTransactionDate(dateFormat.format(rtcHeader.getUpdTime()))
+                .setApplyDate(dateFormat.format(DateUtils.getMinutesBeforeTime(rtcHeader.getUpdTime(), 1)))
+                .setTransactionDate(dateFormat.format(DateUtils.getMinutesBeforeTime(rtcHeader.getUpdTime(), 1)))
                 .setTransactionTypeDesc(CodeableEnumUtils.getCodeableEnumByCode(rtcHeader.getBillType(), WipMtrRtcHeaderTypeEnum.class).getDesc() + "单")
                 .setWipEntityName(reqHeader.getSourceNo())
                 .setWipLotNumber(reqHeader.getSourceLotNo())
