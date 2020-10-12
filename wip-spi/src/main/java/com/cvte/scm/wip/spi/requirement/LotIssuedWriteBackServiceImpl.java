@@ -41,8 +41,8 @@ public class LotIssuedWriteBackServiceImpl implements LotIssuedWriteBackService 
 
         LotIssuedWriteBackDTO lotIssuedWriteBackDTO = new LotIssuedWriteBackDTO();
         lotIssuedWriteBackDTO.setHeaderId(reqLotIssued.getHeaderId())
-                // ERP将所有领料批次存放在ATTRIBUTE3字段, 格式为 (lot:qty,...)
-                .setLotNo(reqLotIssued.getMtrLotNo() + ":" + reqLotIssued.getIssuedQty().toString())
+                // ERP将所有领料批次存放在ATTRIBUTE3字段, 格式为 (lot,...)
+                .setLotNo(reqLotIssued.getMtrLotNo())
                 .setWkpNo(reqLotIssued.getWkpNo())
                 .setItemId(itemId)
                 .setLotQty(reqLotIssued.getIssuedQty())
