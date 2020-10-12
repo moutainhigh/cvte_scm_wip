@@ -9,6 +9,7 @@ import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.LotIssuedLockTypeEnum;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.LotIssuedOpTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -29,11 +30,13 @@ public class WipReqLotIssuedService {
     private WipReqLotIssuedRepository wipReqLotIssuedRepository;
     private CheckReqLineService checkReqLineService;
     private CheckReqLotIssuedService checkReqLotIssuedService;
+    private LotIssuedWriteBackService lotIssuedWriteBackService;
 
-    public WipReqLotIssuedService(WipReqLotIssuedRepository wipReqLotIssuedRepository, CheckReqLineService checkReqLineService, CheckReqLotIssuedService checkReqLotIssuedService) {
+    public WipReqLotIssuedService(WipReqLotIssuedRepository wipReqLotIssuedRepository, CheckReqLineService checkReqLineService, CheckReqLotIssuedService checkReqLotIssuedService, LotIssuedWriteBackService lotIssuedWriteBackService) {
         this.wipReqLotIssuedRepository = wipReqLotIssuedRepository;
         this.checkReqLineService = checkReqLineService;
         this.checkReqLotIssuedService = checkReqLotIssuedService;
+        this.lotIssuedWriteBackService = lotIssuedWriteBackService;
     }
 
     public WipReqLotIssuedEntity selectById(String id) {
@@ -122,6 +125,8 @@ public class WipReqLotIssuedService {
 
             wipReqLotIssuedRepository.insertList(insertList);
             wipReqLotIssuedRepository.updateList(updateList);
+            insertList.forEach(insertEntity -> lotIssuedWriteBackService.writeBack(LotIssuedOpTypeEnum.ADD, insertEntity));
+            deleteList.forEach(deleteEntity -> lotIssuedWriteBackService.writeBack(LotIssuedOpTypeEnum.REMOVE, deleteEntity));
         }
     }
 
@@ -153,7 +158,7 @@ public class WipReqLotIssuedService {
     }
 
     private List<WipReqLotIssuedEntity> getByItemKey(String organizationId, String headerId, String itemNo, String wkpNo) {
-        WipReqLotIssuedEntity queryEntity = new WipReqLotIssuedEntity().setOrganizationId(organizationId).setHeaderId(headerId).setItemNo(itemNo).setWkpNo(wkpNo);
+        WipReqLotIssuedEntity queryEntity = new WipReqLotIssuedEntity().setOrganizationId(organizationId).setHeaderId(headerId).setItemNo(itemNo).setWkpNo(wkpNo).setStatus(StatusEnum.NORMAL.getCode());
         return wipReqLotIssuedRepository.selectList(queryEntity);
     }
 
