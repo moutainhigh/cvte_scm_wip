@@ -180,7 +180,7 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
     private XxwipTransactionHeadersDTO generateSyncDTO(WipMtrRtcHeaderEntity rtcHeader) {
         WipReqHeaderEntity reqHeader = wipReqHeaderService.getBySourceId(rtcHeader.getMoId());
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         XxwipTransactionHeadersDTO headersDTO = new XxwipTransactionHeadersDTO();
         headersDTO.setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
                 .setInterfaceOrigSourceId(rtcHeader.getHeaderId())
