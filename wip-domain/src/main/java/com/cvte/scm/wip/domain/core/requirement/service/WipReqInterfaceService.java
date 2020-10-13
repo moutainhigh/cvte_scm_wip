@@ -235,13 +235,12 @@ public class WipReqInterfaceService {
      * 将接口数据转换为行数据。
      */
     private WipReqLineEntity toWipReqLines(WipReqInterfaceEntity wipReqInterface) {
-        Function<Long, Long> getIfValid = value -> Optional.ofNullable(value).filter(v -> v >= 0).orElse(null);
         return new WipReqLineEntity().setLineId(isNotEmpty(wipReqInterface.getLineId()) ? wipReqInterface.getLineId() : null)
                 .setHeaderId(wipReqInterface.getHeaderId()).setOrganizationId(wipReqInterface.getOrganizationId())
                 .setLotNumber(wipReqInterface.getLotNumber()).setWkpNo(wipReqInterface.getWkpNo()).setPosNo(wipReqInterface.getPosNo())
                 .setItemNo(Optional.ofNullable(wipReqInterface.getItemNoNew()).orElse(wipReqInterface.getItemNo()))
                 .setBeforeItemNo(wipReqInterface.getItemNo()).setSourceCode(wipReqInterface.getSourceCode())
-                .setReqQty(getIfValid.apply(wipReqInterface.getItemQty())).setUnitQty(wipReqInterface.getUnitQty())
+                .setReqQty(wipReqInterface.getItemQty()).setUnitQty(wipReqInterface.getUnitQty())
                 .setIssuedQty(wipReqInterface.getIssuedQty());
     }
 
