@@ -17,4 +17,6 @@ public interface SysOrganizationMapper extends CommonMapper<SysOrgDO> {
 
     String getFactoryCodeById(@Param("factoryId") String factoryId);
 
+    String getOrgIdById(@Param("organizationId") String organizationId);
+
 }

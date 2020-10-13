@@ -26,4 +26,16 @@
           and soe.ebs_code = #{factoryId}
     </select>
 
+    <select id="getOrgIdById" resultType="java.lang.String">
+        select soe.other_code
+        from scm.sys_org so
+                 inner join scm.sys_org_ext soe
+                            on so.id = soe.id
+                 inner join scm.sys_org_relation sor
+                            on so.id = sor.org_id
+        where sor.dimension_id = 'a95a94fcece04485ac26259ffb218b28'
+          and so.org_type = 'business'
+          and soe.ebs_code = #{organizationId}
+    </select>
+
 </mapper>
