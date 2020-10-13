@@ -225,8 +225,10 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
                 BigDecimal totalQty = billQty.multiply(reqItemVO.getUnitQty());
                 return unCompleteQty.min(availableQty).min(totalQty);
             } else if (itemReqQty.compareTo(BigDecimal.ZERO) < 0) {
-                // min(未完工数*单位用量，退料申请数=需求数-已领料数-已创建退料单未过账数)
-                return reqItemVO.getReqQty().subtract(reqItemVO.getIssuedQty()).subtract(unPostQty);
+                // min(未完工数*单位用量，退料申请数=需求数-已领料数-已创建退料单未过账数), 注:已创建退料单未过账数为正数,故用add
+                BigDecimal applyQty = reqItemVO.getReqQty().subtract(reqItemVO.getIssuedQty()).add(unPostQty);
+                // 算出来为负数, 取反
+                return unCompleteQty.min(applyQty).negate();
             } else {
                 // 用量为0
                 BigDecimal reqItemIssuedQty = reqItemVO.getIssuedQty();
