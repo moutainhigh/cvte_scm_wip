@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.QueryWipReqHeaderVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.ScmLotControlVO;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.entity.Example;
 
@@ -27,7 +28,7 @@ public interface WipReqHeaderRepository {
     List<WipReqHeaderEntity> selectByExample(Example example);
 
     /* 获取工单信息，主要用投料单头的增量写入。 */
-    List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId);
+    List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId, List<ScmLotControlVO> scmLotControlVOList);
 
     String validateAndGetUpdateDataHelper(WipReqHeaderEntity header, List<WipReqHeaderEntity> updateWipReqHeaders);
 

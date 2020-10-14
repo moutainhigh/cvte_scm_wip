@@ -91,9 +91,14 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
         return mtrSubInvVOList;
     }
 
+    @Override
+    public List<ScmLotControlVO> getWipLotControlConfig() {
+        return getLotControlByOptionNo(OPTION_NO, OPTION_VALUE);
+    }
+
     private List<String> getForceControlLot(String organizationId, String moId, List<String> itemIdList) {
         String productMinClass = getProductMinClass(organizationId, moId);
-        List<ScmLotControlVO> lotControlVOList = getLotControlByOptionNo(OPTION_NO, OPTION_VALUE);
+        List<ScmLotControlVO> lotControlVOList = this.getWipLotControlConfig();
         List<ScmLotControlVO> filteredControlList = lotControlVOList.stream().filter(vo -> productMinClass.equals(vo.getProductClass())).collect(Collectors.toList());
         if (ListUtil.empty(filteredControlList)) {
             return Collections.emptyList();

@@ -78,21 +78,47 @@
              , wip_status_type as status_type
              , department_id
         from wip.xxwip_mo_v x
-        where (
-               x.date_released > now()::timestamp + '-1 hour'
-               /* 未发放七天内齐套 */
-           or (x.wip_status_type = '1' and date_trunc('day', x.mtr_ready_time) <![CDATA[ <= ]]> date_trunc('day', current_timestamp + '7 day'))
-          )
-          and x.organization_id in
-          <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
-              #{organizationId}
-          </foreach>
-          and not exists(
-                select 1 from wip.wip_req_header wrh where wrh.bill_no = x.bill_no
+        where
+        /* 这部分是特定的同步逻辑 */
+        (
+            (
+                (
+                    /* 最近1小时内发放 */
+                    x.date_released > now()::timestamp + '-1 hour'
+                    /* 未发放七天内齐套 */
+                    or (x.wip_status_type = '1' and date_trunc('day', x.mtr_ready_time) <![CDATA[ <= ]]> date_trunc('day', current_timestamp + '7 day'))
+                )
+                and x.organization_id in
+                <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
+                    #{organizationId}
+                </foreach>
             )
-          <if test="factoryId != null and factoryId.length() > 0">
-          and x.factory_id = to_number(#{factoryId})
-          </if>
+            /* https://kb.cvte.com/pages/viewpage.action?pageId=206393904 第2点 */
+            or
+            (
+                /* 产品强批次管控 */
+                <foreach collection="lotControlVOList" item="lotControlVO" open="(" separator="or" close=")">
+                    x.organization_id = to_number(#{lotControlVO.ebsOrganizationId})
+                    and x.product_id in  (
+                        select to_number(inventory_item_id)
+                        from scm.md_item mi
+                        where mi.rd_min_class_code = #{lotControlVO.productClass}
+                    )
+                </foreach>
+            )
+            or
+            (
+                /* 视昱的单据 */
+                x.organization_id = '93'
+            )
+        )
+        /* 这部分是限制条件 */
+        <if test="factoryId != null and factoryId.length() > 0">
+            and x.factory_id = to_number(#{factoryId})
+        </if>
+        and not exists(
+            select 1 from wip.wip_req_header wrh where wrh.bill_no = x.bill_no
+        )
         and exists(
             /* 投料行已被缓存 */
             select 1

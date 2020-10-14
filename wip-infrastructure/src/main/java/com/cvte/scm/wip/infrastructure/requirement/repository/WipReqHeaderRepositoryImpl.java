@@ -8,6 +8,7 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.ScmLotControlVO;
 import com.cvte.scm.wip.infrastructure.deprecated.BaseBatchMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
@@ -101,8 +102,8 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
     }
 
     @Override
-    public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId) {
-        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectAddedData(organizationIdList, factoryId);
+    public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId, List<ScmLotControlVO> scmLotControlVOList) {
+        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectAddedData(organizationIdList, factoryId, scmLotControlVOList);
         return WipReqHeaderDO.batchBuildEntity(headerDOList);
     }
 

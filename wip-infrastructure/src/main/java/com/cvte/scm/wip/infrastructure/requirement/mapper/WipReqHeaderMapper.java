@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper;
 
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.ScmLotControlVO;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqHeaderDO;
 import org.apache.ibatis.annotations.Param;
 
@@ -16,7 +17,7 @@ public interface WipReqHeaderMapper extends CommonMapper<WipReqHeaderDO> {
     String getSourceId(@Param("headerId") String headerId);
 
     /* 获取工单信息，主要用投料单头的增量写入。 */
-    List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId);
+    List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId, @Param("lotControlVOList") List<ScmLotControlVO> lotControlVOList);
 
     /* 判断货位信息在投料单头下是否存在 */
     boolean existLotNumber(@Param("headerId") Integer headerId, @Param("lotNumber") String lotNumber);
