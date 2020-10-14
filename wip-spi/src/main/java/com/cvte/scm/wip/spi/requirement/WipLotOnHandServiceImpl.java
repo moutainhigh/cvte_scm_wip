@@ -54,9 +54,8 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
             List<Map<String, Object>> poResponse = requestAndGetData(poUrl, iacToken, paramMap);
             boolean exists = false;
             for (Map<String, Object> data : poResponse) {
-                String projectId = data.get("projectId").toString();
                 String vendorLotNum = (String)data.get("vendorLotNum");
-                if (factoryId.equals(projectId) && lotNumber.equals(vendorLotNum)) {
+                if (lotNumber.equals(vendorLotNum)) {
                     BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("quantityShipped")).orElse(0).toString());
                     subInvVOList.add(this.buildSubInvVO(organizationId, factoryId, (String)data.get("projectNumber"), itemId, vendorLotNum, supplyQty));
                     exists = true;
@@ -73,9 +72,8 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
                 continue;
             }
             for (Map<String, Object> data : inoutResponse) {
-                String toProjectId = data.get("projectId").toString();
                 String lot = (String)data.get("lot");
-                if (factoryId.equals(toProjectId) && lotNumber.equals(lot)) {
+                if (lotNumber.equals(lot)) {
                     BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("planQty")).orElse(0).toString());
                     subInvVOList.add(this.buildSubInvVO(organizationId, factoryId, (String)data.get("projectNumber"), itemId, lot, supplyQty));
                 }
