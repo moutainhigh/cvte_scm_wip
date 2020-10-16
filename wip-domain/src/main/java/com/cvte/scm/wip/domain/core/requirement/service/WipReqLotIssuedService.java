@@ -43,26 +43,6 @@ public class WipReqLotIssuedService {
         return wipReqLotIssuedRepository.selectById(id);
     }
 
-    public void save(WipReqLotIssuedEntity wipReqLotIssued) {
-        checkReqLineService.checkItemExists(wipReqLotIssued.getOrganizationId(), wipReqLotIssued.getHeaderId(), wipReqLotIssued.getWkpNo(), wipReqLotIssued.getItemNo());
-        checkReqLotIssuedService.verifyIssuedQty(wipReqLotIssued);
-        if (StringUtils.isBlank(wipReqLotIssued.getId())) {
-            // 新增
-            wipReqLotIssued.setId(UUIDUtils.get32UUID())
-                    .setStatus(StatusEnum.NORMAL.getCode());
-            wipReqLotIssuedRepository.insert(wipReqLotIssued);
-        } else {
-            // 更新
-            wipReqLotIssuedRepository.updateSelectiveById(wipReqLotIssued);
-        }
-    }
-
-    public void invalid(String id) {
-        WipReqLotIssuedEntity lotIssued = wipReqLotIssuedRepository.selectById(id);
-        lotIssued.setStatus(StatusEnum.CLOSE.getCode());
-        wipReqLotIssuedRepository.updateSelectiveById(lotIssued);
-    }
-
     public void changeLockStatus(List<String> idList) {
         List<WipReqLotIssuedEntity> lotIssuedEntityList = wipReqLotIssuedRepository.selectListByIds(idList.toArray(new String[0]));
         if (idList.size() != lotIssuedEntityList.size()) {
@@ -145,8 +125,10 @@ public class WipReqLotIssuedService {
                 if (Objects.isNull(dbLotIssued)) {
                     throw new ParamsIncorrectException("投料批次%s不存在", itemLotIssued.getMtrLotNo());
                 }
-                // 更新未领料数量
-                dbLotIssued.setUnissuedQty(this.calculateUnissuedQty(itemLotIssued, dbLotIssued));
+                // 更新未领料和领料数量
+                BigDecimal unissuedQty = this.calculateUnissuedQty(itemLotIssued, dbLotIssued);
+                dbLotIssued.setUnissuedQty(unissuedQty)
+                        .setIssuedQty(dbLotIssued.getAssignQty().subtract(unissuedQty).longValue());
                 updateList.add(dbLotIssued);
             }
         }
@@ -171,6 +153,13 @@ public class WipReqLotIssuedService {
         updateLotSet.retainAll(deleteLotSet);
         deleteLotSet.removeIf(updateLotSet::contains);
         insertList.addAll(itemLotIssuedList.stream().filter(lot -> insertLotSet.contains(lot.getMtrLotNo())).collect(Collectors.toList()));
+        // 新增的批次, 初始化已发料/未发料数量/锁定状态
+        for (WipReqLotIssuedEntity insertEntity : insertList) {
+            insertEntity.setIssuedQty(0L)
+                    .setUnissuedQty(insertEntity.getAssignQty())
+                    .setLockStatus(YoNEnum.N.getCode())
+                    .setLockType(LotIssuedLockTypeEnum.NONE.getCode());
+        }
         deleteList.addAll(dbLotIssuedList.stream().filter(lot -> deleteLotSet.contains(lot.getMtrLotNo())).collect(Collectors.toList()));
         if (!updateLotSet.isEmpty()) {
             Map<String, WipReqLotIssuedEntity> tmpItemLotIssuedMap = WipReqLotIssuedEntity.toLotMap(itemLotIssuedList);
@@ -179,7 +168,7 @@ public class WipReqLotIssuedService {
                 // 更新领料批次
                 WipReqLotIssuedEntity itemLotIssued = tmpItemLotIssuedMap.get(updateLot);
                 WipReqLotIssuedEntity dbLotIssued = tmpDbLotIssuedMap.get(updateLot);
-                dbLotIssued.setIssuedQty(itemLotIssued.getIssuedQty());
+                dbLotIssued.setAssignQty(itemLotIssued.getAssignQty());
                 updateList.add(dbLotIssued);
             }
         }
@@ -189,7 +178,7 @@ public class WipReqLotIssuedService {
         if (Objects.isNull(itemLotIssued.getPostQty())) {
             throw new ParamsIncorrectException("过账数量不可为空");
         }
-        BigDecimal unIssuedQty = Optional.ofNullable(dbLotIssued.getUnissuedQty()).orElse(new BigDecimal(dbLotIssued.getIssuedQty()));
+        BigDecimal unIssuedQty = Optional.ofNullable(dbLotIssued.getUnissuedQty()).orElse(dbLotIssued.getAssignQty());
         return unIssuedQty.subtract(itemLotIssued.getPostQty());
     }
 

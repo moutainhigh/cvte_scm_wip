@@ -152,5 +152,11 @@ public class WipReqLotIssuedDO extends BaseModel {
     @Column(name = "lock_type")
     @ApiModelProperty(value = "锁定类型")
     private String lockType;
+    /**
+     * 分配数量
+     */
+    @Column(name = "assign_qty")
+    @ApiModelProperty(value = "分配数量")
+    private BigDecimal assignQty;
 
 }

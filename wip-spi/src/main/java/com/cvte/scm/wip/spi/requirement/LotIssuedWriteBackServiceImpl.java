@@ -45,7 +45,7 @@ public class LotIssuedWriteBackServiceImpl implements LotIssuedWriteBackService 
                 .setLotNo(reqLotIssued.getMtrLotNo())
                 .setWkpNo(reqLotIssued.getWkpNo())
                 .setItemId(itemId)
-                .setLotQty(reqLotIssued.getIssuedQty())
+                .setLotQty(reqLotIssued.getAssignQty().longValue())
                 .setOpType(opType.getCode());
 
         String jsonParam = JSON.toJSONString(lotIssuedWriteBackDTO);

@@ -1,7 +1,6 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
-import com.cvte.scm.wip.app.req.lot.ReqLotIssuedDeleteApplication;
 import com.cvte.scm.wip.app.req.lot.ReqLotIssuedLockApplication;
 import com.cvte.scm.wip.app.req.lot.ReqLotIssuedSaveApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
@@ -10,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -28,30 +26,16 @@ import java.util.List;
 public class WipReqLotIssuedController {
 
     private ReqLotIssuedSaveApplication reqLotIssuedSaveApplication;
-    private ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication;
     private ReqLotIssuedLockApplication reqLotIssuedLockApplication;
 
-    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication) {
+    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication) {
         this.reqLotIssuedSaveApplication = reqLotIssuedSaveApplication;
-        this.reqLotIssuedDeleteApplication = reqLotIssuedDeleteApplication;
         this.reqLotIssuedLockApplication = reqLotIssuedLockApplication;
-    }
-
-    @PostMapping("/save")
-    public RestResponse save(@Valid @RequestBody WipReqLotIssuedEntity wipReqLotIssued) {
-        reqLotIssuedSaveApplication.doAction(wipReqLotIssued);
-        return new RestResponse();
     }
 
     @PostMapping("/save_all")
     public RestResponse saveAll(@RequestBody List<WipReqLotIssuedEntity> itemLotIssuedList) {
         reqLotIssuedSaveApplication.doAction(itemLotIssuedList);
-        return new RestResponse();
-    }
-
-    @DeleteMapping("/invalid/{idStr}")
-    public RestResponse invalid(@PathVariable("idStr") String idStr) {
-        reqLotIssuedDeleteApplication.doAction(idStr);
         return new RestResponse();
     }
 

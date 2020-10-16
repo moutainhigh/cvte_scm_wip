@@ -15,6 +15,7 @@ import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,47 +44,6 @@ public class CheckReqLotIssuedService {
         this.scmItemService = scmItemService;
         this.wipMtrSubInvRepository = wipMtrSubInvRepository;
         this.wipLotOnHandService = wipLotOnHandService;
-    }
-
-    /**
-     * 校验领料批次数量
-     *
-     * @param wipReqLotIssued 领料数据
-     * @author xueyuting
-     * @since 2020/2/04 3:07 下午
-     */
-    public void verifyIssuedQty(WipReqLotIssuedEntity wipReqLotIssued) {
-        // 已领料数据
-        WipReqLotIssuedEntity queryLotEntity = new WipReqLotIssuedEntity().setHeaderId(wipReqLotIssued.getHeaderId())
-                .setOrganizationId(wipReqLotIssued.getOrganizationId()).setItemNo(wipReqLotIssued.getItemNo()).setWkpNo(wipReqLotIssued.getWkpNo()).setStatus(StatusEnum.NORMAL.getCode());
-        List<WipReqLotIssuedEntity> lotIssuedList = wipReqLotIssuedRepository.selectList(queryLotEntity);
-        if (lotIssuedList == null) {
-            lotIssuedList = new ArrayList<>();
-        }
-
-        // 替换旧的
-        Iterator<WipReqLotIssuedEntity> iterator = lotIssuedList.iterator();
-        while (iterator.hasNext()) {
-            WipReqLotIssuedEntity lotIssued = iterator.next();
-            if (lotIssued.getMtrLotNo().equals(wipReqLotIssued.getMtrLotNo())) {
-                // 更新ID, 用于保存
-                wipReqLotIssued.setId(lotIssued.getId());
-                iterator.remove();
-            }
-        }
-        long oldTotalLotIssuedQty = lotIssuedList.stream().mapToLong(WipReqLotIssuedEntity::getIssuedQty).sum();
-        lotIssuedList.add(wipReqLotIssued);
-
-        long totalReqQty = this.getItemReqQty(wipReqLotIssued);
-        if (Objects.isNull(wipReqLotIssued.getIssuedQty())) {
-            wipReqLotIssued.setIssuedQty(totalReqQty - oldTotalLotIssuedQty);
-        } else {
-            long totalIssuedQty = lotIssuedList.stream().mapToLong(WipReqLotIssuedEntity::getIssuedQty).sum();
-            if (totalIssuedQty > totalReqQty) {
-                log.info("领料数量大于需求数量,新增领料数量失败");
-                throw new ParamsIncorrectException("领料数量大于需求数量");
-            }
-        }
     }
 
     public void checkLotValid(List<WipReqLotIssuedEntity> itemLotIssuedList) {
@@ -120,7 +80,7 @@ public class CheckReqLotIssuedService {
 
     public void checkIssuedQty(List<WipReqLotIssuedEntity> itemLotIssuedList) {
         long reqQty = this.getItemReqQty(itemLotIssuedList.get(0));
-        long totalMtrQty = itemLotIssuedList.stream().mapToLong(lot -> Optional.ofNullable(lot.getIssuedQty()).orElse(0L)).sum();
+        long totalMtrQty = itemLotIssuedList.stream().mapToLong(lot -> Optional.ofNullable(lot.getAssignQty()).orElse(BigDecimal.ZERO).longValue()).sum();
         if (reqQty != totalMtrQty) {
             throw new ParamsIncorrectException(String.format("批次总投料量%d必须等于物料需求数量%d", totalMtrQty, reqQty));
         }

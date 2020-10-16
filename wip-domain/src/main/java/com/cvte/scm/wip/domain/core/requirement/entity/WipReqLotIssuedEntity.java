@@ -48,7 +48,6 @@ public class WipReqLotIssuedEntity extends BaseModel {
     private String mtrLotNo;
 
     @ApiModelProperty(value = "领料数量")
-    @Min(value = 0, message = "最小领料数量为0")
     private Long issuedQty;
 
     @ApiModelProperty(value = "状态")
@@ -83,6 +82,10 @@ public class WipReqLotIssuedEntity extends BaseModel {
 
     @ApiModelProperty(value = "过账数量")
     private BigDecimal postQty;
+
+    @ApiModelProperty(value = "分配数量")
+    @Min(value = 0, message = "最小领料数量为0")
+    private BigDecimal assignQty;
 
     public String getItemKey() {
         return BatchProcessUtils.getKey(this.organizationId, this.headerId, this.itemNo, this.wkpNo);

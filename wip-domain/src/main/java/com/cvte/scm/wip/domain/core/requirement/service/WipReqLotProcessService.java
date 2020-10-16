@@ -13,6 +13,7 @@ import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ProcessingStat
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,7 +69,7 @@ public class WipReqLotProcessService {
                         .setItemNo(itemLotProcess.getItemNo())
                         .setWkpNo(itemLotProcess.getWkpNo())
                         .setMtrLotNo(itemLotProcess.getMtrLotNo())
-                        .setIssuedQty(itemLotProcess.getIssuedQty())
+                        .setAssignQty(new BigDecimal(Optional.ofNullable(itemLotProcess.getIssuedQty()).orElse(0L).toString()))
                         .setLockStatus(YoNEnum.Y.getCode())
                         .setLockType(LotIssuedLockTypeEnum.MANUAL.getCode());
                 itemLotIssuedList.add(itemLotIssued);
