@@ -23,4 +23,6 @@ public interface WipMtrRtcWriteBackService {
 
     String post(WipMtrRtcHeaderEntity rtcHeader);
 
+    String cancelLine(WipMtrRtcHeaderEntity rtcHeader);
+
 }

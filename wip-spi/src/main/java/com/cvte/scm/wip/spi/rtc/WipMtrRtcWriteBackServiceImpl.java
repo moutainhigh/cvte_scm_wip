@@ -77,10 +77,10 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                 .setTransactionNumber(transactionNumber)
                 .setUserName(rtcHeader.getUpdUser());
         try {
-            action(actionDTO, iacToken);
+            action(actionDTO);
         } catch (Exception e) {
             actionDTO.setAction("CANCEL");
-            action(actionDTO, iacToken);
+            action(actionDTO);
             throw e;
         }
 
@@ -115,42 +115,52 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
 
     @Override
     public String cancel(WipMtrRtcHeaderEntity rtcHeader) {
-        String iacToken = getIacToken();
         XxwipTransactionActionDTO actionDTO = new XxwipTransactionActionDTO();
         actionDTO.setAction("CANCEL")
                 .setOrganizationId(rtcHeader.getOrganizationId())
                 .setTransactionNumber(rtcHeader.getSourceBillNo())
                 .setUserName(rtcHeader.getUpdUser());
-        action(actionDTO, iacToken);
+        action(actionDTO);
         return "取消成功";
     }
 
     @Override
     public String close(WipMtrRtcHeaderEntity rtcHeader) {
-        String iacToken = getIacToken();
         XxwipTransactionActionDTO actionDTO = new XxwipTransactionActionDTO();
         actionDTO.setAction("CLOSE")
                 .setOrganizationId(rtcHeader.getOrganizationId())
                 .setTransactionNumber(rtcHeader.getSourceBillNo())
                 .setUserName(rtcHeader.getUpdUser());
-        action(actionDTO, iacToken);
+        action(actionDTO);
         return "关闭成功";
     }
 
     @Override
     public String post(WipMtrRtcHeaderEntity rtcHeader) {
-        String iacToken = getIacToken();
         XxwipTransactionActionDTO actionDTO = new XxwipTransactionActionDTO();
         actionDTO.setAction("POST")
                 .setOrganizationId(rtcHeader.getOrganizationId())
                 .setTransactionNumber(rtcHeader.getSourceBillNo())
                 .setUserName(rtcHeader.getUpdUser())
                 .setTransactionLineId(rtcHeader.getLineList().stream().map(WipMtrRtcLineEntity::getSourceLineId).collect(Collectors.joining(",")));
-        action(actionDTO, iacToken);
+        action(actionDTO);
         return "过账成功";
     }
 
-    private void action(XxwipTransactionActionDTO actionDTO, String iacToken) {
+    @Override
+    public String cancelLine(WipMtrRtcHeaderEntity rtcHeader) {
+        XxwipTransactionActionDTO actionDTO = new XxwipTransactionActionDTO();
+        actionDTO.setAction("CANCEL_LINE")
+                .setOrganizationId(rtcHeader.getOrganizationId())
+                .setTransactionNumber(rtcHeader.getSourceBillNo())
+                .setUserName(rtcHeader.getUpdUser())
+                .setTransactionLineId(rtcHeader.getLineList().stream().map(WipMtrRtcLineEntity::getSourceLineId).collect(Collectors.joining(",")));
+        action(actionDTO);
+        return "取消行成功";
+    }
+
+    private void action(XxwipTransactionActionDTO actionDTO) {
+        String iacToken = getIacToken();
         String actionUrl = csbpApiInfoConfiguration.getBaseUrl() + "/wip/wipcompissue/wipCompIssueAction";
         String actionJsonParam = JSON.toJSONString(actionDTO);
         String actionResponseStr = RestCallUtils.callRest(RestCallUtils.RequestMethod.POST, actionUrl, iacToken, actionJsonParam);
