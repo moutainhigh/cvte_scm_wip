@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -53,16 +54,8 @@ public class WipMtrInvQtyCheckVO {
     }
 
     public static String buildMsg(List<WipMtrInvQtyCheckVO> invQtyCheckVOS) {
-        StringBuilder errMsgBuilder = new StringBuilder();
-        for (WipMtrInvQtyCheckVO invQtyCheckVO : invQtyCheckVOS) {
-            errMsgBuilder.append("物料").append(invQtyCheckVO.getItemNo()).append("工序").append(invQtyCheckVO.getWkpNo()).append("子库").append(invQtyCheckVO.getInvpNo());
-            if (StringUtils.isNotBlank(invQtyCheckVO.getLotNumber())) {
-                errMsgBuilder.append("批次").append(invQtyCheckVO.getLotNumber());
-            }
-            errMsgBuilder.append(invQtyCheckVO.getErrMsg()).append(";");
-        }
-
-        return errMsgBuilder.toString();
+        List<String> itemNoList = invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getItemNo).collect(Collectors.toList());
+        return "物料" + String.join(",", itemNoList) + "现有量不足";
     }
 
 }

@@ -31,18 +31,21 @@ public class WipMtrRtcHeaderSubmitApplication {
         this.checkMtrRtcLineService = checkMtrRtcLineService;
     }
 
-    public void doAction(String headerId) {
+    public String doAction(String headerId) {
         WipMtrRtcHeaderEntity rtcHeaderEntity = WipMtrRtcHeaderEntity.get().getById(headerId);
         List<WipMtrRtcLineEntity> rtcLineEntityList = rtcHeaderEntity.getLineList();
         WipMtrRtcLineEntity.get().batchGetAssign(rtcLineEntityList);
 
+        String msg = null;
         List<WipMtrInvQtyCheckVO> invQtyCheckVOS = wipMtrRtcLineService.validateItemInvQty(rtcHeaderEntity);
         checkMtrRtcLineService.checkLotControl(rtcHeaderEntity);
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
-            throw new ParamsIncorrectException(WipMtrInvQtyCheckVO.buildMsg(invQtyCheckVOS));
+            // 提交时允许现有量不足, 提前打单的场景
+            msg = WipMtrInvQtyCheckVO.buildMsg(invQtyCheckVOS);
         }
 
         rtcHeaderEntity.submit();
+        return msg;
     }
 
 }

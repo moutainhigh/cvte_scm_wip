@@ -50,8 +50,9 @@ public class WipMtrRtcController {
 
     @PostMapping("/submit/{headerId}")
     public RestResponse submit(@PathVariable("headerId") String headerId) {
-        wipMtrRtcHeaderSubmitApplication.doAction(headerId);
-        return new RestResponse();
+        RestResponse restResponse = new RestResponse();
+        restResponse.setData(wipMtrRtcHeaderSubmitApplication.doAction(headerId));
+        return restResponse;
     }
 
     @PostMapping("/review")
