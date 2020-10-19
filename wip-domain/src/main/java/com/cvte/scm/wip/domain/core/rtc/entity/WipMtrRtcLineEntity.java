@@ -189,14 +189,14 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         wipMtrRtcLineRepository.updateList(cancelLineList);
     }
 
-    public void batchGetAssign(List<WipMtrRtcLineEntity> rtcLineEntityList) {
-        List<String> lineIdList = rtcLineEntityList.stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toList());
-        List<WipMtrRtcAssignEntity> rtcAssignEntityList = WipMtrRtcAssignEntity.get().getByLineIds(lineIdList);
-        if (ListUtil.empty(rtcAssignEntityList)) {
+    public void batchGetAssign(List<WipMtrRtcLineEntity> rtcLineList) {
+        List<String> lineIdList = rtcLineList.stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toList());
+        List<WipMtrRtcAssignEntity> rtcAssignList = WipMtrRtcAssignEntity.get().getByLineIds(lineIdList);
+        if (ListUtil.empty(rtcAssignList)) {
             return;
         }
-        Map<String, List<WipMtrRtcAssignEntity>> lineAssignMap = rtcAssignEntityList.stream().collect(Collectors.groupingBy(WipMtrRtcAssignEntity::getLineId));
-        for (WipMtrRtcLineEntity rtcLineEntity : rtcLineEntityList) {
+        Map<String, List<WipMtrRtcAssignEntity>> lineAssignMap = rtcAssignList.stream().collect(Collectors.groupingBy(WipMtrRtcAssignEntity::getLineId));
+        for (WipMtrRtcLineEntity rtcLineEntity : rtcLineList) {
             List<WipMtrRtcAssignEntity> lineAssignList = lineAssignMap.get(rtcLineEntity.getLineId());
             if (ListUtil.notEmpty(lineAssignList)) {
                 rtcLineEntity.setAssignList(lineAssignList);
@@ -250,6 +250,11 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
                 }
             }
         }
+    }
+
+    public void update() {
+        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+        wipMtrRtcLineRepository.updateSelectiveById(this);
     }
 
     public void update(WipMtrRtcLineBuildVO rtcLineBuildVO) {

@@ -12,6 +12,7 @@ import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusE
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -101,7 +102,6 @@ public class WipMtrRtcAssignService {
         if (ListUtil.notEmpty(deleteAssignEntityList)) {
             // 批量删除
             rtcLine.deleteAssigns(deleteAssignEntityList);
-            allAssignEntityList.addAll(deleteAssignEntityList);
         }
         if (ListUtil.notEmpty(createAssignEntityList)) {
             // 批量创建
@@ -111,9 +111,10 @@ public class WipMtrRtcAssignService {
         // 审核通过或部分过账, 更新后需同步到EBS
         rtcLine = getLine(allAssignEntityList);
         if (Objects.nonNull(rtcLine)) {
+            // 更新行数量
+            this.updateLineQty(rtcLine);
             WipMtrRtcHeaderEntity rtcHeader = WipMtrRtcHeaderEntity.get().getById(rtcLine.getHeaderId());
             if (WipMtrRtcHeaderStatusEnum.effective(rtcHeader.getBillStatus())) {
-                rtcLine.setAssignList(updateAssignEntityList);
                 rtcHeader.setLineList(Collections.singletonList(rtcLine));
                 wipMtrRtcWriteBackService.update(rtcHeader);
             }
@@ -125,7 +126,19 @@ public class WipMtrRtcAssignService {
         if (ListUtil.empty(assignList)) {
             return null;
         }
-        return WipMtrRtcLineEntity.get().getById(assignList.get(0).getLineId());
+        WipMtrRtcLineEntity rtcLine = WipMtrRtcLineEntity.get().getById(assignList.get(0).getLineId());
+        rtcLine.setAssignList(assignList);
+        return rtcLine;
+    }
+
+    private void updateLineQty(WipMtrRtcLineEntity rtcLine) {
+        BigDecimal sumAssignQty = rtcLine.getAssignList().stream().map(WipMtrRtcAssignEntity::getAssignQty).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sumIssuedQty = rtcLine.getAssignList().stream().map(WipMtrRtcAssignEntity::getIssuedQty).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (!sumAssignQty.equals(rtcLine.getReqQty()) || !sumIssuedQty.equals(rtcLine.getIssuedQty())) {
+            rtcLine.setReqQty(sumAssignQty)
+                    .setIssuedQty(sumIssuedQty);
+            rtcLine.update();
+        }
     }
 
 }

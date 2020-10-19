@@ -41,6 +41,14 @@ public class CheckMtrRtcLineService {
         this.wipMtrRtcLotControlService = wipMtrRtcLotControlService;
     }
 
+    public void checkChangeable(WipMtrRtcLineBuildVO rtcLineBuildVO, WipMtrRtcLineEntity rtcLine) {
+        boolean reqQtyChanged = ListUtil.notEmpty(rtcLine.getAssignList()) && Objects.nonNull(rtcLineBuildVO.getReqQty()) && !rtcLineBuildVO.getReqQty().equals(rtcLine.getReqQty());
+        boolean issuedQtyChanged = ListUtil.notEmpty(rtcLine.getAssignList()) && Objects.nonNull(rtcLineBuildVO.getIssuedQty()) && !rtcLineBuildVO.getIssuedQty().equals(rtcLine.getIssuedQty());
+        if (reqQtyChanged || issuedQtyChanged) {
+            throw new ParamsIncorrectException("分配了批次后无法直接修改行数量,请调整批次分配数量");
+        }
+    }
+
     public void checkQtyLower(WipMtrRtcLineBuildVO rtcLineBuildVO) {
         if (rtcLineBuildVO.getReqQty().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ParamsIncorrectException("数量必须大于0");

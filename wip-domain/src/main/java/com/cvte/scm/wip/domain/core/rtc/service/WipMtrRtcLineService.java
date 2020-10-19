@@ -49,6 +49,7 @@ public class WipMtrRtcLineService {
         String[] lineIdList = rtcLineBuildVOList.stream().map(WipMtrRtcLineBuildVO::getLineId).toArray(String[]::new);
         // 查询单据行
         List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByLineIds(lineIdList);
+        WipMtrRtcLineEntity.get().batchGetAssign(rtcLineList);
         Map<String, WipMtrRtcLineEntity> rtcLineMap = rtcLineList.stream().collect(Collectors.toMap(WipMtrRtcLineEntity::getUniqueId, Function.identity()));
 
         // 查询单据头
@@ -63,6 +64,7 @@ public class WipMtrRtcLineService {
             WipMtrRtcLineEntity rtcLine = rtcLineMap.get(rtcLineBuildVO.getLineId());
             WipReqItemVO reqItemVO = reqItemVOMap.get(rtcLine.getReqKey(rtcHeader.getMoId()));
             try {
+                checkMtrRtcLineService.checkChangeable(rtcLineBuildVO, rtcLine);
                 checkMtrRtcLineService.checkInvpNo(rtcLineBuildVO.getInvpNo());
                 // 校验数量下限
                 checkMtrRtcLineService.checkQtyLower(rtcLineBuildVO);
@@ -81,7 +83,7 @@ public class WipMtrRtcLineService {
                 invQtyCheckVOS.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), null, null, pe.getMessage()));
                 continue;
             }
-            // 更新单据行
+            // 用参数更新单据行的字段
             rtcLine.update(rtcLineBuildVO);
         }
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
@@ -104,7 +106,8 @@ public class WipMtrRtcLineService {
             return invQtyCheckVOS;
         }
         for (WipMtrRtcLineEntity updateLine : rtcLineList) {
-            wipMtrRtcLineRepository.updateSelectiveById(updateLine);
+            // 更新行写库
+            updateLine.update();
         }
         if (WipMtrRtcHeaderStatusEnum.effective(rtcHeader.getBillStatus())) {
             // 审核通过或部分过账, 更新后需同步到EBS
