@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
@@ -14,6 +15,7 @@ import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcWriteBackService;
@@ -22,7 +24,6 @@ import com.cvte.scm.wip.domain.core.thirdpart.ebs.exception.EbsInvokeException;
 import com.cvte.scm.wip.infrastructure.boot.config.api.CsbpApiInfoConfiguration;
 import com.cvte.scm.wip.infrastructure.sys.org.mapper.SysOrganizationMapper;
 import com.cvte.scm.wip.spi.common.CommonResponse;
-import com.cvte.scm.wip.spi.common.EbsResponse;
 import com.cvte.scm.wip.spi.rtc.dto.XxwipTransactionActionDTO;
 import com.cvte.scm.wip.spi.rtc.dto.XxwipTransactionHeadersDTO;
 import com.cvte.scm.wip.spi.rtc.dto.XxwipTransactionInfoDTO;
@@ -58,19 +59,9 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
     }
 
     @Override
-    public String sync(WipMtrRtcHeaderEntity rtcHeader) {
-        XxwipTransactionHeadersDTO headersDTO = generateSyncDTO(rtcHeader);
-        // 同步至EBS
-        String syncUrl = csbpApiInfoConfiguration.getBaseUrl() + "/wip/wipcompissue/wipCompIssueImport";
-        String iacToken = getIacToken();
-        // 请求参数
-        Map<String, XxwipTransactionHeadersDTO> paramMap = new HashMap<>();
-        paramMap.put("importHdrJson", headersDTO);
-        String syncJsonParam = JSON.toJSONString(paramMap);
-        // 同步接口
-        String syncResponseStr = RestCallUtils.callRest(RestCallUtils.RequestMethod.POST, syncUrl, iacToken, syncJsonParam);
-        CommonResponse<Map<String, Object>> syncResponse = parseResponse(syncResponseStr);
-        checkSuccess(syncResponse);
+    public String createAndSubmit(WipMtrRtcHeaderEntity rtcHeader) {
+        // 创建EBS单据
+        CommonResponse<Map<String, Object>> syncResponse = this.sync(rtcHeader, "INSERT");
         // 来源单据号
         String transactionNumber = (String) syncResponse.getData().get("transactionNumber");
         rtcHeader.setSourceBillNo(transactionNumber);
@@ -79,6 +70,7 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
         this.syncLineInfo(rtcHeader);
 
         // 提交
+        String iacToken = this.getIacToken();
         XxwipTransactionActionDTO actionDTO = new XxwipTransactionActionDTO();
         actionDTO.setAction("SUBMIT")
                 .setOrganizationId(rtcHeader.getOrganizationId())
@@ -92,7 +84,13 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
             throw e;
         }
 
-        return "同步成功";
+        return "创建成功";
+    }
+
+    @Override
+    public String update(WipMtrRtcHeaderEntity rtcHeader) {
+        this.sync(rtcHeader, "UPDATE");
+        return "更新成功";
     }
 
     @Override
@@ -178,14 +176,31 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
         }
     }
 
-    private XxwipTransactionHeadersDTO generateSyncDTO(WipMtrRtcHeaderEntity rtcHeader) {
+    private CommonResponse<Map<String, Object>> sync(WipMtrRtcHeaderEntity rtcHeader, String action) {
+        XxwipTransactionHeadersDTO headersDTO = generateSyncDTO(rtcHeader, action);
+        // 同步至EBS
+        String syncUrl = csbpApiInfoConfiguration.getBaseUrl() + "/wip/wipcompissue/wipCompIssueImport";
+        String iacToken = getIacToken();
+        // 请求参数
+        Map<String, XxwipTransactionHeadersDTO> paramMap = new HashMap<>();
+        paramMap.put("importHdrJson", headersDTO);
+        String syncJsonParam = JSON.toJSONString(paramMap);
+        // 同步接口
+        String syncResponseStr = RestCallUtils.callRest(RestCallUtils.RequestMethod.POST, syncUrl, iacToken, syncJsonParam);
+        CommonResponse<Map<String, Object>> syncResponse = parseResponse(syncResponseStr);
+        checkSuccess(syncResponse);
+        return syncResponse;
+    }
+
+    private XxwipTransactionHeadersDTO generateSyncDTO(WipMtrRtcHeaderEntity rtcHeader, String action) {
         WipReqHeaderEntity reqHeader = wipReqHeaderService.getBySourceId(rtcHeader.getMoId());
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         XxwipTransactionHeadersDTO headersDTO = new XxwipTransactionHeadersDTO();
-        headersDTO.setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
+        headersDTO.setTransactionNumber(rtcHeader.getSourceBillNo())
+                .setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
                 .setInterfaceOrigSourceId(rtcHeader.getHeaderId())
-                .setInterfaceAction("INSERT")
+                .setInterfaceAction(action)
                 .setOrganizationId(rtcHeader.getOrganizationId())
                 .setApplyDate(dateFormat.format(DateUtils.getMinutesBeforeTime(rtcHeader.getUpdTime(), 1)))
                 .setTransactionDate(dateFormat.format(DateUtils.getMinutesBeforeTime(rtcHeader.getUpdTime(), 1)))
@@ -201,7 +216,8 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
         List<XxwipTransactionHeadersDTO.XxwipTransactionLinesDTO> linesDTOList = new ArrayList<>();
         for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
             XxwipTransactionHeadersDTO.XxwipTransactionLinesDTO linesDTO = new XxwipTransactionHeadersDTO.XxwipTransactionLinesDTO();
-            linesDTO.setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
+            linesDTO.setTransactionNumber(rtcHeader.getSourceBillNo())
+                    .setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
                     .setInterfaceOrigSourceId(rtcLine.getLineId())
                     .setOrganizationId(rtcHeader.getOrganizationId())
                     .setComponentItem(rtcLine.getItemNo())
@@ -214,6 +230,24 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                     .setBadReason(rtcLine.getBadMtrReason())
                     .setUserName(rtcLine.getCrtUser());
             linesDTOList.add(linesDTO);
+
+            List<WipMtrRtcAssignEntity> rtcAssignList = rtcLine.getAssignList();
+            if (ListUtil.notEmpty(rtcAssignList)) {
+                List<XxwipTransactionHeadersDTO.XxwipTransactionAssignsDTO> assignDTOList = new ArrayList<>();
+                for (WipMtrRtcAssignEntity rtcAssign : rtcAssignList) {
+                    XxwipTransactionHeadersDTO.XxwipTransactionAssignsDTO assignDTO = new XxwipTransactionHeadersDTO.XxwipTransactionAssignsDTO();
+                    assignDTO.setInterfaceOrigSource(CommonUserConstant.SCM_WIP)
+                            .setInterfaceOrigSourceId(rtcAssign.getAssignId())
+                            .setOrganizationId(rtcAssign.getOrganizationId())
+                            .setComponentItem(rtcLine.getItemNo())
+                            .setOperationSeqNum(rtcLine.getWkpNo())
+                            .setLotNumber(rtcAssign.getMtrLotNo())
+                            .setTransactionDate("") // TODO 入库日期
+                            .setTransactionQuantity(rtcAssign.getIssuedQty().toString());
+                    assignDTOList.add(assignDTO);
+                }
+                linesDTO.setImportBatchJson(assignDTOList);
+            }
         }
         headersDTO.setImportLnJson(linesDTOList);
         return headersDTO;

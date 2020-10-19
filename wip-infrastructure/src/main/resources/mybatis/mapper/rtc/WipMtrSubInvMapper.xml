@@ -48,8 +48,8 @@
              , rli.mtr_lot_no as lot_number
              , siq.first_stockin_date
              , siq.supply_qty
-             , rli.issued_qty as item_qty
-             , (rli.issued_qty - coalesce(rli.unissued_qty, rli.issued_qty)) as item_issued_qty
+             , rli.assign_qty as item_qty
+             , rli.issued_qty as item_issued_qty
         from wip_req_lot_issued rli
         inner join scm.md_item mi
             on rli.item_no = mi.item_code

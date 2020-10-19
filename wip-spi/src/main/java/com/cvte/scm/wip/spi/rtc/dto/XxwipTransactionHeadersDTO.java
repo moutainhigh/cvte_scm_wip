@@ -1,7 +1,6 @@
 package com.cvte.scm.wip.spi.rtc.dto;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.List;
@@ -100,6 +99,40 @@ public class XxwipTransactionHeadersDTO {
         private String batchId;
 
         private String userName;
+
+        private List<XxwipTransactionAssignsDTO> importBatchJson;
+
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class XxwipTransactionAssignsDTO {
+
+            private String interfaceOrigSource;
+
+            private String interfaceOrigSourceId;
+
+            private String organizationName;
+
+            private String organizationId;
+
+            private String componentItem;
+
+            private String operationSeqNum;
+
+            private String lotNumber;
+
+            private String transactionDate;
+
+            private String expirationDate;
+
+            private String transactionQuantity;
+
+            private String intfTransHeaderId;
+
+            private String intfTransLineId;
+
+            private String batchId;
 
     }
 

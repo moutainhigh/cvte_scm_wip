@@ -35,7 +35,8 @@ public class WipMtrRtcHeaderReviewApplication {
             // 同步到EBS
             List<WipMtrRtcLineEntity> rtcLineList = rtcHeader.getLineList();
             rtcLineList.removeIf(line -> WipMtrRtcLineStatusEnum.CANCELED.getCode().equals(line.getLineStatus()));
-            wipMtrRtcWriteBackService.sync(rtcHeader);
+            WipMtrRtcLineEntity.get().batchGetAssign(rtcLineList);
+            wipMtrRtcWriteBackService.createAndSubmit(rtcHeader);
             rtcHeader.update();
             rtcHeader.saveLines(false);
         }

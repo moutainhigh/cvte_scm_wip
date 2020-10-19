@@ -5,15 +5,14 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.ChangedTypeEnum;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcAssignBuildVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,6 +26,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class WipMtrRtcAssignService {
+
+    private WipMtrRtcWriteBackService wipMtrRtcWriteBackService;
+
+    public WipMtrRtcAssignService(WipMtrRtcWriteBackService wipMtrRtcWriteBackService) {
+        this.wipMtrRtcWriteBackService = wipMtrRtcWriteBackService;
+    }
 
     public String batchSave(List<WipMtrRtcAssignBuildVO> rtcAssignBuildVOList) {
         List<WipMtrRtcAssignEntity> createAssignEntityList = new ArrayList<>();
@@ -43,9 +48,9 @@ public class WipMtrRtcAssignService {
                     errMsgBuilder.append(rtcAssignBuildVO.getMtrLotNo()).append("新增时唯一标识必须为空;");
                 }
                 // 新增实体
-                WipMtrRtcAssignEntity rtcAssignEntity = WipMtrRtcAssignEntity.get();
-                rtcAssignEntity.create(rtcAssignBuildVO);
-                createAssignEntityList.add(rtcAssignEntity);
+                WipMtrRtcAssignEntity rtcAssign = WipMtrRtcAssignEntity.get();
+                rtcAssign.create(rtcAssignBuildVO);
+                createAssignEntityList.add(rtcAssign);
 
                 iterator.remove();
             } else if (ChangedTypeEnum.DELETE.getCode().equals(rtcAssignBuildVO.getChangeType())) {
@@ -75,31 +80,52 @@ public class WipMtrRtcAssignService {
             throw new ParamsIncorrectException(errMsgBuilder.toString());
         }
 
-        WipMtrRtcLineEntity rtcLineEntity = WipMtrRtcLineEntity.get();
+        WipMtrRtcLineEntity rtcLine = WipMtrRtcLineEntity.get();
+        List<WipMtrRtcAssignEntity> allAssignEntityList = new ArrayList<>();
+        List<WipMtrRtcAssignEntity> updateAssignEntityList = new ArrayList<>();
         if (ListUtil.notEmpty(updateLineIdList)) {
             // 更新实体
-            List<WipMtrRtcAssignEntity> updateAssignEntityList = new ArrayList<>();
-            List<WipMtrRtcAssignEntity> rtcAssignEntityList = WipMtrRtcAssignEntity.get().getByIds(updateLineIdList.toArray(new String[0]));
-            Map<String, WipMtrRtcAssignEntity> rtcAssignEntityMap = rtcAssignEntityList.stream().collect(Collectors.toMap(WipMtrRtcAssignEntity::getUniqueId, Function.identity()));
+            List<WipMtrRtcAssignEntity> rtcAssignList = WipMtrRtcAssignEntity.get().getByIds(updateLineIdList.toArray(new String[0]));
+            Map<String, WipMtrRtcAssignEntity> rtcAssignMap = rtcAssignList.stream().collect(Collectors.toMap(WipMtrRtcAssignEntity::getUniqueId, Function.identity()));
             for (WipMtrRtcAssignBuildVO rtcAssignBuildVO : rtcAssignBuildVOList) {
-                WipMtrRtcAssignEntity rtcAssignEntity = rtcAssignEntityMap.get(rtcAssignBuildVO.getAssignId());
-                rtcAssignEntity.update(rtcAssignBuildVO);
-                updateAssignEntityList.add(rtcAssignEntity);
+                WipMtrRtcAssignEntity rtcAssign = rtcAssignMap.get(rtcAssignBuildVO.getAssignId());
+                rtcAssign.update(rtcAssignBuildVO);
+                updateAssignEntityList.add(rtcAssign);
             }
             // 批量更新
             if (ListUtil.notEmpty(updateAssignEntityList)) {
-                rtcLineEntity.updateAssigns(updateAssignEntityList);
+                rtcLine.updateAssigns(updateAssignEntityList);
+                allAssignEntityList.addAll(updateAssignEntityList);
             }
         }
         if (ListUtil.notEmpty(deleteAssignEntityList)) {
             // 批量删除
-            rtcLineEntity.deleteAssigns(deleteAssignEntityList);
+            rtcLine.deleteAssigns(deleteAssignEntityList);
+            allAssignEntityList.addAll(deleteAssignEntityList);
         }
         if (ListUtil.notEmpty(createAssignEntityList)) {
             // 批量创建
-            rtcLineEntity.createAssigns(createAssignEntityList);
+            rtcLine.createAssigns(createAssignEntityList);
+            allAssignEntityList.addAll(createAssignEntityList);
+        }
+        // 审核通过或部分过账, 更新后需同步到EBS
+        rtcLine = getLine(allAssignEntityList);
+        if (Objects.nonNull(rtcLine)) {
+            WipMtrRtcHeaderEntity rtcHeader = WipMtrRtcHeaderEntity.get().getById(rtcLine.getHeaderId());
+            if (WipMtrRtcHeaderStatusEnum.effective(rtcHeader.getBillStatus())) {
+                rtcLine.setAssignList(updateAssignEntityList);
+                rtcHeader.setLineList(Collections.singletonList(rtcLine));
+                wipMtrRtcWriteBackService.update(rtcHeader);
+            }
         }
         return "";
+    }
+
+    private WipMtrRtcLineEntity getLine(List<WipMtrRtcAssignEntity> assignList) {
+        if (ListUtil.empty(assignList)) {
+            return null;
+        }
+        return WipMtrRtcLineEntity.get().getById(assignList.get(0).getLineId());
     }
 
 }

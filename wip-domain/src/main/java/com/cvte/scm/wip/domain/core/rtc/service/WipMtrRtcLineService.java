@@ -4,7 +4,6 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
-import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
@@ -12,6 +11,7 @@ import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.*;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -35,31 +35,33 @@ public class WipMtrRtcLineService {
     private CheckMtrRtcLineService checkMtrRtcLineService;
     private WipMtrSubInvRepository wipMtrSubInvRepository;
     private WipMtrRtcLineRepository wipMtrRtcLineRepository;
+    private WipMtrRtcWriteBackService wipMtrRtcWriteBackService;
 
-    public WipMtrRtcLineService(WipReqItemService wipReqItemService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLineRepository wipMtrRtcLineRepository) {
+    public WipMtrRtcLineService(WipReqItemService wipReqItemService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrSubInvRepository wipMtrSubInvRepository, WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrRtcWriteBackService wipMtrRtcWriteBackService) {
         this.wipReqItemService = wipReqItemService;
         this.checkMtrRtcLineService = checkMtrRtcLineService;
         this.wipMtrSubInvRepository = wipMtrSubInvRepository;
         this.wipMtrRtcLineRepository = wipMtrRtcLineRepository;
+        this.wipMtrRtcWriteBackService = wipMtrRtcWriteBackService;
     }
 
     public List<WipMtrInvQtyCheckVO> batchUpdate(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
         String[] lineIdList = rtcLineBuildVOList.stream().map(WipMtrRtcLineBuildVO::getLineId).toArray(String[]::new);
         // 查询单据行
-        List<WipMtrRtcLineEntity> rtcLineEntityList = WipMtrRtcLineEntity.get().getByLineIds(lineIdList);
-        Map<String, WipMtrRtcLineEntity> rtcLineEntityMap = rtcLineEntityList.stream().collect(Collectors.toMap(WipMtrRtcLineEntity::getUniqueId, Function.identity()));
+        List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByLineIds(lineIdList);
+        Map<String, WipMtrRtcLineEntity> rtcLineMap = rtcLineList.stream().collect(Collectors.toMap(WipMtrRtcLineEntity::getUniqueId, Function.identity()));
 
         // 查询单据头
-        WipMtrRtcHeaderEntity rtcHeaderEntity = getHeader(rtcLineBuildVOList);
-        rtcHeaderEntity.setLineList(rtcLineEntityList);
+        WipMtrRtcHeaderEntity rtcHeader = getHeader(rtcLineBuildVOList);
+        rtcHeader.setLineList(rtcLineList);
         // 查询工单投料信息
-        List<WipReqItemVO> reqItemVOList = getItemVOList(rtcHeaderEntity, rtcLineEntityList);
+        List<WipReqItemVO> reqItemVOList = getItemVOList(rtcHeader, rtcLineList);
         Map<String, WipReqItemVO> reqItemVOMap = reqItemVOList.stream().collect(Collectors.toMap(WipReqItemVO::getKey, Function.identity()));
 
         List<WipMtrInvQtyCheckVO> invQtyCheckVOS = new ArrayList<>();
         for (WipMtrRtcLineBuildVO rtcLineBuildVO : rtcLineBuildVOList) {
-            WipMtrRtcLineEntity rtcLine = rtcLineEntityMap.get(rtcLineBuildVO.getLineId());
-            WipReqItemVO reqItemVO = reqItemVOMap.get(rtcLine.getReqKey(rtcHeaderEntity.getMoId()));
+            WipMtrRtcLineEntity rtcLine = rtcLineMap.get(rtcLineBuildVO.getLineId());
+            WipReqItemVO reqItemVO = reqItemVOMap.get(rtcLine.getReqKey(rtcHeader.getMoId()));
             try {
                 checkMtrRtcLineService.checkInvpNo(rtcLineBuildVO.getInvpNo());
                 // 校验数量下限
@@ -70,10 +72,10 @@ public class WipMtrRtcLineService {
                 checkMtrRtcLineService.checkIssuedQty(rtcLineBuildVO, rtcLine);
                 // 限制数量
                 if (Objects.nonNull(rtcLineBuildVO.getReqQty())) {
-                    checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getReqQty(), reqItemVO, rtcHeaderEntity.getBillType());
+                    checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getReqQty(), reqItemVO, rtcHeader.getBillType());
                 }
                 if (Objects.nonNull(rtcLineBuildVO.getIssuedQty())) {
-                    checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getIssuedQty(), reqItemVO, rtcHeaderEntity.getBillType());
+                    checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getIssuedQty(), reqItemVO, rtcHeader.getBillType());
                 }
             } catch (ParamsIncorrectException pe) {
                 invQtyCheckVOS.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), null, null, pe.getMessage()));
@@ -86,10 +88,10 @@ public class WipMtrRtcLineService {
             return invQtyCheckVOS;
         }
         // 校验现有量
-        invQtyCheckVOS = validateItemInvQty(rtcHeaderEntity);
+        invQtyCheckVOS = validateItemInvQty(rtcHeader);
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
             // 获取物料已申请未过账数量
-            List<WipReqItemVO> unPostReqItemVOList = getReqItem(rtcHeaderEntity, invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getItemId).collect(Collectors.toList()));
+            List<WipReqItemVO> unPostReqItemVOList = getReqItem(rtcHeader, invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getItemId).collect(Collectors.toList()));
             Map<String, BigDecimal> unPostReqItemVOMap = WipReqItemVO.groupUnPostQtyByItemSub(unPostReqItemVOList);
             for (WipMtrInvQtyCheckVO invQtyCheckVO : invQtyCheckVOS) {
                 String subInvKey = BatchProcessUtils.getKey(invQtyCheckVO.getItemId(), invQtyCheckVO.getInvpNo());
@@ -101,8 +103,12 @@ public class WipMtrRtcLineService {
             }
             return invQtyCheckVOS;
         }
-        for (WipMtrRtcLineEntity updateLine : rtcLineEntityList) {
+        for (WipMtrRtcLineEntity updateLine : rtcLineList) {
             wipMtrRtcLineRepository.updateSelectiveById(updateLine);
+        }
+        if (WipMtrRtcHeaderStatusEnum.effective(rtcHeader.getBillStatus())) {
+            // 审核通过或部分过账, 更新后需同步到EBS
+            wipMtrRtcWriteBackService.update(rtcHeader);
         }
         return Collections.emptyList();
     }

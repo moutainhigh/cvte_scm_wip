@@ -10,6 +10,7 @@ import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcWriteBackService;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ import java.util.List;
   */
 @Slf4j
 @Service
+@Transactional(transactionManager = "pgTransactionManager")
 public class WipMtrRtcPostApplication {
 
     private WipMtrRtcLineService wipMtrRtcLineService;
@@ -63,10 +65,10 @@ public class WipMtrRtcPostApplication {
         wipMtrRtcLineService.validateItemInvQty(rtcHeader);
         // 校验行状态
         checkMtrRtcLineService.checkLineCanPost(rtcHeader.getLineList().stream().map(WipMtrRtcLineEntity::getLineId).toArray(String[]::new));
+        // 过账处理
+        wipMtrRtcHeaderService.post(rtcHeader);
         // 提交过账
         wipMtrRtcWriteBackService.post(rtcHeader);
-        // 过账成功处理
-        wipMtrRtcHeaderService.post(rtcHeader);
     }
 
 }

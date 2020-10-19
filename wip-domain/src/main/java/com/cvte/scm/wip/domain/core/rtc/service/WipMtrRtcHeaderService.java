@@ -152,11 +152,11 @@ public class WipMtrRtcHeaderService {
         for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
             if (ListUtil.notEmpty(rtcLine.getAssignList())) {
                 for (WipMtrRtcAssignEntity rtcAssign : rtcLine.getAssignList()) {
-                    WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getIssuedQty());
+                    WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getMtrLotNo(), rtcAssign.getIssuedQty());
                     lotIssuedList.add(lotIssued);
                 }
             } else if (StringUtils.isNotBlank(rtcLine.getMoLotNo())) {
-                WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getIssuedQty());
+                WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getMoLotNo(), rtcLine.getIssuedQty());
                 lotIssuedList.add(lotIssued);
             }
         }

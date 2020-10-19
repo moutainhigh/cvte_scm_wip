@@ -11,7 +11,9 @@ import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
   */
 public interface WipMtrRtcWriteBackService {
 
-    String sync(WipMtrRtcHeaderEntity rtcHeader);
+    String createAndSubmit(WipMtrRtcHeaderEntity rtcHeader);
+
+    String update(WipMtrRtcHeaderEntity rtcHeader);
 
     void syncLineInfo(WipMtrRtcHeaderEntity rtcHeaderEntity);
 

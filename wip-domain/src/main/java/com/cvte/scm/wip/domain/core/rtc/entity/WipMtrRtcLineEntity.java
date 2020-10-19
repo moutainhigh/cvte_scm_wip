@@ -132,6 +132,15 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         return this.assignList;
     }
 
+    public WipMtrRtcLineEntity getById(String lineId) {
+        if (StringUtils.isBlank(lineId)) {
+            throw new ParamsIncorrectException("单据行ID不可为空");
+        }
+        WipMtrRtcLineEntity selectEntity = wipMtrRtcLineRepository.selectById(lineId);
+        this.wiredAfterSelect(selectEntity);
+        return selectEntity;
+    }
+
     public List<WipMtrRtcLineEntity> getByHeaderId(String headerId) {
         List<WipMtrRtcLineEntity> lineList = wipMtrRtcLineRepository.selectByHeaderId(headerId);
         lineList.forEach(this::wiredAfterSelect);

@@ -45,4 +45,8 @@ public enum WipMtrRtcHeaderStatusEnum implements Codeable {
         return cancelableStatus;
     }
 
+    public static boolean effective(String status) {
+        return EFFECTIVE.getCode().equals(status) || POSTING.getCode().equals(status);
+    }
+
 }

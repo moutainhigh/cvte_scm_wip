@@ -91,12 +91,13 @@ public class WipReqLotIssuedEntity extends BaseModel {
         return BatchProcessUtils.getKey(this.organizationId, this.headerId, this.itemNo, this.wkpNo);
     }
 
-    public static WipReqLotIssuedEntity buildForPost(String organizationId, String headerId, String itemNo, String wkpNo, BigDecimal postQty) {
+    public static WipReqLotIssuedEntity buildForPost(String organizationId, String headerId, String itemNo, String wkpNo, String mtrLotNo, BigDecimal postQty) {
         WipReqLotIssuedEntity lotIssued = new WipReqLotIssuedEntity();
         lotIssued.setOrganizationId(organizationId)
                 .setHeaderId(headerId)
                 .setItemNo(itemNo)
                 .setWkpNo(wkpNo)
+                .setMtrLotNo(mtrLotNo)
                 .setPostQty(postQty);
         return lotIssued;
     }
