@@ -74,7 +74,6 @@
                 #{billType}
             </foreach>
         </if>
-          and (wrh.status_type = '1' and date_trunc('day', wrh.mtr_ready_date + '-7 day') <![CDATA[ <= ]]> date_trunc('day', current_timestamp))
         order by rih.enable_date
     </select>
 
