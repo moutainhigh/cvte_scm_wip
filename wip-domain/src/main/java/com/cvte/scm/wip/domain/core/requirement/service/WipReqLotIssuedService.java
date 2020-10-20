@@ -123,7 +123,7 @@ public class WipReqLotIssuedService {
             for (WipReqLotIssuedEntity itemLotIssued : itemLotIssuedList) {
                 WipReqLotIssuedEntity dbLotIssued = dbLotIssuedMap.get(itemLotIssued.getMtrLotNo());
                 if (Objects.isNull(dbLotIssued)) {
-                    throw new ParamsIncorrectException("投料批次%s不存在", itemLotIssued.getMtrLotNo());
+                    throw new ParamsIncorrectException(String.format("投料批次%s不存在", itemLotIssued.getMtrLotNo()));
                 }
                 // 更新未领料和领料数量
                 BigDecimal unissuedQty = this.calculateUnissuedQty(itemLotIssued, dbLotIssued);
