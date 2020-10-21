@@ -157,8 +157,7 @@ public class WipReqLotIssuedService {
         for (WipReqLotIssuedEntity insertEntity : insertList) {
             insertEntity.setIssuedQty(0L)
                     .setUnissuedQty(insertEntity.getAssignQty())
-                    .setLockStatus(YoNEnum.N.getCode())
-                    .setLockType(LotIssuedLockTypeEnum.NONE.getCode());
+                    .setLockType(YoNEnum.Y.getCode().equals(insertEntity.getLockStatus()) ? LotIssuedLockTypeEnum.MANUAL.getCode() : LotIssuedLockTypeEnum.NONE.getCode());
         }
         deleteList.addAll(dbLotIssuedList.stream().filter(lot -> deleteLotSet.contains(lot.getMtrLotNo())).collect(Collectors.toList()));
         if (!updateLotSet.isEmpty()) {
@@ -169,6 +168,11 @@ public class WipReqLotIssuedService {
                 WipReqLotIssuedEntity itemLotIssued = tmpItemLotIssuedMap.get(updateLot);
                 WipReqLotIssuedEntity dbLotIssued = tmpDbLotIssuedMap.get(updateLot);
                 dbLotIssued.setAssignQty(itemLotIssued.getAssignQty());
+                if (!LotIssuedLockTypeEnum.MANUAL.getCode().equals(dbLotIssued.getLockType()) && !itemLotIssued.getLockStatus().equals(dbLotIssued.getLockStatus())) {
+                    // 批次锁定状态变更视为手动变更
+                    dbLotIssued.setLockStatus(itemLotIssued.getLockStatus())
+                            .setLockType(LotIssuedLockTypeEnum.MANUAL.getCode());
+                }
                 updateList.add(dbLotIssued);
             }
         }
