@@ -158,14 +158,14 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
             posNo = "";
         }
 
-        List<String> posNoList = Arrays.stream(posNo.split(splitter)).map(String::trim).collect(Collectors.toList());
+        List<String> posNoList = Arrays.stream(posNo.split(splitter)).map(this::trim).collect(Collectors.toList());
         // 拆分后向上取整, 按顺序分配到位号上
         Map<String, BigDecimal> posItemQtyMap = splitQtyByPos(posNoList, vo.getItemQty(), 0);
         Map<String, BigDecimal> posUnitQtyMap = splitQtyByPos(posNoList, vo.getItemUnitQty(), 8);
         for (String splitPosNo : posNoList) {
             ChangeBillDetailBuildVO splitDetailBuildVo = new ChangeBillDetailBuildVO();
             BeanUtils.copyProperties(vo, splitDetailBuildVo);
-            splitDetailBuildVo.setPosNo(StringUtils.isBlank(splitPosNo) ? null : splitPosNo.trim())
+            splitDetailBuildVo.setPosNo(StringUtils.isBlank(splitPosNo) ? null : this.trim(splitPosNo))
                     .setItemQty(posItemQtyMap.get(splitPosNo))
                     .setItemUnitQty(posUnitQtyMap.get(splitPosNo));
 
@@ -197,6 +197,13 @@ public class SourceChangeBillServiceImpl implements SourceChangeBillService {
             remainQty = remainQty.subtract(allocateQty);
         }
         return posQtyMap;
+    }
+
+    private String trim(String origin) {
+        if (Objects.isNull(origin)) {
+            return null;
+        }
+        return origin.replaceAll("(^\\h*)|(\\h*$)","");
     }
 
 }
