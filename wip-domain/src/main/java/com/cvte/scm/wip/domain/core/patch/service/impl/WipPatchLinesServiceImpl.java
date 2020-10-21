@@ -147,7 +147,7 @@ public class WipPatchLinesServiceImpl implements WipPatchLinesService {
                     }
                 }
                 historyList.add(new WipPatchHistoryEntity().setCrtDate(new Date()).setBillId(wipPatchEntity.getBillId()).setCrtUser(userId).setItemId(v.getItemId()).setItemCode(v.getItemCode()).setHistory("新建"));
-                v.setBillId(wipPatchEntity.getBillId());
+                v.setBillId(wipPatchEntity.getBillId()).setIsShow("1");
                 wipPatchLinesRepository.insertSelective(v);
             });
             // 2.通用补料单
@@ -165,7 +165,7 @@ public class WipPatchLinesServiceImpl implements WipPatchLinesService {
             }
             entityList.forEach(v->{
                 historyList.add(new WipPatchHistoryEntity().setCrtDate(new Date()).setBillId(wipPatchEntity.getBillId()).setCrtUser(userId).setItemId(v.getItemId()).setItemCode(v.getItemCode()).setHistory("新建"));
-                v.setBillId(wipPatchEntity.getBillId());
+                v.setBillId(wipPatchEntity.getBillId()).setIsShow("1");
                 wipPatchLinesRepository.insertSelective(v);
             });
 
