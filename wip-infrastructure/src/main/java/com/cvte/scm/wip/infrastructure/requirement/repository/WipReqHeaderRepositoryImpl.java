@@ -103,7 +103,8 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
     @Override
     public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId, List<ScmLotControlVO> scmLotControlVOList) {
-        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectAddedData(organizationIdList, factoryId, scmLotControlVOList);
+        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectDelivered(organizationIdList, factoryId);
+        headerDOList.addAll(wipReqHeaderMapper.selectUndelivered(organizationIdList, factoryId, scmLotControlVOList));
         return WipReqHeaderDO.batchBuildEntity(headerDOList);
     }
 
