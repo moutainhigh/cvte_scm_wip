@@ -1,8 +1,12 @@
 package com.cvte.scm.wip.controller.requirement.job;
 
+import com.cvte.csb.base.commons.OperatingUser;
+import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.app.req.ins.confirm.ReqInsConfirmApplication;
+import com.cvte.scm.wip.common.constants.CommonUserConstant;
+import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.IJobHandler;
@@ -57,7 +61,11 @@ public class ReqInsAutoConfirmJobHandler extends IJobHandler {
         if (ListUtil.empty(insHeaderIdList)) {
             msg = "暂无需自动执行的更改单";
         } else {
+            // 原本自动填充的更改用户SCM-WIP会被WIP->EBS同步的存储过程过滤掉, 所以需要其他的自动设置用户
+            OperatingUser operatingUser = CurrentContextUtils.createOperatingUser(CommonUserConstant.AUTORUN);
+            CurrentContext.setCurrentOperatingUser(operatingUser);
             msg = reqInsConfirmApplication.doAction(insHeaderIdList.toArray(new String[0]));
+            CurrentContext.destroy();
         }
 
         returnT.setMsg(msg);
