@@ -53,8 +53,6 @@ public class CheckReqLotIssuedService {
 
         WipReqLotIssuedEntity randomEntity = itemLotIssuedList.get(0);
         String organizationId = randomEntity.getOrganizationId();
-        // 工厂ID
-        String factoryId = getFactoryId(randomEntity.getHeaderId());
         // 物料ID
         String itemId = scmItemService.getItemId(randomEntity.getItemNo());
         if (Objects.isNull(itemId)) {
@@ -63,13 +61,13 @@ public class CheckReqLotIssuedService {
         // 物料批次
         String[] lotNumbers = itemLotIssuedList.stream().map(WipReqLotIssuedEntity::getMtrLotNo).toArray(String[]::new);
 
-        List<WipMtrSubInvVO> mtrSubInvVOList = this.getMtrSubInv(organizationId, factoryId, itemId, lotNumbers);
+        List<WipMtrSubInvVO> mtrSubInvVOList = this.getMtrSubInv(organizationId, null, itemId, lotNumbers);
 
         Set<String> itemLotSet = itemLotIssuedList.stream().map(WipReqLotIssuedEntity::getMtrLotNo).collect(Collectors.toSet());
         Set<String> invLotSet = mtrSubInvVOList.stream().map(WipMtrSubInvVO::getLotNumber).collect(Collectors.toSet());
         itemLotSet.removeIf(invLotSet::contains);
         if (CollectionUtils.isNotEmpty(itemLotSet)) {
-            List<WipMtrSubInvVO> lotOnHandList = wipLotOnHandService.getOnHand(organizationId, factoryId, itemId, itemLotSet.toArray(new String[0]));
+            List<WipMtrSubInvVO> lotOnHandList = wipLotOnHandService.getOnHand(organizationId, null, itemId, itemLotSet.toArray(new String[0]));
             Set<String> lotOnHandSet = lotOnHandList.stream().map(WipMtrSubInvVO::getLotNumber).collect(Collectors.toSet());
             itemLotSet.removeIf(lotOnHandSet::contains);
             if (CollectionUtils.isNotEmpty(itemLotSet)) {
@@ -104,21 +102,12 @@ public class CheckReqLotIssuedService {
         for (String lotNumber : lotNumbers) {
             WipMtrSubInvVO mtrSubInvVO = new WipMtrSubInvVO();
             mtrSubInvVO.setOrganizationId(organizationId)
-                    .setFactoryId(factoryId)
+                    .setFactoryId(null)
                     .setInventoryItemId(itemId)
                     .setLotNumber(lotNumber);
             queryList.add(mtrSubInvVO);
         }
         return wipMtrSubInvRepository.selectByVO(queryList);
-    }
-
-    private String getFactoryId(String wipEntityId) {
-        // 获取工厂
-        WipReqHeaderEntity reqHeaderEntity = wipReqHeaderService.getByHeaderId(wipEntityId);
-        if (Objects.isNull(reqHeaderEntity)) {
-            throw new ParamsIncorrectException(String.format("找不到ID为%s的工单", wipEntityId));
-        }
-        return reqHeaderEntity.getFactoryId();
     }
 
 }
