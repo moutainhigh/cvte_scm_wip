@@ -30,6 +30,7 @@ public enum WipMtrRtcHeaderStatusEnum implements Codeable {
     private String code, desc;
 
     private static final Collection<WipMtrRtcHeaderStatusEnum> cancelableStatus;
+    private static final Collection<WipMtrRtcHeaderStatusEnum> unCompleteStatus;
 
     static {
         Set<WipMtrRtcHeaderStatusEnum> cancelableStatusSet = new HashSet<>();
@@ -38,11 +39,20 @@ public enum WipMtrRtcHeaderStatusEnum implements Codeable {
         cancelableStatusSet.add(EFFECTIVE);
         cancelableStatusSet.add(WITHDRAW);
         cancelableStatus = cancelableStatusSet;
+
+        Set<WipMtrRtcHeaderStatusEnum> unCompleteStatusSet = new HashSet<>(cancelableStatusSet);
+        unCompleteStatusSet.add(POSTING);
+        unCompleteStatus = unCompleteStatusSet;
     }
 
     // 获取未过账状态集合
     public static Collection<WipMtrRtcHeaderStatusEnum> getCancelableStatus() {
         return cancelableStatus;
+    }
+
+    // 获取未完成状态集合
+    public static Collection<WipMtrRtcHeaderStatusEnum> getUnCompleteStatus() {
+        return unCompleteStatus;
     }
 
     public static boolean effective(String status) {

@@ -142,8 +142,6 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
     public void create(WipMtrRtcHeaderBuildVO headerBuildVO) {
         this.setHeaderId(UUIDUtils.get32UUID())
                 .setOrganizationId(headerBuildVO.getOrganizationId())
-                // 流水单据号
-                .setBillNo(serialNoGenerationService.getNextSerialNumberByCode(SERIAL_CODE))
                 .setBillType(headerBuildVO.getBillType())
                 .setMoId(headerBuildVO.getMoId())
                 .setWkpNo(headerBuildVO.getWkpNo())
@@ -154,8 +152,6 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
                 .setInvpNo(headerBuildVO.getInvpNo())
                 .setSourceBillNo(headerBuildVO.getSourceBillNo())
                 .setBillStatus(DRAFT.getCode());
-        EntityUtils.writeStdCrtInfoToEntity(this, EntityUtils.getWipUserId());
-        wipMtrRtcHeaderRepository.insert(this);
     }
 
     public void update(WipMtrRtcHeaderBuildVO headerBuildVO) {
@@ -167,8 +163,18 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
                 .setDeptNo(headerBuildVO.getDeptNo())
                 .setRemark(headerBuildVO.getRemark())
                 .setSourceBillNo(headerBuildVO.getSourceBillNo());
-        EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
-        wipMtrRtcHeaderRepository.updateSelectiveById(this);
+    }
+
+    public void save(boolean isCreate) {
+        if (isCreate) {
+            // 流水单据号
+            this.setBillNo(serialNoGenerationService.getNextSerialNumberByCode(SERIAL_CODE));
+            EntityUtils.writeStdCrtInfoToEntity(this, EntityUtils.getWipUserId());
+            wipMtrRtcHeaderRepository.insert(this);
+        } else {
+            EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
+            wipMtrRtcHeaderRepository.updateSelectiveById(this);
+        }
     }
 
     public void update() {

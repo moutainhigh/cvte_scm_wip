@@ -73,54 +73,44 @@ public class WipMtrRtcHeaderService {
         // 校验数量
         checkMtrRtcHeaderService.checkBillQtyUpper(wipMtrRtcHeaderBuildVO.getBillQty(), BigDecimal.valueOf(reqHeaderEntity.getBillQty()));
 
-        WipMtrRtcHeaderEntity rtcHeaderEntity;
+        WipMtrRtcHeaderEntity rtcHeader;
         boolean isCreate = true;
         if (StringUtils.isBlank(wipMtrRtcHeaderBuildVO.getHeaderId())) {
             // headerId为空, 生成新的单据
-            rtcHeaderEntity = WipMtrRtcHeaderEntity.get();
-            rtcHeaderEntity.create(wipMtrRtcHeaderBuildVO);
-            wipMtrRtcHeaderBuildVO.setHeaderId(rtcHeaderEntity.getHeaderId());
+            rtcHeader = WipMtrRtcHeaderEntity.get();
+            rtcHeader.create(wipMtrRtcHeaderBuildVO);
+            wipMtrRtcHeaderBuildVO.setHeaderId(rtcHeader.getHeaderId());
             // 生成单据行
-            rtcHeaderEntity.generateLines(reqItemVOList);
+            rtcHeader.generateLines(reqItemVOList);
         } else {
             // 刷新单据
             // 校验领料套数
             checkMtrRtcHeaderService.checkBillQtyLower(wipMtrRtcHeaderBuildVO.getBillQty());
 
-            rtcHeaderEntity = WipMtrRtcHeaderEntity.get().getById(wipMtrRtcHeaderBuildVO.getHeaderId());
-            if (needRefreshLines(wipMtrRtcHeaderBuildVO, rtcHeaderEntity)) {
+            rtcHeader = WipMtrRtcHeaderEntity.get().getById(wipMtrRtcHeaderBuildVO.getHeaderId());
+            if (needRefreshLines(wipMtrRtcHeaderBuildVO, rtcHeader)) {
                 // 若关键信息变更, 则需要重新生成单据行
-                rtcHeaderEntity.invalidLines();
-                rtcHeaderEntity.generateLines(reqItemVOList);
+                rtcHeader.invalidLines();
+                rtcHeader.generateLines(reqItemVOList);
             } else {
                 isCreate = false;
                 // 更新子库
-                if (StringUtils.isNotBlank(wipMtrRtcHeaderBuildVO.getInvpNo()) && !wipMtrRtcHeaderBuildVO.getInvpNo().equals(rtcHeaderEntity.getInvpNo())) {
-                    rtcHeaderEntity.getLineList().forEach(line -> line.setInvpNo(wipMtrRtcHeaderBuildVO.getInvpNo()));
+                if (StringUtils.isNotBlank(wipMtrRtcHeaderBuildVO.getInvpNo()) && !wipMtrRtcHeaderBuildVO.getInvpNo().equals(rtcHeader.getInvpNo())) {
+                    rtcHeader.getLineList().forEach(line -> line.setInvpNo(wipMtrRtcHeaderBuildVO.getInvpNo()));
                 }
             }
             // 更新单据头
-            rtcHeaderEntity.update(wipMtrRtcHeaderBuildVO);
+            rtcHeader.update(wipMtrRtcHeaderBuildVO);
         }
         // 调整单据行
-        rtcHeaderEntity.adjustLines(wipMtrRtcHeaderBuildVO, reqItemVOList);
+        rtcHeader.adjustLines(wipMtrRtcHeaderBuildVO, reqItemVOList);
 
-        if (CollectionUtils.isEmpty(rtcHeaderEntity.getLineList().stream().map(WipMtrRtcLineEntity::getLineStatus).filter(WipMtrRtcLineStatusEnum.getUnPostStatus()::contains).collect(Collectors.toSet()))) {
-            // 有效行为空
-            String errMsg;
-            WipMtrRtcHeaderTypeEnum typeEnum = CodeableEnumUtils.getCodeableEnumByCode(rtcHeaderEntity.getBillType(), WipMtrRtcHeaderTypeEnum.class);
-            if (StringUtils.isNotBlank(rtcHeaderEntity.getWkpNo())) {
-                errMsg = "所选工序物料已%s完成";
-            } else {
-                errMsg = "工单物料已%s完成";
-            }
-            errMsg = String.format(errMsg, Optional.ofNullable(typeEnum).orElse(WipMtrRtcHeaderTypeEnum.RECEIVE).getDesc());
-            throw new ParamsIncorrectException(errMsg);
-        }
+        checkMtrRtcHeaderService.checkReqFinished(rtcHeader);
         // 保存单据
-        rtcHeaderEntity.saveLines(isCreate);
+        rtcHeader.save(isCreate);
+        rtcHeader.saveLines(isCreate);
 
-        return rtcHeaderEntity.getHeaderId();
+        return rtcHeader.getHeaderId();
     }
 
     public void post(WipMtrRtcHeaderEntity rtcHeader) {
