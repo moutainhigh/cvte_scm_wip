@@ -21,13 +21,10 @@ public interface WipMtrSubInvMapper extends CommonMapper<WipMtrSubInvVO> {
      * @since 2020/9/21 4:35 下午
      * @author xueyuting
      */
-    List<WipMtrSubInvVO> selectLotControl(@Param("organizationId") String organizationId, @Param("factoryId") String factoryId, @Param("itemId") String itemId, @Param("subinventoryCode") String subinventoryCode);
-
-    /**
-     * 启用批次管控但无领料批次, 直接获取可用量
-     * @since 2020/9/21 4:37 下午
-     * @author xueyuting
-     */
-    List<WipMtrSubInvVO> selectWeakControl(@Param("organizationId") String organizationId, @Param("factoryId") String factoryId, @Param("itemId") String itemId, @Param("subinventoryCode") String subinventoryCode);
+    List<WipMtrSubInvVO> selectLotControl(@Param("organizationId") String organizationId,
+                                          @Param("factoryId") String factoryId,
+                                          @Param("itemId") String itemId,
+                                          @Param("subinventoryCode") String subinventoryCode,
+                                          @Param("moId") String moId);
 
 }

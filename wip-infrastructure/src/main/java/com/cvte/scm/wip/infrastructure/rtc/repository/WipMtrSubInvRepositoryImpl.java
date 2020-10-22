@@ -29,13 +29,8 @@ public class WipMtrSubInvRepositoryImpl implements WipMtrSubInvRepository {
     }
 
     @Override
-    public List<WipMtrSubInvVO> selectLotControl(String organizationId, String factoryId, String itemId, String subinventoryCode) {
-        return wipMtrSubInvMapper.selectLotControl(organizationId, factoryId, itemId, subinventoryCode);
-    }
-
-    @Override
-    public List<WipMtrSubInvVO> selectWeakControl(String organizationId, String factoryId, String itemId, String subinventoryCode) {
-        return wipMtrSubInvMapper.selectWeakControl(organizationId, factoryId, itemId, subinventoryCode);
+    public List<WipMtrSubInvVO> selectInvLot(String organizationId, String factoryId, String itemId, String subinventoryCode, String moId) {
+        return wipMtrSubInvMapper.selectLotControl(organizationId, factoryId, itemId, subinventoryCode, moId);
     }
 
 }

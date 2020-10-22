@@ -46,46 +46,29 @@
              , wrh.factory_id
              , siq.factory_no
              , siq.subinventory_code
-             , mi.inventory_item_id
-             , rli.mtr_lot_no as lot_number
+             , siq.inventory_item_id
+             , siq.lot_number              as lot_number
              , siq.first_stockin_date
              , siq.supply_qty
-             , rli.assign_qty as item_qty
-             , rli.issued_qty as item_issued_qty
-        from wip_req_lot_issued rli
-        inner join scm.md_item mi
-            on rli.item_no = mi.item_code
-        inner join wip_req_header wrh
-            on rli.header_id = wrh.header_id
-        left join wip_mtr_sub_inv_qty_v siq
-            on wrh.organization_id = siq.organization_id
-           and wrh.factory_id = siq.factory_id
-           and rli.mtr_lot_no = siq.lot_number
-           and mi.inventory_item_id = siq.inventory_item_id
-        <if test="subinventoryCode != null and subinventoryCode.length() > 0">
-            and siq.subinventory_code = #{subinventoryCode}
-        </if>
-        where wrh.organization_id = #{organizationId}
-          and wrh.factory_id = #{factoryId}
-          and mi.inventory_item_id = #{itemId}
-    </select>
-
-    <select id="selectWeakControl" resultType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
-        select siq.organization_id,
-               siq.factory_id,
-               siq.factory_no,
-               siq.subinventory_code,
-               siq.inventory_item_id,
-               siq.lot_number,
-               siq.first_stockin_date,
-               siq.supply_qty
+             , coalesce(rli.assign_qty, 0) as item_qty
+             , coalesce(rli.issued_qty, 0) as item_issued_qty
         from wip_mtr_sub_inv_qty_v siq
+        inner join scm.md_item mi
+            on siq.inventory_item_id = mi.inventory_item_id
+        inner join wip_req_header wrh
+            on siq.organization_id = wrh.organization_id
+                and siq.factory_id = wrh.factory_id
+        left join wip_req_lot_issued rli
+            on siq.lot_number = rli.mtr_lot_no
+                and wrh.header_id = rli.header_id
+                and rli.status = '110'
         where siq.organization_id = #{organizationId}
           and siq.factory_id = #{factoryId}
           and siq.inventory_item_id = #{itemId}
-          and siq.lot_number is not null
           <if test="subinventoryCode != null and subinventoryCode.length() > 0">
-            and siq.subinventory_code = #{subinventoryCode}
+          and siq.subinventory_code = #{subinventoryCode}
           </if>
+          and wrh.header_id = #{moId}
     </select>
+
 </mapper>

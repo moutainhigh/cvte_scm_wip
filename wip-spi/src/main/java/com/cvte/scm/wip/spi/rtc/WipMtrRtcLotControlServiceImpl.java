@@ -23,6 +23,7 @@ import com.cvte.scm.wip.infrastructure.boot.config.api.BsmApiInfoConfiguration;
 import com.cvte.scm.wip.spi.subrule.dto.ApsResponse;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -69,24 +70,27 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
     @Override
     public List<WipMtrSubInvVO> getItemLot(String organizationId, String factoryId, String itemId, String moId, String subinventoryCode) {
         List<WipMtrSubInvVO> mtrSubInvVOList;
-        String lotControlType = WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode();
 
-        // 强管控
-        mtrSubInvVOList = wipMtrSubInvRepository.selectLotControl(organizationId, factoryId, itemId, subinventoryCode);
-        if (ListUtil.notEmpty(mtrSubInvVOList)) {
-            // 是否配置批次强管控
-            List<String> configItemList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
-            if (ListUtil.notEmpty(configItemList)) {
-                lotControlType = WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode();
+        // 获取库存现有量及工单物料批次
+        mtrSubInvVOList = wipMtrSubInvRepository.selectInvLot(organizationId, factoryId, itemId, subinventoryCode, moId);
+        for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
+            if (BigDecimal.ZERO.equals(mtrSubInvVO.getItemQty())) {
+                // 弱管控, 暂时不考虑这种场景, 默认批次需求数量为0
+                mtrSubInvVO.setLotControlType(WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode());
+            } else {
+                // 成品批次管控
+                mtrSubInvVO.setLotControlType(WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode());
             }
-        } else {
-            // 弱管控
-            mtrSubInvVOList = wipMtrSubInvRepository.selectWeakControl(organizationId, factoryId, itemId, subinventoryCode);
-            lotControlType = WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode();
         }
 
-        for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
-            mtrSubInvVO.setLotControlType(lotControlType);
+        // 配置强批次管控
+        List<String> configItemIdList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
+        if (ListUtil.notEmpty(configItemIdList)) {
+            for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
+                if (configItemIdList.contains(mtrSubInvVO.getInventoryItemId())) {
+                    mtrSubInvVO.setLotControlType(WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode());
+                }
+            }
         }
         return mtrSubInvVOList;
     }
@@ -97,16 +101,19 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
     }
 
     private List<String> getForceControlLot(String organizationId, String moId, List<String> itemIdList) {
+        // 获取产品小分类
         String productMinClass = getProductMinClass(organizationId, moId);
+        // 配置了批次强管控的产品
         List<ScmLotControlVO> lotControlVOList = this.getWipLotControlConfig();
+        // 判断产品是否强管控
         List<ScmLotControlVO> filteredControlList = lotControlVOList.stream().filter(vo -> productMinClass.equals(vo.getProductClass())).collect(Collectors.toList());
         if (ListUtil.empty(filteredControlList)) {
             return Collections.emptyList();
         }
         List<String> controlItemMinClassList = filteredControlList.stream().map(ScmLotControlVO::getMtrClass).collect(Collectors.toList());
 
+        // 筛选强管控的物料
         List<ScmItemEntity> itemEntityList = scmItemService.getByItemIds(organizationId, itemIdList);
-
         return itemEntityList.stream()
                 .filter(item -> controlItemMinClassList.contains(item.getRdMinClassCode()))
                 .map(ScmItemEntity::getItemId)
@@ -130,6 +137,11 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
         return response.getData();
     }
 
+    /**
+     * 获取工单产品最小分类
+     * @since 2020/10/22 4:47 下午
+     * @author xueyuting
+     */
     private String getProductMinClass(String organizationId, String moId) {
         WipReqHeaderEntity reqHeaderEntity = wipReqHeaderService.getBySourceId(moId);
         ScmItemEntity scmItemEntity = scmItemService.getByItemIds(organizationId, Collections.singletonList(reqHeaderEntity.getProductId())).get(0);

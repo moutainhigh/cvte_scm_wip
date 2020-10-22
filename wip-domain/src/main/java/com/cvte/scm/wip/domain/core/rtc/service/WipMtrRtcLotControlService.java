@@ -25,6 +25,11 @@ public interface WipMtrRtcLotControlService {
 
     List<WipMtrSubInvVO> getItemLot(String organizationId, String factoryId, String itemId, String moId, String subinventoryCode);
 
+    /**
+     * 获取配置了批次强管控的产品
+     * @since 2020/10/22 4:48 下午
+     * @author xueyuting
+     */
     List<ScmLotControlVO> getWipLotControlConfig();
 
 }

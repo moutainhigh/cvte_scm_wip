@@ -16,17 +16,10 @@ public interface WipMtrSubInvRepository {
     List<WipMtrSubInvVO> selectByVO(List<WipMtrSubInvVO> subInvVOList);
 
     /**
-     * 强管控批次
+     * 获取库存批次现有量及工单物料批次
      * @since 2020/9/21 4:35 下午
      * @author xueyuting
      */
-    List<WipMtrSubInvVO> selectLotControl(String organizationId, String factoryId, String itemId, String subinventoryCode);
-
-    /**
-     * 启用批次管控但无领料批次, 直接获取可用量
-     * @since 2020/9/21 4:37 下午
-     * @author xueyuting
-     */
-    List<WipMtrSubInvVO> selectWeakControl(String organizationId, String factoryId, String itemId, String subinventoryCode);
+    List<WipMtrSubInvVO> selectInvLot(String organizationId, String factoryId, String itemId, String subinventoryCode, String moId);
 
 }
