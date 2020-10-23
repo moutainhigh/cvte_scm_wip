@@ -1,5 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -89,6 +91,12 @@ public class WipReqLotIssuedEntity extends BaseModel {
 
     public String getItemKey() {
         return BatchProcessUtils.getKey(this.organizationId, this.headerId, this.itemNo, this.wkpNo);
+    }
+
+    public void checkItemKey() {
+        if (StringUtils.isBlank(this.organizationId) || StringUtils.isBlank(this.headerId) || StringUtils.isBlank(this.itemNo) || StringUtils.isBlank(this.wkpNo)) {
+            throw new ParamsIncorrectException("主键不可为空");
+        }
     }
 
     public static WipReqLotIssuedEntity buildForPost(String organizationId, String headerId, String itemNo, String wkpNo, String mtrLotNo, BigDecimal postQty) {

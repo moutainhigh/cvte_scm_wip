@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.requirement.service;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
@@ -137,6 +138,19 @@ public class WipReqLotIssuedService {
             EntityUtils.writeStdUpdInfoToEntity(updateEntity, EntityUtils.getWipUserId());
         }
         wipReqLotIssuedRepository.updateList(updateList);
+    }
+
+    public void delete(WipReqLotIssuedEntity reqLotIssued) {
+        reqLotIssued.checkItemKey();
+        reqLotIssued.setStatus(StatusEnum.NORMAL.getCode());
+        List<WipReqLotIssuedEntity> deleteEntityList = wipReqLotIssuedRepository.selectList(reqLotIssued);
+        if (ListUtil.notEmpty(deleteEntityList)) {
+            for (WipReqLotIssuedEntity deleteEntity : deleteEntityList) {
+                deleteEntity.setStatus(StatusEnum.CLOSE.getCode());
+                EntityUtils.writeStdUpdInfoToEntity(deleteEntity, EntityUtils.getWipUserId());
+            }
+            wipReqLotIssuedRepository.updateList(deleteEntityList);
+        }
     }
 
     private List<WipReqLotIssuedEntity> getByItemKey(String organizationId, String headerId, String itemNo, String wkpNo) {

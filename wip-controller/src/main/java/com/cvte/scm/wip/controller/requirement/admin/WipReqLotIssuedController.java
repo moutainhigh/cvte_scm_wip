@@ -4,6 +4,7 @@ import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.req.lot.ReqLotIssuedLockApplication;
 import com.cvte.scm.wip.app.req.lot.ReqLotIssuedSaveApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -27,10 +28,12 @@ public class WipReqLotIssuedController {
 
     private ReqLotIssuedSaveApplication reqLotIssuedSaveApplication;
     private ReqLotIssuedLockApplication reqLotIssuedLockApplication;
+    private WipReqLotIssuedService wipReqLotIssuedService;
 
-    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication) {
+    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication, WipReqLotIssuedService wipReqLotIssuedService) {
         this.reqLotIssuedSaveApplication = reqLotIssuedSaveApplication;
         this.reqLotIssuedLockApplication = reqLotIssuedLockApplication;
+        this.wipReqLotIssuedService = wipReqLotIssuedService;
     }
 
     @PostMapping("/save_all")
@@ -42,6 +45,12 @@ public class WipReqLotIssuedController {
     @PostMapping("/lock")
     public RestResponse lock(@RequestBody String[] idArr) {
         reqLotIssuedLockApplication.doAction(idArr);
+        return new RestResponse();
+    }
+
+    @PostMapping("/delete")
+    public RestResponse delete(@RequestBody WipReqLotIssuedEntity reqLotIssued) {
+        wipReqLotIssuedService.delete(reqLotIssued);
         return new RestResponse();
     }
 
