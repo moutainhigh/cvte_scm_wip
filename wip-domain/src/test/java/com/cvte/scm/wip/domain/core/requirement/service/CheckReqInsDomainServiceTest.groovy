@@ -42,13 +42,29 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         ie.getMessage() == "投料行不存在或用量为空"
     }
 
-    def "one of lines is issued"() {
+    def "change qty equals to unissued qty"() {
         given:
         def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
-                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1")])
+                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("100"))])
         def reqLineList = [
-                new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode()),
+                new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode(), reqQty: 100, issuedQty: null),
                 new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), reqQty: 100, issuedQty: 100)
+        ]
+        def reqLineMap = new HashMap()
+        reqLineMap.put("detail1", reqLineList)
+        when:
+        checkReqInsDomainService.checkLineStatus(reqIns, reqLineMap)
+        then:
+        notThrown()
+    }
+
+    def "change qty equals smaller than unissued qty"() {
+        given:
+        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
+                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("100"))])
+        def reqLineList = [
+                new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode(), reqQty: 100, issuedQty: 75),
+                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), reqQty: 100, issuedQty: 75)
         ]
         def reqLineMap = new HashMap()
         reqLineMap.put("detail1", reqLineList)
@@ -57,6 +73,24 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         then:
         ServerException ie = thrown()
         ie.getMessage() == ReqInsErrEnum.TARGET_LINE_ISSUED.desc
+    }
+
+    def "change qty equals bigger than unissued qty"() {
+        given:
+        // user issued lot_2, but want to change lot_3H
+        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
+                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("200"))])
+        def reqLineList = [
+                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", reqQty: 100, issuedQty: 40),
+                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_2", reqQty: 200, issuedQty: 80),
+                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_3H", reqQty: 200, issuedQty: 80)
+        ]
+        def reqLineMap = new HashMap()
+        reqLineMap.put("detail1", reqLineList)
+        when:
+        checkReqInsDomainService.checkLineStatus(reqIns, reqLineMap)
+        then:
+        notThrown()
     }
 
     def "replace and qty is null"() {

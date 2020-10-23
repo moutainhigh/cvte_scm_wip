@@ -111,7 +111,6 @@ public class CheckReqInsDomainService implements DomainService {
     /**
      * 已领料/已关闭不允许变更
      *
-     * @param
      * @author xueyuting
      * @since 2020/5/28 11:03 上午
      */
@@ -128,10 +127,7 @@ public class CheckReqInsDomainService implements DomainService {
             }
             List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
             try {
-//                if (ChangeBillRecycleEnum.RECYCLE.getCode().equals(detailEntity.getIssueFlag())) {
-                    // 仅当 回收发料 时需要校验是否已领料
                 this.validateTargetLineIssued(reqLineList, detailEntity.getItemQty());
-//                }
             } catch (ServerException se) {
                 validateFailed = true;
                 detailEntity.setExecuteResult(se.getMessage());
@@ -143,16 +139,13 @@ public class CheckReqInsDomainService implements DomainService {
     }
 
     private void validateTargetLineIssued(List<WipReqLineEntity> reqLineList, BigDecimal changeQty) {
-        for (WipReqLineEntity reqLine : reqLineList) {
-            // 状态为领料 或者 领料数量大于0, 认为已领料
-            boolean isIssued = BillStatusEnum.ISSUED.getCode().equals(reqLine.getLineStatus()) || (Objects.nonNull(reqLine.getIssuedQty()) && reqLine.getIssuedQty() > 0);
-            if (isIssued) {
-                int canChangeQty = Optional.ofNullable(reqLine.getReqQty()).orElse(0) - reqLine.getIssuedQty();
-                boolean enoughChangeQty = Objects.nonNull(changeQty) && canChangeQty >= changeQty.intValue();
-                if (enoughChangeQty) {
-                    // 已领料, 但是更改数量 < (需求数量-领料数量)(即可更改数量) 时 允许变更
-                    continue;
-                }
+        boolean issuedFlag = reqLineList.stream().map(WipReqLineEntity::getLineStatus).anyMatch(status -> BillStatusEnum.ISSUED.getCode().equals(status));
+        int issuedQty = reqLineList.stream().mapToInt(line -> Optional.ofNullable(line.getIssuedQty()).orElse(0)).sum();
+        if (issuedFlag || issuedQty > 0) {
+            int reqQty = reqLineList.stream().mapToInt(line -> Optional.ofNullable(line.getReqQty()).orElse(0)).sum();
+            boolean enoughChangeQty = Objects.nonNull(changeQty) && (reqQty - issuedQty) >= changeQty.intValue();
+            if (!enoughChangeQty) {
+                // 未领料数量 < 变更数量 时无法变更数量
                 throw new ServerException(ReqInsErrEnum.TARGET_LINE_ISSUED.getCode(), ReqInsErrEnum.TARGET_LINE_ISSUED.getDesc());
             }
         }
