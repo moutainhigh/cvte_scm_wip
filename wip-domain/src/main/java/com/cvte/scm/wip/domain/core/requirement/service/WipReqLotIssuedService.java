@@ -181,11 +181,11 @@ public class WipReqLotIssuedService {
                 // 更新领料批次
                 WipReqLotIssuedEntity itemLotIssued = tmpItemLotIssuedMap.get(updateLot);
                 WipReqLotIssuedEntity dbLotIssued = tmpDbLotIssuedMap.get(updateLot);
-                dbLotIssued.setAssignQty(itemLotIssued.getAssignQty());
+                dbLotIssued.setAssignQty(itemLotIssued.getAssignQty())
+                        .setLockStatus(itemLotIssued.getLockStatus());
                 if (!LotIssuedLockTypeEnum.MANUAL.getCode().equals(dbLotIssued.getLockType()) && !itemLotIssued.getLockStatus().equals(dbLotIssued.getLockStatus())) {
                     // 批次锁定状态变更视为手动变更
-                    dbLotIssued.setLockStatus(itemLotIssued.getLockStatus())
-                            .setLockType(LotIssuedLockTypeEnum.MANUAL.getCode());
+                    dbLotIssued.setLockType(LotIssuedLockTypeEnum.MANUAL.getCode());
                 }
                 updateList.add(dbLotIssued);
             }
