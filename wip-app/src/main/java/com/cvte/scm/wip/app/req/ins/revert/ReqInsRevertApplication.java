@@ -75,7 +75,7 @@ public class ReqInsRevertApplication {
             undoInsHeader.revertIns();
 
             Map<String, List<WipReqLineEntity>> reqLineMap = checkReqInsDomainService.validAndGetLine(undoInsHeader);
-            checkReqInsDomainService.checkLineStatus(undoInsHeader, reqLineMap);
+            checkReqInsDomainService.checkLineStatus(undoInsHeader);
 
             List<WipReqLineEntity> reqLineList = undoInsHeader.parse(reqLineMap);
 

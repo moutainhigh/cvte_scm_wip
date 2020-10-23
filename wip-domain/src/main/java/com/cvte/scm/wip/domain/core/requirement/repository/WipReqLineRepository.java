@@ -64,4 +64,6 @@ public interface WipReqLineRepository {
      */
     List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, String dimensionId, List<String> outRangeItemNoList);
 
+    List<WipReqLineEntity> selectByItemDim(String organizationId, String headerId, String wkpNo, String itemKey);
+
 }
