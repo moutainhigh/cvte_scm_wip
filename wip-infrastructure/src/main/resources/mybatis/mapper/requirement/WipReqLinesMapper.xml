@@ -162,6 +162,29 @@
         </if>
     </insert>
 
+    <select id="selectByItemDim" resultType="com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity">
+        select wrl.organization_id
+             , wrl.header_id
+             , wrl.wkp_no
+             , wrl.item_id
+             , wrl.item_no
+             , max(case
+                       when wrl.line_status <![CDATA[ <> ]]> '35'
+                           then '20'
+                       else wrl.line_status end) as line_status
+             , sum(wrl.req_qty)                       as req_qty
+             , sum(wrl.issued_qty)                    as issued_qty
+        from wip_req_lines wrl
+        where wrl.organization_id = #{organizationId}
+        and wrl.header_id = #{headerId}
+        and (wrl.item_id = #{itemKey} or wrl.item_no = #{itemKey})
+        <if test="wkpNo != null and wkpNo.length() > 0">
+            and wrl.wkp_no = #{wkpNo}
+        </if>
+        and wrl.line_status <![CDATA[ <> ]]> '50'
+        group by wrl.organization_id, wrl.header_id, wrl.wkp_no, wrl.item_id, wrl.item_no
+    </select>
+
     <select id="selectReqItem" resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
         select Aa.organization_id as organizationId,
                Aa.header_id as moId,

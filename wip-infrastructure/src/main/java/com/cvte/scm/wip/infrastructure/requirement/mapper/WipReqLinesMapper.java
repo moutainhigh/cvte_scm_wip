@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper;
 
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
+import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
@@ -20,6 +21,11 @@ public interface WipReqLinesMapper extends CommonMapper<WipReqLineDO> {
     void writeIncrementalData(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
 
     void writeLackLines(@Param("wipEntityIdList") List<String> wipEntityIdList, @Param("organizationIdList") List<Integer> organizationIdList);
+
+    List<WipReqLineEntity> selectByItemDim(@Param("organizationId") String organizationId,
+                                           @Param("headerId") String headerId,
+                                           @Param("wkpNo") String wkpNo,
+                                           @Param("itemKey") String itemKey);
 
     List<WipReqItemVO> selectReqItem(@Param("queryVO") WipReqLineKeyQueryVO queryVO);
 
