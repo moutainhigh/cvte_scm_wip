@@ -1,19 +1,27 @@
 package com.cvte.scm.wip.domain.core.rtc.service;
 
+import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.constants.CommonDimensionConstant;
+import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.common.utils.DateUtils;
+import com.cvte.scm.wip.domain.common.user.service.UserService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcPostLimitEntity;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcHeaderRepository;
+import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcPostLimitRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,9 +38,13 @@ import java.util.stream.Collectors;
 public class CheckMtrRtcHeaderService {
 
     private WipMtrRtcHeaderRepository wipMtrRtcHeaderRepository;
+    private UserService userService;
+    private WipMtrRtcPostLimitRepository wipMtrRtcPostLimitRepository;
 
-    public CheckMtrRtcHeaderService(WipMtrRtcHeaderRepository wipMtrRtcHeaderRepository) {
+    public CheckMtrRtcHeaderService(WipMtrRtcHeaderRepository wipMtrRtcHeaderRepository, UserService userService, WipMtrRtcPostLimitRepository wipMtrRtcPostLimitRepository) {
         this.wipMtrRtcHeaderRepository = wipMtrRtcHeaderRepository;
+        this.userService = userService;
+        this.wipMtrRtcPostLimitRepository = wipMtrRtcPostLimitRepository;
     }
 
     public void checkBillStatus(String status) {
@@ -80,6 +92,35 @@ public class CheckMtrRtcHeaderService {
             }
             errMsg = String.format(errMsg, Optional.ofNullable(typeEnum).orElse(WipMtrRtcHeaderTypeEnum.RECEIVE).getDesc());
             throw new ParamsIncorrectException(errMsg);
+        }
+    }
+
+    /**
+     * 校验单据是否被限制过账
+     * @since 2020/10/23 5:41 下午
+     * @author xueyuting
+     */
+    public void checkPostLimit(WipMtrRtcHeaderEntity rtcHeader) {
+        String userDefaultDimensionId = userService.getDefaultDimensionByUserId(CurrentContext.getCurrentOperatingUser().getId());
+        if (!CommonDimensionConstant.GC.equals(userDefaultDimensionId)) {
+            // 非工厂用户不需要校验
+            return;
+        }
+
+        WipMtrRtcPostLimitEntity queryRtcPostLimit = new WipMtrRtcPostLimitEntity();
+        queryRtcPostLimit.setFactoryId(rtcHeader.getFactoryId())
+                .setStatus(StatusEnum.NORMAL.getCode());
+        WipMtrRtcPostLimitEntity rtcPostLimit = wipMtrRtcPostLimitRepository.selectOne(queryRtcPostLimit);
+        if (Objects.isNull(rtcPostLimit)) {
+            // 没有配置的工厂不需要校验
+            return;
+        }
+
+        // 根据工厂过账时间限制的配置, 获取限制的时间点
+        Date dateBeforeEndOfMonth = DateUtils.getBeforeEndOfMonth(rtcPostLimit.getLimitDay(), rtcPostLimit.getLimitHour());
+        Date now = new Date();
+        if (now.after(dateBeforeEndOfMonth)) {
+            throw new ParamsIncorrectException(String.format("在月末最后%d天的%d点之后，不允许工厂做过账操作", rtcPostLimit.getLimitDay(), rtcPostLimit.getLimitHour()));
         }
     }
 

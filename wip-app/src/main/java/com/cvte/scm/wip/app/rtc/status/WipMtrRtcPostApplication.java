@@ -3,10 +3,7 @@ package com.cvte.scm.wip.app.rtc.status;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
-import com.cvte.scm.wip.domain.core.rtc.service.CheckMtrRtcLineService;
-import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcHeaderService;
-import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
-import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcWriteBackService;
+import com.cvte.scm.wip.domain.core.rtc.service.*;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,12 +27,14 @@ public class WipMtrRtcPostApplication {
     private CheckMtrRtcLineService checkMtrRtcLineService;
     private WipMtrRtcWriteBackService wipMtrRtcWriteBackService;
     private WipMtrRtcHeaderService wipMtrRtcHeaderService;
+    private CheckMtrRtcHeaderService checkMtrRtcHeaderService;
 
-    public WipMtrRtcPostApplication(WipMtrRtcLineService wipMtrRtcLineService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrRtcWriteBackService wipMtrRtcWriteBackService, WipMtrRtcHeaderService wipMtrRtcHeaderService) {
+    public WipMtrRtcPostApplication(WipMtrRtcLineService wipMtrRtcLineService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrRtcWriteBackService wipMtrRtcWriteBackService, WipMtrRtcHeaderService wipMtrRtcHeaderService, CheckMtrRtcHeaderService checkMtrRtcHeaderService) {
         this.wipMtrRtcLineService = wipMtrRtcLineService;
         this.checkMtrRtcLineService = checkMtrRtcLineService;
         this.wipMtrRtcWriteBackService = wipMtrRtcWriteBackService;
         this.wipMtrRtcHeaderService = wipMtrRtcHeaderService;
+        this.checkMtrRtcHeaderService = checkMtrRtcHeaderService;
     }
 
     public void doAction(String headerId) {
@@ -61,6 +60,8 @@ public class WipMtrRtcPostApplication {
             log.info("无可过账的领退料行, headerId = {}", rtcHeader.getHeaderId());
             return;
         }
+        // 校验是否限制过账
+        checkMtrRtcHeaderService.checkPostLimit(rtcHeader);
         // 校验现有量
         wipMtrRtcLineService.validateItemInvQty(rtcHeader);
         // 校验行状态
