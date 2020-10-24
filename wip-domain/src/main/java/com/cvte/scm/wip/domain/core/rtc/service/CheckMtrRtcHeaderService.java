@@ -62,7 +62,7 @@ public class CheckMtrRtcHeaderService {
     }
 
     public void checkBillQtyLower(BigDecimal billQty) {
-        if (billQty.compareTo(BigDecimal.ZERO) <= 0) {
+        if (Objects.isNull(billQty) || billQty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ParamsIncorrectException("领料套数必须大于0");
         }
     }

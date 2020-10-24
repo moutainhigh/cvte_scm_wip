@@ -1,9 +1,9 @@
 package com.cvte.scm.wip.app.rtc.status;
 
-import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
+import com.cvte.scm.wip.domain.core.rtc.service.CheckMtrRtcHeaderService;
 import com.cvte.scm.wip.domain.core.rtc.service.CheckMtrRtcLineService;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
@@ -24,10 +24,12 @@ import java.util.List;
 public class WipMtrRtcHeaderSubmitApplication {
 
     private WipMtrRtcLineService wipMtrRtcLineService;
+    private CheckMtrRtcHeaderService checkMtrRtcHeaderService;
     private CheckMtrRtcLineService checkMtrRtcLineService;
 
-    public WipMtrRtcHeaderSubmitApplication(WipMtrRtcLineService wipMtrRtcLineService, CheckMtrRtcLineService checkMtrRtcLineService) {
+    public WipMtrRtcHeaderSubmitApplication(WipMtrRtcLineService wipMtrRtcLineService, CheckMtrRtcHeaderService checkMtrRtcHeaderService, CheckMtrRtcLineService checkMtrRtcLineService) {
         this.wipMtrRtcLineService = wipMtrRtcLineService;
+        this.checkMtrRtcHeaderService = checkMtrRtcHeaderService;
         this.checkMtrRtcLineService = checkMtrRtcLineService;
     }
 
@@ -36,6 +38,7 @@ public class WipMtrRtcHeaderSubmitApplication {
         List<WipMtrRtcLineEntity> rtcLineEntityList = rtcHeaderEntity.getLineList();
         WipMtrRtcLineEntity.get().batchGetAssign(rtcLineEntityList);
 
+        checkMtrRtcHeaderService.checkBillQtyLower(rtcHeaderEntity.getBillQty());
         String msg = null;
         List<WipMtrInvQtyCheckVO> invQtyCheckVOS = wipMtrRtcLineService.validateItemInvQty(rtcHeaderEntity);
         checkMtrRtcLineService.checkLotControl(rtcHeaderEntity);
