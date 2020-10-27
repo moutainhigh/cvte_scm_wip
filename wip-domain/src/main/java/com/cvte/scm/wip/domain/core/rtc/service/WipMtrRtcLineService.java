@@ -80,6 +80,7 @@ public class WipMtrRtcLineService {
                 if (Objects.nonNull(rtcLineBuildVO.getIssuedQty())) {
                     checkMtrRtcLineService.checkQtyUpper(rtcLineBuildVO.getIssuedQty(), reqItemVO, rtcHeader.getBillType());
                 }
+                checkMtrRtcLineService.checkLineCanEdit(rtcLineBuildVO, rtcLine);
             } catch (ParamsIncorrectException pe) {
                 invQtyCheckVOS.add(WipMtrInvQtyCheckVO.buildItemSub(rtcLine.getItemId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getInvpNo(), null, null, pe.getMessage()));
                 continue;

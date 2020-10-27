@@ -197,6 +197,14 @@ public class CheckMtrRtcLineService {
         }
     }
 
+    public void checkLineCanEdit(WipMtrRtcLineBuildVO rtcLineBuildVO, WipMtrRtcLineEntity rtcLine) {
+        if (StringUtils.isNotBlank(rtcLineBuildVO.getInvpNo()) && StringUtils.isNotBlank(rtcLine.getInvpNo()) && !rtcLineBuildVO.getInvpNo().equals(rtcLine.getInvpNo())) {
+            if (ListUtil.notEmpty(rtcLine.getAssignList())) {
+                throw new ParamsIncorrectException("批次已分配, 请先删除批次");
+            }
+        }
+    }
+
     private void checkSupplyExists(BigDecimal supplyQty) {
         if (Objects.isNull(supplyQty)) {
             throw new ParamsIncorrectException("查不到该子库的现有量");
