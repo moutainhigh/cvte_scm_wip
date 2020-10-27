@@ -2,6 +2,7 @@ package com.cvte.scm.wip.infrastructure.audit.aop;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.audit.AuditEntity;
@@ -178,7 +179,7 @@ public class EntityUpdateAop {
                 String fieldName = entry.getKey();
                 Object before = entry.getValue();
                 Object after = newValues.get(fieldName);
-                if (Objects.isNull(after) || after.equals(before)) {
+                if (Objects.isNull(after) || after.equals(before) || (after instanceof String && StringUtils.isBlank((String)after))) {
                     // 字段无变更, 跳过当前字段
                     continue;
                 }
