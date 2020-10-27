@@ -39,14 +39,7 @@ public class WipMtrRtcLineController {
 
     @PostMapping("/batch_update")
     public RestResponse create(@RequestBody List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
-        List<WipMtrInvQtyCheckVO> invQtyCheckVOS = wipMtrRtcLineUpdateApplication.doAction(rtcLineBuildVOList);
-        RestResponse restResponse = new RestResponse();
-        if (ListUtil.notEmpty(invQtyCheckVOS)) {
-            restResponse.setStatus("4000002").setMessage("保存失败");
-            restResponse.setData(invQtyCheckVOS);
-            return restResponse;
-        }
-        return restResponse;
+        return wipMtrRtcLineUpdateApplication.doAction(rtcLineBuildVOList);
     }
 
     @PostMapping("/batch_cancel")

@@ -36,6 +36,8 @@ public class WipMtrInvQtyCheckVO {
 
     private String errMsg;
 
+    private String noticeType;
+
     public static WipMtrInvQtyCheckVO buildItemSub(String itemId, String itemNo, String wkpNo, String invpNo, BigDecimal invQty, BigDecimal availQty, String errMsg) {
         return WipMtrInvQtyCheckVO.buildItemSubLot(itemId, itemNo, wkpNo, invpNo, null, invQty, availQty, errMsg);
     }

@@ -1,5 +1,8 @@
 package com.cvte.scm.wip.app.rtc.save;
 
+import com.cvte.csb.core.interfaces.vo.RestResponse;
+import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.ExecutionResultEnum;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcLineBuildVO;
@@ -25,8 +28,21 @@ public class WipMtrRtcLineUpdateApplication {
         this.wipMtrRtcLineService = wipMtrRtcLineService;
     }
 
-    public List<WipMtrInvQtyCheckVO> doAction(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
-        return wipMtrRtcLineService.batchUpdate(rtcLineBuildVOList);
+    public RestResponse doAction(List<WipMtrRtcLineBuildVO> rtcLineBuildVOList) {
+        RestResponse restResponse = new RestResponse();
+        List<WipMtrInvQtyCheckVO> invQtyCheckVOS = wipMtrRtcLineService.batchUpdate(rtcLineBuildVOList);
+        if (ListUtil.notEmpty(invQtyCheckVOS)) {
+            restResponse.setStatus("4000002");
+            boolean failed = invQtyCheckVOS.stream().map(WipMtrInvQtyCheckVO::getNoticeType).anyMatch(type -> type.equals(ExecutionResultEnum.FAILED.getCode()));
+            if (failed) {
+                restResponse.setMessage("保存失败");
+            } else {
+                restResponse.setMessage("保存成功");
+            }
+            restResponse.setData(invQtyCheckVOS);
+            return restResponse;
+        }
+        return restResponse;
     }
 
 }

@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.ExecutionResultEnum;
 import com.cvte.scm.wip.common.utils.BatchProcessUtils;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
@@ -87,6 +88,8 @@ public class WipMtrRtcLineService {
             rtcLine.update(rtcLineBuildVO);
         }
         if (ListUtil.notEmpty(invQtyCheckVOS)) {
+            // 设置提醒类型为 失败
+            invQtyCheckVOS.forEach(checkVO -> checkVO.setNoticeType(ExecutionResultEnum.FAILED.getCode()));
             return invQtyCheckVOS;
         }
         // 校验现有量
@@ -102,8 +105,9 @@ public class WipMtrRtcLineService {
                     // 设置可用量 = 现有量 - 物料已申请未过账数量
                     invQtyCheckVO.setAvailQty(invQtyCheckVO.getInvQty().subtract(unPostQty));
                 }
+                // 设置提醒类型为 成功
+                invQtyCheckVO.setNoticeType(ExecutionResultEnum.SUCCESS.getCode());
             }
-            return invQtyCheckVOS;
         }
         for (WipMtrRtcLineEntity updateLine : rtcLineList) {
             // 更新行写库
@@ -113,7 +117,7 @@ public class WipMtrRtcLineService {
             // 审核通过或部分过账, 更新后需同步到EBS
             wipMtrRtcWriteBackService.update(rtcHeader);
         }
-        return Collections.emptyList();
+        return invQtyCheckVOS;
     }
 
     public List<WipMtrInvQtyCheckVO> validateItemInvQty(WipMtrRtcHeaderEntity rtcHeaderEntity) {
