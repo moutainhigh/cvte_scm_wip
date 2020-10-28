@@ -122,7 +122,8 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
     private List<WipMtrRtcAssignEntity> assignList;
 
     public List<WipMtrRtcAssignEntity> getAssignList() {
-        if (ListUtil.notEmpty(this.assignList)) {
+        if (Objects.nonNull(this.assignList)) {
+            // 为空列表时不重复查询
             return this.assignList;
         }
         if (StringUtils.isBlank(this.lineId)) {
@@ -192,14 +193,17 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
     public void batchGetAssign(List<WipMtrRtcLineEntity> rtcLineList) {
         List<String> lineIdList = rtcLineList.stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toList());
         List<WipMtrRtcAssignEntity> rtcAssignList = WipMtrRtcAssignEntity.get().getByLineIds(lineIdList);
-        if (ListUtil.empty(rtcAssignList)) {
-            return;
+        if (Objects.isNull(rtcAssignList)) {
+            rtcAssignList = Collections.emptyList();
         }
         Map<String, List<WipMtrRtcAssignEntity>> lineAssignMap = rtcAssignList.stream().collect(Collectors.groupingBy(WipMtrRtcAssignEntity::getLineId));
         for (WipMtrRtcLineEntity rtcLineEntity : rtcLineList) {
             List<WipMtrRtcAssignEntity> lineAssignList = lineAssignMap.get(rtcLineEntity.getLineId());
-            if (ListUtil.notEmpty(lineAssignList)) {
+            if (Objects.nonNull(lineAssignList)) {
                 rtcLineEntity.setAssignList(lineAssignList);
+            } else {
+                // 批次为空时设置为空列表
+                rtcLineEntity.setAssignList(new ArrayList<>(0));
             }
         }
     }
