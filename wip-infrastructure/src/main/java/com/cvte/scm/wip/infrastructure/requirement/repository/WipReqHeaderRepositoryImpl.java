@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.cvte.csb.toolkit.StringUtils.format;
 import static com.cvte.csb.toolkit.StringUtils.isNotEmpty;
@@ -102,9 +103,20 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
     @Override
     public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId) {
-        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectDelivered(organizationIdList, factoryId);
-        headerDOList.addAll(wipReqHeaderMapper.selectUndelivered(organizationIdList, factoryId));
-        return WipReqHeaderDO.batchBuildEntity(headerDOList);
+        // 已发放
+        List<WipReqHeaderDO> deliveredHeaderList = wipReqHeaderMapper.selectDelivered(organizationIdList, factoryId);
+        // 未发放
+        List<WipReqHeaderDO> undeliveredHeaderList = wipReqHeaderMapper.selectUndelivered(organizationIdList, factoryId);
+
+        // 过滤掉未刷新过MRP的
+        if (ListUtil.notEmpty(undeliveredHeaderList)) {
+            List<String> undeliveredHeaderIdList = undeliveredHeaderList.stream().map(WipReqHeaderDO::getHeaderId).collect(Collectors.toList());
+            List<String> cachedHeaderIdList = wipReqHeaderMapper.filterCachedUndelivered(undeliveredHeaderIdList);
+            undeliveredHeaderList.removeIf(undeliveredHeader -> !cachedHeaderIdList.contains(undeliveredHeader.getHeaderId()));
+        }
+
+        deliveredHeaderList.addAll(undeliveredHeaderList);
+        return WipReqHeaderDO.batchBuildEntity(deliveredHeaderList);
     }
 
     @Override
