@@ -100,7 +100,7 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 // 获取指令需处理的投料行
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
                 // 校验投料行状态
-                checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
+                checkReqInsDomainService.checkLineStatus(insHeader);
             } catch (RuntimeException re) {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
                 insHeader.processFailed(VALIDATE_FAILED + headerErrMsg);

@@ -5,14 +5,13 @@ import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.base.domain.DomainService;
-import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.domain.core.changebill.entity.ChangeBillEntity;
-import com.cvte.scm.wip.domain.core.changebill.valueobject.enums.ChangeBillRecycleEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.ReqInsRepository;
+import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.ReqInsBuildVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
@@ -35,10 +34,12 @@ public class CheckReqInsDomainService implements DomainService {
 
     private ReqInsRepository insRepository;
     private QueryReqLineService queryReqLineService;
+    private WipReqLineRepository wipReqLineRepository;
 
-    public CheckReqInsDomainService(ReqInsRepository insRepository, QueryReqLineService queryReqLineService) {
+    public CheckReqInsDomainService(ReqInsRepository insRepository, QueryReqLineService queryReqLineService, WipReqLineRepository wipReqLineRepository) {
         this.insRepository = insRepository;
         this.queryReqLineService = queryReqLineService;
+        this.wipReqLineRepository = wipReqLineRepository;
     }
 
     /**
@@ -114,36 +115,43 @@ public class CheckReqInsDomainService implements DomainService {
      * @author xueyuting
      * @since 2020/5/28 11:03 上午
      */
-    public void checkLineStatus(ReqInsEntity insEntity, Map<String, List<WipReqLineEntity>> reqLineMap) {
-        if (Objects.isNull(reqLineMap) || reqLineMap.isEmpty()) {
-            reqLineMap = validAndGetLine(insEntity);
-        }
+    public void checkLineStatus(ReqInsEntity insEntity) {
         boolean validateFailed = false;
-        for (ReqInsDetailEntity detailEntity : insEntity.getDetailList()) {
-            if (InsOperationTypeEnum.ADD.getCode().equals(detailEntity.getOperationType())
-                    || InsOperationTypeEnum.INCREASE.getCode().equals(detailEntity.getOperationType())) {
+        // 一个更改单的多个指令明细可能针对同一个物料的不同小批次和位号, 校验领料时只考虑到物料维度, 因此只查询到物料维度
+        Map<String, List<ReqInsDetailEntity>> detailGroupedByItem = insEntity.getDetailList().stream().collect(Collectors.groupingBy(detail ->
+                detail.getWkpNo() + "_" + detail.getItemIdOld() + "_" + detail.getOperationType()
+        ));
+        for (List<ReqInsDetailEntity> detailGroupedByItemList : detailGroupedByItem.values()) {
+            ReqInsDetailEntity randomDetail = detailGroupedByItemList.get(0);
+            if (InsOperationTypeEnum.ADD.getCode().equals(randomDetail.getOperationType())
+                    || InsOperationTypeEnum.INCREASE.getCode().equals(randomDetail.getOperationType())) {
                 // 新增或增加类型无需校验
                 continue;
             }
-            List<WipReqLineEntity> reqLineList = reqLineMap.get(detailEntity.getInsDetailId());
+            List<WipReqLineEntity> reqLineInItemDim = wipReqLineRepository.selectByItemDim(randomDetail.getOrganizationId(), randomDetail.getAimHeaderId(), randomDetail.getWkpNo(), randomDetail.getItemIdOld());
+            // 计算该物料更改指令的更改数量之和
+            int changeQty = detailGroupedByItemList.stream().map(detail -> Optional.ofNullable(detail.getItemQty()).orElse(BigDecimal.ZERO)).reduce(BigDecimal.ZERO, BigDecimal::add).intValue();
             try {
-                this.validateTargetLineIssued(reqLineList, detailEntity.getItemQty());
-            } catch (ServerException se) {
+                validateTargetLineIssued(reqLineInItemDim, changeQty);
+            } catch (ParamsIncorrectException pe) {
                 validateFailed = true;
-                detailEntity.setExecuteResult(se.getMessage());
+                detailGroupedByItemList.forEach(detail -> detail.setExecuteResult(pe.getMessage()));
             }
         }
+
         if (validateFailed) {
             throw new ServerException(ReqInsErrEnum.TARGET_LINE_ISSUED.getCode(), ReqInsErrEnum.TARGET_LINE_ISSUED.getDesc());
         }
     }
 
-    private void validateTargetLineIssued(List<WipReqLineEntity> reqLineList, BigDecimal changeQty) {
-        boolean issuedFlag = reqLineList.stream().map(WipReqLineEntity::getLineStatus).anyMatch(status -> BillStatusEnum.ISSUED.getCode().equals(status));
-        int issuedQty = reqLineList.stream().mapToInt(line -> Optional.ofNullable(line.getIssuedQty()).orElse(0)).sum();
-        if (issuedFlag || issuedQty > 0) {
-            int reqQty = reqLineList.stream().mapToInt(line -> Optional.ofNullable(line.getReqQty()).orElse(0)).sum();
-            boolean enoughChangeQty = Objects.nonNull(changeQty) && (reqQty - issuedQty) >= changeQty.intValue();
+    private void validateTargetLineIssued(List<WipReqLineEntity> reqLineInItemDim, int changeQty) {
+        // 若有一个投料行已领料, 则视为已领料
+        boolean issued = reqLineInItemDim.stream().map(WipReqLineEntity::getLineStatus).anyMatch(status -> BillStatusEnum.ISSUED.getCode().equals(status));
+        if (issued) {
+            // 若状态为已领料, 则计算 可变更数量 = 需求数量 - 领料数量
+            int reqQty = reqLineInItemDim.stream().mapToInt(line -> Optional.ofNullable(line.getReqQty()).orElse(0)).sum();
+            int issuedQty = reqLineInItemDim.stream().mapToInt(line -> Optional.ofNullable(line.getIssuedQty()).orElse(0)).sum();
+            boolean enoughChangeQty = (reqQty - issuedQty) >= changeQty;
             if (!enoughChangeQty) {
                 // 未领料数量 < 变更数量 时无法变更数量
                 throw new ServerException(ReqInsErrEnum.TARGET_LINE_ISSUED.getCode(), ReqInsErrEnum.TARGET_LINE_ISSUED.getDesc());
