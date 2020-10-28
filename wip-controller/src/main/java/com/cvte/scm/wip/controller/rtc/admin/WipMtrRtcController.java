@@ -4,6 +4,7 @@ import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.rtc.refresh.WipMtrRtcRefreshApplication;
 import com.cvte.scm.wip.app.rtc.save.WipMtrRtcHeaderSaveApplication;
 import com.cvte.scm.wip.app.rtc.status.*;
+import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,12 @@ public class WipMtrRtcController {
     @PostMapping("/submit/{headerId}")
     public RestResponse submit(@PathVariable("headerId") String headerId) {
         RestResponse restResponse = new RestResponse();
-        restResponse.setData(wipMtrRtcHeaderSubmitApplication.doAction(headerId));
+        String msg = wipMtrRtcHeaderSubmitApplication.doAction(headerId);
+        WipMtrRtcHeaderReviewDTO wipMtrRtcHeaderReviewDTO = new WipMtrRtcHeaderReviewDTO();
+        wipMtrRtcHeaderReviewDTO.setHeaderId(headerId)
+                .setApproved(YoNEnum.Y.getCode());
+        wipMtrRtcHeaderReviewApplication.doAction(wipMtrRtcHeaderReviewDTO);
+        restResponse.setData(msg);
         return restResponse;
     }
 

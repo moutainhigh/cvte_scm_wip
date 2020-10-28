@@ -10,7 +10,7 @@ import com.cvte.scm.wip.common.audit.AuditId;
 import com.cvte.scm.wip.common.audit.AuditParentId;
 import com.cvte.scm.wip.common.base.domain.DomainFactory;
 import com.cvte.scm.wip.common.base.domain.Entity;
-import com.cvte.scm.wip.common.enums.BooleanEnum;
+import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.common.serial.SerialNoGenerationService;
@@ -190,9 +190,9 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
 
     public void review(String approved) {
         String approvedBillStatus;
-        if (BooleanEnum.YES.getCode().equals(approved)) {
+        if (YoNEnum.Y.getCode().equals(approved)) {
             approvedBillStatus = EFFECTIVE.getCode();
-        } else if (BooleanEnum.NO.getCode().equals(approved)) {
+        } else if (YoNEnum.N.getCode().equals(approved)) {
             approvedBillStatus = WITHDRAW.getCode();
         } else {
             throw new ParamsIncorrectException("非法的审核指令");
