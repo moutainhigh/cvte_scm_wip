@@ -15,8 +15,11 @@ public interface WipReqHeaderMapper extends CommonMapper<WipReqHeaderDO> {
     /* 根据投料单头ID获取指定的源ID，用于EBS回写。 */
     String getSourceId(@Param("headerId") String headerId);
 
-    /* 获取工单信息，主要用投料单头的增量写入。 */
-    List<WipReqHeaderDO> selectAddedData(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId);
+    /* 获取已发放的工单信息，主要用投料单头的增量写入。 */
+    List<WipReqHeaderDO> selectDelivered(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId);
+
+    /* 获取未发放的工单信息，主要用投料单头的增量写入。 */
+    List<WipReqHeaderDO> selectUndelivered(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId);
 
     /* 判断货位信息在投料单头下是否存在 */
     boolean existLotNumber(@Param("headerId") Integer headerId, @Param("lotNumber") String lotNumber);
