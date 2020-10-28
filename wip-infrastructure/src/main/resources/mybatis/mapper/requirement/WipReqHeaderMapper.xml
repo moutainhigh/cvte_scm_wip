@@ -42,33 +42,33 @@
     </resultMap>
 
     <sql id="addedData">
-        header_id
-      , organization_id
-      , bill_no
-      , bill_status
-      , bill_type
-      , bill_qty
-      , source_type
-      , source_no
-      , product_id
-      , product_no
-      , product_model
-      , factory_id
-      , consumer_name as client_name
-      , customer_id
-      , software_code
-      , bill_person
-      , plan_start_date
-      , mtr_ready_time as mtr_ready_date
-      , completion_date
-      , bill_person   as crt_user
+        x.header_id
+      , x.organization_id
+      , x.bill_no
+      , x.bill_status
+      , x.bill_type
+      , x.bill_qty
+      , x.source_type
+      , x.source_no
+      , x.product_id
+      , x.product_no
+      , x.product_model
+      , x.factory_id
+      , x.consumer_name as client_name
+      , x.customer_id
+      , x.software_code
+      , x.bill_person
+      , x.plan_start_date
+      , x.mtr_ready_time as mtr_ready_date
+      , x.completion_date
+      , x.bill_person   as crt_user
       , now()         as crt_date
-      , bill_person   as upd_user
+      , x.bill_person   as upd_user
       , now()         as upd_date
-      , source_id
-      , bom_version
-      , source_lot_no
-      , wip_status_type as status_type
+      , x.source_id
+      , x.bom_version
+      , x.source_lot_no
+      , x.wip_status_type as status_type
     </sql>
 
     <select id="getSourceId" parameterType="java.lang.String" resultType="java.lang.String">
@@ -98,7 +98,11 @@
             resultType="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqHeaderDO">
         select <include refid="addedData"></include>
         from wip.xxwip_mo_v x
-        where (x.wip_status_type = '1' and date_trunc('day', x.mtr_ready_time) <![CDATA[ <= ]]> date_trunc('day', current_timestamp + '7 day'))
+        inner join wip_req_published_factory rpf
+            on x.organization_id = to_number(rpf.organization_id)
+            and x.factory_id = to_number(rpf.factory_id)
+            and rpf.undelivered_flag = 'Y' /* 是否同步未发放工单的标识 */
+        where (x.wip_status_type = '1' and date_trunc('day', x.mtr_ready_time) <![CDATA[ <= ]]> date_trunc('day', current_timestamp + (to_char(rpf.undelivered_day) || ' day')::interval)) /* 未发放工单同步天数的配置 */
           and x.organization_id in
           <foreach collection="organizationIdList" item="organizationId" open="(" separator="," close=")">
             #{organizationId}
