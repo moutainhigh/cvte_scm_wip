@@ -113,12 +113,16 @@
           and not exists(
               select 1 from wip.wip_req_header wrh where wrh.bill_no = x.bill_no
           )
-          and exists(
-              /* 投料行已被缓存 */
-              select 1
-              from scm_fdw.xxaps_mo_item xoi
-              where x.header_id = xoi.wip_entity_id
-          )
+    </select>
+
+    <select id="filterCachedUndelivered" resultType="java.lang.String">
+        select xoi.wip_entity_id
+        from scm_fdw.xxaps_mo_item xoi
+        where xoi.wip_entity_id in
+        <foreach collection="wipEntityIdList" index="index" item="wipEntityId" open="(" separator="," close=")">
+            ${wipEntityId}
+        </foreach>
+        group by xoi.wip_entity_id
     </select>
 
     <select id="existLotNumber" resultType="java.lang.Boolean">
