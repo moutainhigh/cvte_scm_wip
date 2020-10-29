@@ -29,9 +29,6 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
     @Autowired
     private CheckReqInsDomainService checkReqInsDomainService
 
-    @Autowired
-    private WipReqLineRepository wipReqLineRepository;
-
     def "all lines are closed"() {
         given:
         def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
@@ -45,86 +42,21 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         ie.getMessage() == "投料行不存在或用量为空"
     }
 
-    def "change qty equals to unissued qty"() {
+    def "one of lines is issued"() {
         given:
         def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
-                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("100"))])
+                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1")])
         def reqLineList = [
-                new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode(), reqQty: 100, issuedQty: null),
+                new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode()),
                 new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), reqQty: 100, issuedQty: 100)
         ]
-        when(wipReqLineRepository.selectByItemDim(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(reqLineList)
+        def reqLineMap = new HashMap()
+        reqLineMap.put("detail1", reqLineList)
         when:
-        checkReqInsDomainService.checkLineStatus(reqIns)
-        then:
-        notThrown()
-    }
-
-    def "change qty equals smaller than unissued qty"() {
-        given:
-        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
-                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("100"))])
-        def reqLineList = [
-                new WipReqLineEntity(lineStatus: BillStatusEnum.PREPARED.getCode(), reqQty: 100, issuedQty: 75),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), reqQty: 100, issuedQty: 75)
-        ]
-        when(wipReqLineRepository.selectByItemDim(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(reqLineList)
-        when:
-        checkReqInsDomainService.checkLineStatus(reqIns)
+        checkReqInsDomainService.checkLineStatus(reqIns, reqLineMap)
         then:
         ServerException ie = thrown()
         ie.getMessage() == ReqInsErrEnum.TARGET_LINE_ISSUED.desc
-    }
-
-    def "change qty equals bigger than unissued qty"() {
-        given:
-        // user issued lot_2, but want to change lot_3H
-        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
-                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("200"))])
-        def reqLineList = [
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", reqQty: 100, issuedQty: 40),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_2", reqQty: 200, issuedQty: 80),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_3H", reqQty: 200, issuedQty: 80)
-        ]
-        when(wipReqLineRepository.selectByItemDim(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(reqLineList)
-        when:
-        checkReqInsDomainService.checkLineStatus(reqIns)
-        then:
-        notThrown()
-    }
-
-    def "change pos qty is not enough"() {
-        given:
-        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
-                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("100")).setPosNo("p1")])
-        def reqLineList = [
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", posNo: "p1", reqQty: 100, issuedQty: 75),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", posNo: "p2", reqQty: 100, issuedQty: 75)
-        ]
-        when(wipReqLineRepository.selectByItemDim(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(reqLineList)
-        when:
-        checkReqInsDomainService.checkLineStatus(reqIns)
-        then:
-        ServerException ie = thrown()
-        ie.getMessage() == ReqInsErrEnum.TARGET_LINE_ISSUED.desc
-    }
-
-    def "change pos qty is not enough but item qty is enough"() {
-        given:
-        // user issued (p2,p3,p4), want to delete p1
-        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
-                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("100")).setPosNo("p1")])
-        def reqLineList = [
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", posNo: "p1", reqQty: 100, issuedQty: 75),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", posNo: "p2", reqQty: 100, issuedQty: 75),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", posNo: "p3", reqQty: 100, issuedQty: 75),
-                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "lot_1", posNo: "p4", reqQty: 100, issuedQty: 75)
-        ]
-        when(wipReqLineRepository.selectByItemDim(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(reqLineList)
-        when:
-        checkReqInsDomainService.checkLineStatus(reqIns)
-        then:
-        notThrown()
     }
 
     def "replace and qty is null"() {

@@ -77,9 +77,7 @@ public class GenerateChangeBillDomainService implements DomainService {
                 .setEnableDate(now)
                 .setMotLotNo(reqHeader.getSourceLotNo())
                 .setSourceNo(billNo)
-                .setChangeContent(changeReason)
-                .setFactoryId(reqHeader.getFactoryId())
-                .setStatusType(reqHeader.getStatusType());
+                .setChangeContent(changeReason);
 
         List<String> itemNoList = lineList.stream().map(WipReqLineEntity::getBeforeItemNo).distinct().collect(Collectors.toList());
         itemNoList.addAll(lineList.stream().map(WipReqLineEntity::getItemNo).distinct().collect(Collectors.toList()));

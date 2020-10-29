@@ -48,7 +48,7 @@ public class ReqLineModifyQtyApplication {
         ReqInsEntity insHeader = reqInsEntityFactory.perfect(changeLineList);
 
         Map<String, List<WipReqLineEntity>> reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
-        checkReqInsDomainService.checkLineStatus(insHeader);
+        checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
 
         List<WipReqLineEntity> reqLineList = insHeader.parse(reqLineMap);
 

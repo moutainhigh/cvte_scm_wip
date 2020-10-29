@@ -87,7 +87,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
             }
 
             try {
-                // 校验是否有前置更改单
                 checkReqInsDomainService.checkPreInsExists(insHeader);
             } catch (RuntimeException re) {
                 insHeader.processFailed(VALIDATE_FAILED + re.getMessage());
@@ -97,10 +96,8 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
             Map<String, List<WipReqLineEntity>> reqLineMap;
             try {
-                // 获取指令需处理的投料行
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
-                // 校验投料行状态
-                checkReqInsDomainService.checkLineStatus(insHeader);
+                checkReqInsDomainService.checkLineStatus(insHeader, reqLineMap);
             } catch (RuntimeException re) {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
                 insHeader.processFailed(VALIDATE_FAILED + headerErrMsg);
@@ -110,7 +107,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
             List<WipReqLineEntity> reqLineList;
             try {
-                // 解析指令
                 reqLineList = insHeader.parse(reqLineMap);
             } catch (RuntimeException re) {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
@@ -121,7 +117,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
 
             transactionTemplate.setTransactionManager(pgTransactionManager);
             try {
-                // 执行变更
                 transactionTemplate.execute(status -> {
                     wipReqLineService.executeByChangeBill(reqLineList, ChangedTypeEnum.EXECUTE, ExecutionModeEnum.STRICT, ChangedModeEnum.AUTOMATIC, true, EntityUtils.getWipUserId());
                     return null;
@@ -137,9 +132,7 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 continue;
             }
 
-            // 处理成功状态
             insHeader.processSuccess();
-            // 通知变更成功
             insHeader.notifyEntity();
             confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.SUCCESS, null));
 

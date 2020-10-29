@@ -13,4 +13,6 @@ public class CommonUserConstant {
 
     public static final String SCM_WIP = "SCM_WIP";
 
+    public static final String AUTORUN = "autorun";
+
 }
