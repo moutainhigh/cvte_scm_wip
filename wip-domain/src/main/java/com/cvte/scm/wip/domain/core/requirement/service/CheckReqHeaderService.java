@@ -38,7 +38,7 @@ public class CheckReqHeaderService implements DomainService {
         List<WipReqHeaderEntity> headerEntityList = wipReqHeaderRepository.listWipReqHeaderEntity(queryWipReqHeaderVO);
         // 移除已发放的单据
         String[] errorMessages;
-        headerEntityList.removeIf(header -> MoStatusTypeEnum.ISSUED.getCode().equals(header.getStatusType()));
+        headerEntityList.removeIf(header -> MoStatusTypeEnum.UN_ISSUED.getCode().equals(header.getStatusType()) || MoStatusTypeEnum.ISSUED.getCode().equals(header.getStatusType()));
         if (ListUtil.empty(headerEntityList)) {
             errorMessages = new String[]{""};
         } else {
@@ -46,7 +46,7 @@ public class CheckReqHeaderService implements DomainService {
             errorMessages = headerEntityList.stream().map(header -> {
                 MoStatusTypeEnum statusTypeEnum = CodeableEnumUtils.getCodeableEnumByCode(header.getStatusType(), MoStatusTypeEnum.class);
                 String statusType = statusTypeEnum == null ? "未知" : statusTypeEnum.getDesc();
-                return String.format("%s的状态为\"%s\",只能更改已发放的单据", header.getSourceLotNo(), statusType);
+                return String.format("%s的状态为\"%s\",只能更改状态为(未发放,已发放)的单据", header.getSourceLotNo(), statusType);
             }).toArray(String[]::new);
         }
         // 接口表的处理使用了返回信息, 因此数量不足时需要补全

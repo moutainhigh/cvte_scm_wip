@@ -2,7 +2,10 @@ package com.cvte.scm.wip.spi.changebill;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.cvte.csb.base.commons.OperatingUser;
+import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.scm.wip.common.constants.CommonUserConstant;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
   * 
@@ -44,13 +48,18 @@ public class ChangeBillWriteBackServiceImpl implements ChangeBillWriteBackServic
 
     @Override
     public String writeBackToEbs(ReqInsEntity reqInsEntity, ChangeBillEntity changeBillEntity) {
-        UserBaseEntity userEntity = userService.getEnableUserInfo(EntityUtils.getWipUserId());
+        String account = CommonUserConstant.SCM_WIP;
+        OperatingUser user = CurrentContext.getCurrentOperatingUser();
+        if (Objects.nonNull(user)) {
+            UserBaseEntity userEntity = userService.getEnableUserInfo(user.getId());
+            account = userEntity.getAccount();
+        }
 
         ChangeBillWriteBackDTO writeBackDTO = new ChangeBillWriteBackDTO();
         writeBackDTO.setBillNo(changeBillEntity.getBillNo())
                 .setBillType(changeBillEntity.getBillType())
                 .setExecuteCode(reqInsEntity.getStatus())
-                .setUserNo(userEntity.getAccount());
+                .setUserNo(account);
         String executeMessage;
         if (ProcessingStatusEnum.CLOSE.getCode().equals(reqInsEntity.getStatus())) {
             executeMessage = reqInsEntity.getInvalidReason();
