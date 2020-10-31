@@ -57,7 +57,7 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
                 String vendorLotNum = (String)data.get("vendorLotNum");
                 if (lotNumber.equals(vendorLotNum)) {
                     BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("quantityShipped")).orElse(0).toString());
-                    subInvVOList.add(this.buildSubInvVO(organizationId, (String)data.get("projectId"), (String)data.get("projectNumber"), itemId, vendorLotNum, supplyQty));
+                    subInvVOList.add(this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, vendorLotNum, supplyQty));
                     exists = true;
                 }
             }
@@ -75,7 +75,7 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
                 String lot = (String)data.get("lot");
                 if (lotNumber.equals(lot)) {
                     BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("planQty")).orElse(0).toString());
-                    subInvVOList.add(this.buildSubInvVO(organizationId, (String)data.get("projectId"), (String)data.get("projectNumber"), itemId, lot, supplyQty));
+                    subInvVOList.add(this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, lot, supplyQty));
                 }
             }
         }
@@ -106,6 +106,13 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
         if (!"0".equals(commonResponse.getStatus())) {
             throw new EbsInvokeException(commonResponse.getMessage());
         }
+    }
+
+    private String mapObjectToString(Object data) {
+        if (Objects.nonNull(data)) {
+            return data.toString();
+        }
+        return "";
     }
 
     private String getIacToken() {
