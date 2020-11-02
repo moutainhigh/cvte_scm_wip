@@ -101,7 +101,7 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
         if (StringUtils.isNotBlank(keyQueryVO.getLineId())) {
             WipReqLineDO queryDO = new WipReqLineDO().setLineId(keyQueryVO.getLineId());
             List<WipReqLineDO> lineDOList = wipReqLinesMapper.select(queryDO);
-            lineDOList.removeIf(line -> BillStatusEnum.valid(line.getLineStatus()));
+            lineDOList.removeIf(line -> !BillStatusEnum.valid(line.getLineStatus()));
             return WipReqLineDO.batchBuildEntity(lineDOList);
         }
         Example example = createCustomExample(keyQueryVO, statusList);
@@ -214,6 +214,11 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
         List<String> limitItemClassList = wipReqManualLimitDOList.stream().map(WipReqManualLimitDO::getItemClass).collect(Collectors.toList());
         filterOutRangeItemNoList(itemNoList, limitItemClassList, outRangeItemNoList);
         return limitItemClassList;
+    }
+
+    @Override
+    public List<WipReqLineEntity> selectByItemDim(String organizationId, String headerId, String wkpNo, String itemKey) {
+        return wipReqLinesMapper.selectByItemDim(organizationId, headerId, wkpNo, itemKey);
     }
 
     /**
