@@ -69,6 +69,7 @@
       , bom_version
       , source_lot_no
       , wip_status_type as status_type
+      , department_id
     </sql>
 
     <select id="getSourceId" parameterType="java.lang.String" resultType="java.lang.String">
