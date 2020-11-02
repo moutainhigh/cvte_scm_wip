@@ -5,10 +5,9 @@ import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.base.commons.OperatingUser;
 import com.cvte.csb.base.context.CurrentContext;
 import com.cvte.csb.core.exception.ServerException;
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.scm.wip.common.constants.CommonUserConstant;
-import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
-import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.common.user.entity.UserBaseEntity;
@@ -22,8 +21,6 @@ import com.cvte.scm.wip.spi.changebill.DTO.ChangeBillWriteBackDTO;
 import com.cvte.scm.wip.spi.common.EbsResponse;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -50,8 +47,13 @@ public class ChangeBillWriteBackServiceImpl implements ChangeBillWriteBackServic
     public String writeBackToEbs(ReqInsEntity reqInsEntity, ChangeBillEntity changeBillEntity) {
         String account = CommonUserConstant.SCM_WIP;
         OperatingUser user = CurrentContext.getCurrentOperatingUser();
-        if (Objects.nonNull(user)) {
+        if (Objects.nonNull(user) && CommonUserConstant.AUTORUN.equals(user.getId())) {
+            account = CommonUserConstant.AUTORUN;
+        } else if (Objects.nonNull(user)) {
             UserBaseEntity userEntity = userService.getEnableUserInfo(user.getId());
+            if (Objects.isNull(userEntity)) {
+                throw new ParamsIncorrectException(String.format("不存在ID为%s的用户", user.getId()));
+            }
             account = userEntity.getAccount();
         }
 
