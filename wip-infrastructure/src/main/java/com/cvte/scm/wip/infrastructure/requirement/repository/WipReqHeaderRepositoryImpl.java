@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.cvte.csb.toolkit.StringUtils.format;
 import static com.cvte.csb.toolkit.StringUtils.isNotEmpty;
@@ -103,8 +104,15 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
     @Override
     public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId, List<ScmLotControlVO> scmLotControlVOList) {
-        List<WipReqHeaderDO> headerDOList = wipReqHeaderMapper.selectDelivered(organizationIdList, factoryId);
-        headerDOList.addAll(wipReqHeaderMapper.selectUndelivered(organizationIdList, factoryId, scmLotControlVOList));
+        List<WipReqHeaderDO> deliveredHeaderList = wipReqHeaderMapper.selectDelivered(organizationIdList, factoryId);
+        List<WipReqHeaderDO> headerDOList = new ArrayList<>(deliveredHeaderList);
+
+        List<WipReqHeaderDO> undeliveredHeaderList = wipReqHeaderMapper.selectUndelivered(organizationIdList, factoryId, scmLotControlVOList);
+        if (ListUtil.notEmpty(undeliveredHeaderList)) {
+            List<String> undeliveredHeaderIdList = undeliveredHeaderList.stream().map(WipReqHeaderDO::getHeaderId).collect(Collectors.toList());
+            headerDOList.removeIf(deliveredHeader -> undeliveredHeaderIdList.contains(deliveredHeader.getHeaderId()));
+            headerDOList.addAll(undeliveredHeaderList);
+        }
         return WipReqHeaderDO.batchBuildEntity(headerDOList);
     }
 
