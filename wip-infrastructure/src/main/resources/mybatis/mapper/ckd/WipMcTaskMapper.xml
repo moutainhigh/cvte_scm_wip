@@ -292,5 +292,24 @@
         join wip_mc_spec_client Wmsc on Wmt.client_id = Wmsc.client_id
         where Wmt.mc_task_id = #{mcTaskId}
     </select>
+    <select id="listAllTaskIdsOfOrder" resultType="java.lang.String">
+        select mc_task_id
+        from wip_mc_task_line wmtl
+        join wip_mc_req Wmr
+        on Wmtl.source_line_id = Wmr.source_line_id
+        where exists (
+            select 1
+            from wip_mc_req x
+            where Wmr.source_id = x.source_id
+            <if test="sourceLineIds != null and sourceLineIds.size() > 0">
+                and x.source_line_id in
+                <foreach collection="sourceLineIds" item="item" index="index" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        )
+        and wmtl.line_status = '110'
+        group by mc_task_id
+    </select>
 
 </mapper>
