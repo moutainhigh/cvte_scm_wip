@@ -264,7 +264,7 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
     }
 
     private void updateLineSourceId(WipMtrRtcHeaderEntity rtcHeader, List<XxwipTransactionInfoDTO> transactionInfoDTOList) {
-        Map<String, XxwipTransactionInfoDTO> transactionInfoDTOMap = transactionInfoDTOList.stream().collect(Collectors.toMap(info -> BatchProcessUtils.getKey(info.getComponentItemId(), info.getOperationSeqNum()), Function.identity()));
+        Map<String, XxwipTransactionInfoDTO> transactionInfoDTOMap = transactionInfoDTOList.stream().collect(Collectors.toMap(info -> BatchProcessUtils.getKey(info.getComponentItemId(), info.getOperationSeqNum()), Function.identity(), (v1, v2) -> v1));
         for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
             String itemKye = BatchProcessUtils.getKey(rtcLine.getItemId(), rtcLine.getWkpNo());
             XxwipTransactionInfoDTO transactionInfoDTO = transactionInfoDTOMap.get(itemKye);
