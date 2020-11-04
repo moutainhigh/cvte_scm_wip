@@ -83,6 +83,7 @@ public class WipMtrRtcHeaderService {
             // 生成单据行
             rtcHeader.generateLines(reqItemVOList);
         } else {
+            isCreate = false;
             // 刷新单据
             // 校验领料套数
             checkMtrRtcHeaderService.checkBillQtyLower(wipMtrRtcHeaderBuildVO.getBillQty());
@@ -93,7 +94,6 @@ public class WipMtrRtcHeaderService {
                 rtcHeader.invalidLines();
                 rtcHeader.generateLines(reqItemVOList);
             } else {
-                isCreate = false;
                 // 更新子库
                 if (StringUtils.isNotBlank(wipMtrRtcHeaderBuildVO.getInvpNo()) && !wipMtrRtcHeaderBuildVO.getInvpNo().equals(rtcHeader.getInvpNo())) {
                     rtcHeader.getLineList().forEach(line -> line.setInvpNo(wipMtrRtcHeaderBuildVO.getInvpNo()));
