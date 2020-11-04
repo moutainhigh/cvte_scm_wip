@@ -55,10 +55,10 @@ public class WipReqLineEntity {
     private Double unitQty;
 
     @ApiModelProperty(value = "需求数量")
-    private Integer reqQty;
+    private Long reqQty;
 
     @ApiModelProperty(value = "已发料数量")
-    private Integer issuedQty;
+    private Long issuedQty;
 
     @ApiModelProperty(value = "超发原因")
     private String exceedReason;

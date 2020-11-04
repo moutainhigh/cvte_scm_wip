@@ -37,7 +37,7 @@ public class XxwipMoInterfaceEntity {
     private String itemId;
 
     @ApiModelProperty(value = "物料数量")
-    private Integer itemQty;
+    private Long itemQty;
 
     @ApiModelProperty(value = "工序号")
     private String wkpNo;

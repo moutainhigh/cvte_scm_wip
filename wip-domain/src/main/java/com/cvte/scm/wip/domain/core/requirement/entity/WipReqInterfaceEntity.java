@@ -51,7 +51,7 @@ public class WipReqInterfaceEntity {
     private String itemNoNew;
 
     @ApiModelProperty(value = "需求数量")
-    private Integer itemQty;
+    private Long itemQty;
 
     @ApiModelProperty(value = "执行情况")
     private String proceed;
@@ -78,7 +78,7 @@ public class WipReqInterfaceEntity {
     private Double unitQty;
 
     @ApiModelProperty(value = "备料数量")
-    private Integer issuedQty;
+    private Long issuedQty;
 
     private String rmk01;
 

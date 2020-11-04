@@ -29,10 +29,10 @@ public class WipReqLogEntity {
     private String afterItemNo;
 
     @ApiModelProperty(value = "修改前物料数量")
-    private Integer beforeItemQty;
+    private Long beforeItemQty;
 
     @ApiModelProperty(value = "修改后物料数量")
-    private Integer afterItemQty;
+    private Long afterItemQty;
 
     @ApiModelProperty(value = "修改前工序号")
     private String beforeWkpNo;

@@ -109,13 +109,13 @@ public class WipReqLineSplitService {
             return Arrays.asList(wipReqLineEntity);
         }
 
-        Integer totalReqQty = wipReqLineEntity.getReqQty();
-        Integer allocatedReqQty = 0;
+        Long totalReqQty = wipReqLineEntity.getReqQty();
+        Long allocatedReqQty = 0L;
 
         List<WipReqLineEntity> afterSplit = new ArrayList<>();
         for (int i = 0; i < wipItemWkpPosEntities.size(); i ++) {
 
-            Integer reqQty = i == wipItemWkpPosEntities.size() - 1 ? totalReqQty - allocatedReqQty : totalReqQty / wipItemWkpPosEntities.size();
+            Long reqQty = i == wipItemWkpPosEntities.size() - 1 ? totalReqQty - allocatedReqQty : totalReqQty / wipItemWkpPosEntities.size();
             allocatedReqQty += reqQty;
 
             WipReqLineEntity cpEntity = new WipReqLineEntity();

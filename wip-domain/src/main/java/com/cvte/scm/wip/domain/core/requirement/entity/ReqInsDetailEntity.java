@@ -268,7 +268,7 @@ public class ReqInsDetailEntity implements Entity<String> {
                 .setItemId(this.getItemIdNew())
                 .setItemNo(this.getItemNoNew())
                 .setUnitQty(0.0)
-                .setReqQty(0)
+                .setReqQty(0L)
                 .setLotNumber(wipLotVO.getLotNumber())
                 .setChangeType(ChangedTypeEnum.ADD.getCode());
         return reqLine;
@@ -437,7 +437,7 @@ public class ReqInsDetailEntity implements Entity<String> {
                     // 把剩余的数量都分配到最后一个行上
                     allocateQty = updateQty;
                 }
-                int resultQty = lotGroupLine.getReqQty() + allocateQty.intValue();
+                long resultQty = lotGroupLine.getReqQty() + allocateQty.longValue();
 
                 BigDecimal realAllocateQty = allocateQty;
                 if (resultQty < 0) {
@@ -463,7 +463,7 @@ public class ReqInsDetailEntity implements Entity<String> {
                 if (StringUtils.isBlank(lotGroupLine.getChangeType())) {
                     WipReqLineEntity reduceOrIncreaseLine = new WipReqLineEntity();
                     BeanUtils.copyProperties(lotGroupLine, reduceOrIncreaseLine);
-                    reduceOrIncreaseLine.setReqQty(realAllocateQty.abs().intValue())
+                    reduceOrIncreaseLine.setReqQty(realAllocateQty.abs().longValue())
                             .setUnitQty(realAllocateQty.abs().divide(wipLot.getLotQuantity(), 6, roundingMode).doubleValue());
                     if (InsOperationTypeEnum.REDUCE.getCode().equals(this.getOperationType())) {
                         reduceOrIncreaseLine.setChangeType(ChangedTypeEnum.REDUCE.getCode());

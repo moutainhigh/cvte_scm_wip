@@ -147,8 +147,8 @@ public class CheckReqInsDomainService implements DomainService {
             // 状态为领料 或者 领料数量大于0, 认为已领料
             boolean isIssued = BillStatusEnum.ISSUED.getCode().equals(reqLine.getLineStatus()) || (Objects.nonNull(reqLine.getIssuedQty()) && reqLine.getIssuedQty() > 0);
             if (isIssued) {
-                int canChangeQty = Optional.ofNullable(reqLine.getReqQty()).orElse(0) - reqLine.getIssuedQty();
-                boolean enoughChangeQty = Objects.nonNull(changeQty) && canChangeQty >= changeQty.intValue();
+                long canChangeQty = Optional.ofNullable(reqLine.getReqQty()).orElse(0L) - reqLine.getIssuedQty();
+                boolean enoughChangeQty = Objects.nonNull(changeQty) && canChangeQty >= changeQty.longValue();
                 if (enoughChangeQty) {
                     // 已领料, 但是更改数量 < (需求数量-领料数量)(即可更改数量) 时 允许变更
                     continue;
