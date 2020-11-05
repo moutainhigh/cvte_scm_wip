@@ -99,8 +99,6 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
             try {
                 // 获取指令需处理的投料行
                 reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
-                // 校验投料行状态
-                checkReqInsDomainService.checkLineStatus(insHeader);
             } catch (RuntimeException re) {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
                 insHeader.processFailed(VALIDATE_FAILED + headerErrMsg);
@@ -116,6 +114,16 @@ public class ReqInsConfirmApplication implements Application<String[], String> {
                 String headerErrMsg = insHeader.groupDetailExecuteResult();
                 insHeader.processFailed(PARSE_FAILED + headerErrMsg);
                 confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.FAILED, PARSE_FAILED + re.getMessage()));
+                continue;
+            }
+
+            try {
+                // 校验投料行状态
+                checkReqInsDomainService.checkLineStatus(insHeader);
+            } catch (RuntimeException re) {
+                String headerErrMsg = insHeader.groupDetailExecuteResult();
+                insHeader.processFailed(VALIDATE_FAILED + headerErrMsg);
+                confirmResultList.add(new ReqInsConfirmResultDTO(insHeader, ExecutionResultEnum.FAILED, VALIDATE_FAILED + re.getMessage()));
                 continue;
             }
 

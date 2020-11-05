@@ -127,6 +127,21 @@ class CheckReqInsDomainServiceTest extends BaseJunitTest {
         notThrown()
     }
 
+    def "change qty is null or 0"() {
+        given:
+        def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
+                .setDetailList([ReqInsDetailEntity.get().setInsDetailId("detail1").setItemQty(new BigDecimal("0"))])
+        def reqLineList = [
+                new WipReqLineEntity(lineStatus: BillStatusEnum.ISSUED.getCode(), lotNumber: "SZCY-SRCBU200201110002", reqQty: 200, issuedQty: 200)
+        ]
+        when(wipReqLineRepository.selectByItemDim(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(reqLineList)
+        when:
+        checkReqInsDomainService.checkLineStatus(reqIns)
+        then:
+        ServerException ie = thrown()
+        ie.getMessage() == ReqInsErrEnum.INVALID_INS.getDesc() + ",更改数量为0"
+    }
+
     def "replace and qty is null"() {
         given:
         def reqIns = new ReqInsEntity().setStatus(ProcessingStatusEnum.PENDING.code)
