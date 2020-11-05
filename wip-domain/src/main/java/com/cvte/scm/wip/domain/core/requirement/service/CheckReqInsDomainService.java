@@ -133,9 +133,9 @@ public class CheckReqInsDomainService implements DomainService {
             int changeQty = detailGroupedByItemList.stream().map(detail -> Optional.ofNullable(detail.getItemQty()).orElse(BigDecimal.ZERO)).reduce(BigDecimal.ZERO, BigDecimal::add).intValue();
             try {
                 validateTargetLineIssued(reqLineInItemDim, changeQty);
-            } catch (ParamsIncorrectException pe) {
+            } catch (ServerException se) {
                 validateFailed = true;
-                detailGroupedByItemList.forEach(detail -> detail.setExecuteResult(pe.getMessage()));
+                detailGroupedByItemList.forEach(detail -> detail.setExecuteResult(se.getMessage()));
             }
         }
 
@@ -145,6 +145,9 @@ public class CheckReqInsDomainService implements DomainService {
     }
 
     private void validateTargetLineIssued(List<WipReqLineEntity> reqLineInItemDim, int changeQty) {
+        if (changeQty <= 0) {
+            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + ",更改数量为0");
+        }
         // 若有一个投料行已领料, 则视为已领料
         boolean issued = reqLineInItemDim.stream().map(WipReqLineEntity::getLineStatus).anyMatch(status -> BillStatusEnum.ISSUED.getCode().equals(status));
         if (issued) {

@@ -69,6 +69,8 @@ public class ReqInsSplitHelper {
                     .multiply(updateUnitQty)
                     .setScale(1, RoundingMode.FLOOR)
                     .setScale(0, RoundingMode.CEILING);
+            // 更新更改数量
+            insDetail.setItemQty(remainLotQty.abs());
         }
 
         // 重要, 由于批次分配的剩余数量会累加到最后一次分配上, 所以必须保证批次的排序是从小到大
