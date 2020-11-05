@@ -34,12 +34,11 @@ import static com.cvte.scm.wip.common.utils.EntityUtils.getEntityPrintInfo;
 import static java.util.Objects.isNull;
 
 /**
-  * 
-  * @author  : xueyuting
-  * @since    : 2020/5/17 20:04
-  * @version : 1.0
-  * email   : xueyuting@cvte.com
-  */
+ * @author : xueyuting
+ * @version : 1.0
+ * email   : xueyuting@cvte.com
+ * @since : 2020/5/17 20:04
+ */
 @Repository
 public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
@@ -49,7 +48,7 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
     private static final int DRAFT_CONFIRMED_PREPARED_ISSUED = 15;
 
     private BaseBatchMapper batchMapper;
-    private WipReqHeaderMapper  wipReqHeaderMapper;
+    private WipReqHeaderMapper wipReqHeaderMapper;
 
     public WipReqHeaderRepositoryImpl(@Qualifier("pgBatchMapper") BaseBatchMapper batchMapper, WipReqHeaderMapper wipReqHeaderMapper) {
         this.batchMapper = batchMapper;
@@ -104,14 +103,24 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
 
     @Override
     public List<WipReqHeaderEntity> selectAddedData(List<Integer> organizationIdList, String factoryId, List<ScmLotControlVO> scmLotControlVOList) {
+        // 已发放
         List<WipReqHeaderDO> deliveredHeaderList = wipReqHeaderMapper.selectDelivered(organizationIdList, factoryId);
         List<WipReqHeaderDO> headerDOList = new ArrayList<>(deliveredHeaderList);
 
-        List<WipReqHeaderDO> undeliveredHeaderList = wipReqHeaderMapper.selectUndelivered(organizationIdList, factoryId, scmLotControlVOList);
-        if (ListUtil.notEmpty(undeliveredHeaderList)) {
-            List<String> undeliveredHeaderIdList = undeliveredHeaderList.stream().map(WipReqHeaderDO::getHeaderId).collect(Collectors.toList());
-            headerDOList.removeIf(deliveredHeader -> undeliveredHeaderIdList.contains(deliveredHeader.getHeaderId()));
-            headerDOList.addAll(undeliveredHeaderList);
+        // 特殊逻辑
+        List<WipReqHeaderDO> specificHeaderList = wipReqHeaderMapper.selectSpecific(organizationIdList, factoryId, scmLotControlVOList);
+        if (ListUtil.notEmpty(specificHeaderList)) {
+            // 注意,不能随意调整过滤和去重的顺序
+            List<String> specificHeaderIdList = specificHeaderList.stream().map(WipReqHeaderDO::getHeaderId).collect(Collectors.toList());
+
+            // 过滤掉未发放中未刷新过MRP的
+            List<String> cachedHeaderIdList = wipReqHeaderMapper.filterCachedUndelivered(specificHeaderIdList);
+            specificHeaderList.removeIf(specificHeader -> !cachedHeaderIdList.contains(specificHeader.getHeaderId()));
+
+            // 去重, 例:视昱更改单生成的非标工单是已发放的状态
+            headerDOList.removeIf(deliveredHeader -> specificHeaderIdList.contains(deliveredHeader.getHeaderId()));
+
+            headerDOList.addAll(specificHeaderList);
         }
         return WipReqHeaderDO.batchBuildEntity(headerDOList);
     }

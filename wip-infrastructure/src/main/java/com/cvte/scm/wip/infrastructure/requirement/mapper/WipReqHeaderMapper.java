@@ -20,7 +20,9 @@ public interface WipReqHeaderMapper extends CommonMapper<WipReqHeaderDO> {
     List<WipReqHeaderDO> selectDelivered(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId);
 
     /* 获取工单信息，主要用投料单头的增量写入。 */
-    List<WipReqHeaderDO> selectUndelivered(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId, @Param("lotControlVOList") List<ScmLotControlVO> lotControlVOList);
+    List<WipReqHeaderDO> selectSpecific(@Param("organizationIdList") List<Integer> organizationIdList, @Param("factoryId") String factoryId, @Param("lotControlVOList") List<ScmLotControlVO> lotControlVOList);
+
+    List<String> filterCachedUndelivered(@Param("wipEntityIdList") List<String> wipEntityIdList);
 
     /* 判断货位信息在投料单头下是否存在 */
     boolean existLotNumber(@Param("headerId") Integer headerId, @Param("lotNumber") String lotNumber);
