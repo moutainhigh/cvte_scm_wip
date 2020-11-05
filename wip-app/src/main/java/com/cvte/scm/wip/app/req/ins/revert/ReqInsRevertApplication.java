@@ -75,9 +75,9 @@ public class ReqInsRevertApplication {
             undoInsHeader.revertIns();
 
             Map<String, List<WipReqLineEntity>> reqLineMap = checkReqInsDomainService.validAndGetLine(undoInsHeader);
-            checkReqInsDomainService.checkLineStatus(undoInsHeader);
 
             List<WipReqLineEntity> reqLineList = undoInsHeader.parse(reqLineMap);
+            checkReqInsDomainService.checkLineStatus(undoInsHeader);
 
             transactionTemplate.setTransactionManager(pgTransactionManager);
             transactionTemplate.execute(status -> {

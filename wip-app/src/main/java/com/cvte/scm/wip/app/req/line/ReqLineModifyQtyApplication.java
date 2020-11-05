@@ -48,9 +48,9 @@ public class ReqLineModifyQtyApplication {
         ReqInsEntity insHeader = reqInsEntityFactory.perfect(changeLineList);
 
         Map<String, List<WipReqLineEntity>> reqLineMap = checkReqInsDomainService.validAndGetLine(insHeader);
-        checkReqInsDomainService.checkLineStatus(insHeader);
 
         List<WipReqLineEntity> reqLineList = insHeader.parse(reqLineMap);
+        checkReqInsDomainService.checkLineStatus(insHeader);
 
         transactionTemplate.setTransactionManager(pgTransactionManager);
         transactionTemplate.execute(status -> {
