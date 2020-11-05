@@ -12,4 +12,6 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
   */
 public interface WipReqLotIssuedRepository extends WipBaseRepository<WipReqLotIssuedEntity> {
 
+    int selectCnBillTypeLot(String organizationId, String headerId, String itemKey);
+
 }

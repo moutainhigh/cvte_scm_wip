@@ -12,6 +12,7 @@ import com.cvte.scm.wip.domain.core.item.entity.ScmItemOrgEntity;
 import com.cvte.scm.wip.domain.core.item.repository.ScmItemOrgRepository;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
+import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqHeaderService;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLotControlService;
@@ -48,14 +49,16 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
     private WipReqHeaderService wipReqHeaderService;
     private ScmItemService scmItemService;
     private WipMtrSubInvRepository wipMtrSubInvRepository;
+    private WipReqLotIssuedRepository wipReqLotIssuedRepository;
 
-    public WipMtrRtcLotControlServiceImpl(ScmItemOrgRepository scmItemOrgRepository, AccessTokenService accessTokenService, BsmApiInfoConfiguration bsmApiInfoConfiguration, WipReqHeaderService wipReqHeaderService, ScmItemService scmItemService, WipMtrSubInvRepository wipMtrSubInvRepository) {
+    public WipMtrRtcLotControlServiceImpl(ScmItemOrgRepository scmItemOrgRepository, AccessTokenService accessTokenService, BsmApiInfoConfiguration bsmApiInfoConfiguration, WipReqHeaderService wipReqHeaderService, ScmItemService scmItemService, WipMtrSubInvRepository wipMtrSubInvRepository, WipReqLotIssuedRepository wipReqLotIssuedRepository) {
         this.scmItemOrgRepository = scmItemOrgRepository;
         this.accessTokenService = accessTokenService;
         this.bsmApiInfoConfiguration = bsmApiInfoConfiguration;
         this.wipReqHeaderService = wipReqHeaderService;
         this.scmItemService = scmItemService;
         this.wipMtrSubInvRepository = wipMtrSubInvRepository;
+        this.wipReqLotIssuedRepository = wipReqLotIssuedRepository;
     }
 
     @Override
@@ -73,25 +76,24 @@ public class WipMtrRtcLotControlServiceImpl implements WipMtrRtcLotControlServic
 
         // 获取库存现有量及工单物料批次
         mtrSubInvVOList = wipMtrSubInvRepository.selectInvLot(organizationId, factoryId, itemId, subinventoryCode, moId);
-        for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
-            if (BigDecimal.ZERO.equals(mtrSubInvVO.getItemQty())) {
-                // 弱管控, 暂时不考虑这种场景, 默认批次需求数量为0
-                mtrSubInvVO.setLotControlType(WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode());
-            } else {
-                // 成品批次管控
-                mtrSubInvVO.setLotControlType(WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode());
-            }
+
+        String lotControlType;
+        List<String> configItemIdList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
+        if (configItemIdList.contains(itemId)) {
+            // LED物料指定投料批次
+            lotControlType = WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode();
+        } else if (wipReqLotIssuedRepository.selectCnBillTypeLot(organizationId, moId, itemId) > 0) {
+            // 更改单指定投料批次
+            lotControlType = WipMtrRtcLotControlTypeEnum.REWORK_CONTROL.getCode();
+        } else {
+            // 可发任意库存批次
+            lotControlType = WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode();
         }
 
-        // 配置强批次管控
-        List<String> configItemIdList = getForceControlLot(organizationId, moId, Collections.singletonList(itemId));
-        if (ListUtil.notEmpty(configItemIdList)) {
-            for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
-                if (configItemIdList.contains(mtrSubInvVO.getInventoryItemId())) {
-                    mtrSubInvVO.setLotControlType(WipMtrRtcLotControlTypeEnum.CONFIG_CONTROL.getCode());
-                }
-            }
+        for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
+            mtrSubInvVO.setLotControlType(lotControlType);
         }
+
         return mtrSubInvVOList;
     }
 

@@ -18,4 +18,8 @@ public class WipReqLotIssuedRepositoryImpl
         extends WipBaseRepositoryImpl<WipReqLotIssuedMapper, WipReqLotIssuedDO, WipReqLotIssuedEntity>
         implements WipReqLotIssuedRepository {
 
+    @Override
+    public int selectCnBillTypeLot(String organizationId, String headerId, String itemKey) {
+        return mapper.selectCnBillTypeLot(organizationId, headerId, itemKey);
+    }
 }

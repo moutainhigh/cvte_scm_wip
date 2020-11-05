@@ -52,6 +52,7 @@
              , siq.supply_qty
              , coalesce(rli.assign_qty, 0) as item_qty
              , coalesce(rli.issued_qty, 0) as item_issued_qty
+             , case when(rli.id is null) then 'N' else 'Y' end as lot_assigned_flag /* 是否分配批次标识 */
         from wip_mtr_sub_inv_qty_v siq
         inner join scm.md_item mi
             on siq.inventory_item_id = mi.inventory_item_id

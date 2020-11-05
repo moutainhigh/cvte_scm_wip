@@ -47,6 +47,9 @@ public class WipMtrSubInvVO {
 
     private BigDecimal itemIssuedQty;
 
+    /* 是否分配批次标识 */
+    private String lotAssignedFlag;
+
     // 物料
     public static Map<String, BigDecimal> groupQtyByItem(List<WipMtrSubInvVO> subInvVOList) {
         return subInvVOList.stream().collect(Collectors.toMap(WipMtrSubInvVO::getInventoryItemId, WipMtrSubInvVO::getSupplyQty, BigDecimal::add));

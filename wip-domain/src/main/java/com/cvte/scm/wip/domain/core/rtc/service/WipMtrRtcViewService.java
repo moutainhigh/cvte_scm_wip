@@ -10,11 +10,13 @@ import com.cvte.scm.wip.domain.common.view.vo.SysViewPageParamVO;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLotControlTypeEnum;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -110,6 +112,12 @@ public class WipMtrRtcViewService {
         return feignPageResult;
     }
 
+    /**
+     *
+     * @since 2020/11/5 7:09 下午
+     * @author xueyuting
+     * @param lotNumber 批次过滤参数
+     */
     public List<WipMtrSubInvVO> lotView(WipMtrRtcQueryVO lotQuery, String lotNumber) {
         if (StringUtils.isBlank(lotQuery.getOrganizationId()) || StringUtils.isBlank(lotQuery.getFactoryId()) || StringUtils.isBlank(lotQuery.getItemId()) || StringUtils.isBlank(lotQuery.getMoId())) {
             throw new ParamsIncorrectException("参数不全");
@@ -123,14 +131,18 @@ public class WipMtrRtcViewService {
         if (ListUtil.empty(mtrSubInvVOList)) {
             return Collections.emptyList();
         }
-        if (Objects.isNull(mtrSubInvVOList.get(0).getItemQty())) {
-            // 非投料批次, 补充物料需求&领料数量
-            List<WipReqItemVO> reqItemList = getReqItem(lotQuery.getOrganizationId(), lotQuery.getMoId(), Collections.singletonList(lotQuery.getItemId()));
-            BigDecimal itemQty = reqItemList.stream().map(WipReqItemVO::getReqQty).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal itemIssuedQty = reqItemList.stream().map(WipReqItemVO::getIssuedQty).reduce(BigDecimal.ZERO, BigDecimal::add);
-            for (WipMtrSubInvVO mtrSubInvVO : mtrSubInvVOList) {
-                mtrSubInvVO.setItemQty(itemQty);
-                mtrSubInvVO.setItemIssuedQty(itemIssuedQty);
+        boolean isWeakControl = WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode().equals(mtrSubInvVOList.get(0).getLotControlType());
+        if (isWeakControl) {
+            // 弱管控批次(可发任意库存批次), 补充物料需求&领料数量
+            WipMtrRtcLineEntity rtcLine = WipMtrRtcLineEntity.get().getById(lotQuery.getLineId());
+            BigDecimal rtcLineIssuedQty = rtcLine.getIssuedQty();
+            for (WipMtrSubInvVO weakControlVO : mtrSubInvVOList) {
+                if (BigDecimal.ZERO.compareTo(weakControlVO.getItemQty()) >= 0) {
+                    // 弱管控且未配置投料批次时, 需求数量 = min(领料行实发数量, 库存现有量)
+                    BigDecimal itemQty = rtcLineIssuedQty.min(Optional.ofNullable(weakControlVO.getSupplyQty()).orElse(BigDecimal.ZERO));
+                    weakControlVO.setItemQty(itemQty)
+                            .setItemIssuedQty(itemQty);
+                }
             }
         }
 

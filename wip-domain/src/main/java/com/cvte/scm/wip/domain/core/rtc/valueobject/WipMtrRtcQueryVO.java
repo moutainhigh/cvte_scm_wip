@@ -4,6 +4,7 @@ import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnu
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 /**
@@ -37,6 +38,8 @@ public class WipMtrRtcQueryVO {
     private String invpNo;
 
     private String billType;
+
+    private BigDecimal issuedQty;
 
     private Collection<String> statusColl;
 

@@ -19,4 +19,19 @@
             <result column="upd_date" property="updDate" />
             <result column="status" property="status" />
         </resultMap>
+
+    <select id="selectCnBillTypeLot" resultType="java.lang.Integer">
+        select count(1)
+        from wip_req_lot_issued rli
+        inner join wip_req_lines wrl
+             on rli.header_id = wrl.header_id
+            and rli.item_no = wrl.item_no
+            and rli.wkp_no = wrl.wkp_no
+            and wrl.line_status <![CDATA[ <> ]]> '50'
+        where rli.organization_id = #{organizationId}
+          and rli.header_id = #{headerId}
+          and (rli.item_no = #{itemKey} or wrl.item_id = #{itemKey})
+          and rli.lot_type = 'cn_bill'
+    </select>
+
 </mapper>
