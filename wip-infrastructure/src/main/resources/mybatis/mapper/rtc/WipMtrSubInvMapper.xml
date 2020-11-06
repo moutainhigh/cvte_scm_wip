@@ -32,7 +32,7 @@
                   and siq.subinventory_code = #{subInv.subinventoryCode}
               </if>
               <if test="subInv.lotNumber != null and subInv.lotNumber.length() > 0">
-                  and siq.lot_number = #{subInv.lotNumber}
+                  and siq.lot_number like '%' || #{subInv.lotNumber} || '%'
               </if>
               )
           </foreach>

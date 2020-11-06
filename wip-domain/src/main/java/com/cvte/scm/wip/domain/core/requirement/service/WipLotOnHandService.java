@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.requirement.service;
 
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,6 +14,6 @@ import java.util.List;
   */
 public interface WipLotOnHandService {
 
-    List<WipMtrSubInvVO> getOnHand(String organizationId, String factoryId, String itemId, String[] lotNumbers);
+    List<WipMtrSubInvVO> getOnHand(String organizationId, String itemId, Collection<String> lotNumbers);
 
 }

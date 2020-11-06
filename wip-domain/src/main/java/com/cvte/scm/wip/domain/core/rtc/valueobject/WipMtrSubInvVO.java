@@ -50,6 +50,9 @@ public class WipMtrSubInvVO {
     /* 是否分配批次标识 */
     private String lotAssignedFlag;
 
+    /* 货位 */
+    private String locatorCode;
+
     // 物料
     public static Map<String, BigDecimal> groupQtyByItem(List<WipMtrSubInvVO> subInvVOList) {
         return subInvVOList.stream().collect(Collectors.toMap(WipMtrSubInvVO::getInventoryItemId, WipMtrSubInvVO::getSupplyQty, BigDecimal::add));

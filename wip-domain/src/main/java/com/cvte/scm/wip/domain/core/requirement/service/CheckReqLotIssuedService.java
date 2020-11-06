@@ -3,9 +3,7 @@ package com.cvte.scm.wip.domain.core.requirement.service;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.CollectionUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
-import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.domain.core.item.service.ScmItemService;
-import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
@@ -59,15 +57,17 @@ public class CheckReqLotIssuedService {
             throw new ParamsIncorrectException(String.format("找不到编号为%s的物料", randomEntity.getItemNo()));
         }
         // 物料批次
-        String[] lotNumbers = itemLotIssuedList.stream().map(WipReqLotIssuedEntity::getMtrLotNo).toArray(String[]::new);
+        List<String> lotNumbers = itemLotIssuedList.stream().map(WipReqLotIssuedEntity::getMtrLotNo).collect(Collectors.toList());
 
-        List<WipMtrSubInvVO> mtrSubInvVOList = this.getMtrSubInv(organizationId, null, itemId, lotNumbers);
+        // 库存
+        List<WipMtrSubInvVO> mtrSubInvVOList = wipMtrSubInvRepository.selectByItem(organizationId, null, itemId, lotNumbers);
 
         Set<String> itemLotSet = itemLotIssuedList.stream().map(WipReqLotIssuedEntity::getMtrLotNo).collect(Collectors.toSet());
         Set<String> invLotSet = mtrSubInvVOList.stream().map(WipMtrSubInvVO::getLotNumber).collect(Collectors.toSet());
         itemLotSet.removeIf(invLotSet::contains);
         if (CollectionUtils.isNotEmpty(itemLotSet)) {
-            List<WipMtrSubInvVO> lotOnHandList = wipLotOnHandService.getOnHand(organizationId, null, itemId, itemLotSet.toArray(new String[0]));
+            // 在途
+            List<WipMtrSubInvVO> lotOnHandList = wipLotOnHandService.getOnHand(organizationId, itemId, itemLotSet);
             Set<String> lotOnHandSet = lotOnHandList.stream().map(WipMtrSubInvVO::getLotNumber).collect(Collectors.toSet());
             itemLotSet.removeIf(lotOnHandSet::contains);
             if (CollectionUtils.isNotEmpty(itemLotSet)) {
@@ -94,20 +94,6 @@ public class CheckReqLotIssuedService {
         List<WipReqLineEntity> reqLinesList = queryReqLineService.getValidLine(keyQueryVO);
 
         return reqLinesList.stream().mapToLong(WipReqLineEntity::getReqQty).sum();
-    }
-
-    private List<WipMtrSubInvVO> getMtrSubInv(String organizationId, String factoryId, String itemId, String[] lotNumbers) {
-        // 获取批次
-        List<WipMtrSubInvVO> queryList = new ArrayList<>();
-        for (String lotNumber : lotNumbers) {
-            WipMtrSubInvVO mtrSubInvVO = new WipMtrSubInvVO();
-            mtrSubInvVO.setOrganizationId(organizationId)
-                    .setFactoryId(null)
-                    .setInventoryItemId(itemId)
-                    .setLotNumber(lotNumber);
-            queryList.add(mtrSubInvVO);
-        }
-        return wipMtrSubInvRepository.selectByVO(queryList);
     }
 
 }

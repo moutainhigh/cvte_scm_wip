@@ -3,7 +3,8 @@ package com.cvte.scm.wip.spi.requirement;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.cvte.csb.core.exception.ServerException;
-import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.csb.toolkit.CollectionUtils;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.domain.common.deprecated.RestCallUtils;
 import com.cvte.scm.wip.domain.common.token.service.AccessTokenService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipLotOnHandService;
@@ -15,6 +16,8 @@ import com.cvte.scm.wip.spi.common.CommonResponse;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -37,60 +40,119 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
         this.sysOrganizationMapper = sysOrganizationMapper;
     }
 
+    /**
+     * 获取在途批次
+     * @since 2020/11/6 3:55 下午
+     * @author xueyuting
+     */
     @Override
-    public List<WipMtrSubInvVO> getOnHand(String organizationId, String factoryId, String itemId, String[] lotNumbers) {
+    public List<WipMtrSubInvVO> getOnHand(String organizationId, String itemId, Collection<String> lotNumbers) {
+        // 查询PO.ASN单据 https://kb.cvte.com/pages/viewpage.action?pageId=125166990
+        List<WipMtrSubInvVO> poAsnList = getPoAsn(organizationId, itemId, lotNumbers);
+        List<WipMtrSubInvVO> onHandList = new ArrayList<>(poAsnList);
+
+        // 查询INV.其他出入库单据 https://kb.cvte.com/pages/viewpage.action?pageId=131482997
+        List<WipMtrSubInvVO> inoutList = getInout(organizationId, itemId, lotNumbers);
+        onHandList.addAll(inoutList);
+
+        return onHandList;
+    }
+
+    /**
+     * 获取ASN在途批次
+     * @since 2020/11/6 3:55 下午
+     * @author xueyuting
+     */
+    private List<WipMtrSubInvVO> getPoAsn(String organizationId, String itemId, Collection<String> lotNumbers) {
         List<WipMtrSubInvVO> subInvVOList = new ArrayList<>();
         String orgId = sysOrganizationMapper.getOrgIdById(organizationId);
-
         String iacToken = getIacToken();
         String poUrl = csbpApiInfoConfiguration.getBaseUrl() + "/po/getAsnDetail";
-        String inoutUrl = csbpApiInfoConfiguration.getBaseUrl() + "/inv/inoutstock/inoutStock";
-        for (String lotNumber : lotNumbers) {
-            // 查询PO.ASN单据 https://kb.cvte.com/pages/viewpage.action?pageId=125166990
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("orgId", orgId);
-            paramMap.put("itemId", itemId);
-            paramMap.put("batchNumber", lotNumber);
-            List<Map<String, Object>> poResponse = requestAndGetData(poUrl, iacToken, paramMap);
-            boolean exists = false;
-            for (Map<String, Object> data : poResponse) {
-                String vendorLotNum = (String)data.get("vendorLotNum");
-                if (lotNumber.equals(vendorLotNum)) {
-                    BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("quantityShipped")).orElse(0).toString());
-                    subInvVOList.add(this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, vendorLotNum, supplyQty));
-                    exists = true;
-                }
-            }
-            if (exists) {
-                continue;
-            }
 
-            // 查询INV.其他出入库单据 https://kb.cvte.com/pages/viewpage.action?pageId=131482997
-            paramMap.put("organizationId", organizationId);
-            List<Map<String, Object>> inoutResponse = requestAndGetData(inoutUrl, iacToken, paramMap);
-            if (ListUtil.empty(inoutResponse)) {
-                continue;
-            }
-            for (Map<String, Object> data : inoutResponse) {
-                String lot = (String)data.get("lot");
-                if (lotNumber.equals(lot)) {
-                    BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("planQty")).orElse(0).toString());
-                    subInvVOList.add(this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, lot, supplyQty));
-                }
-            }
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("orgId", orgId);
+        paramMap.put("itemId", itemId);
+        paramMap.put("shipmentLineStatusCode", "EXPECTED,PARTIALLY RECEIVED");
+        List<Map<String, Object>> poAsnLotList = requestAndGetData(poUrl, iacToken, paramMap, lotNumbers);
+
+        for (Map<String, Object> data : poAsnLotList) {
+            String vendorLotNum = (String)data.get("vendorLotNum");
+            BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("quantityShipped")).orElse(0).toString());
+            subInvVOList.add(this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, vendorLotNum, supplyQty));
         }
-
         return subInvVOList;
     }
 
-    private List<Map<String, Object>> requestAndGetData(String url, String iacToken, Map<String, Object> paramMap) {
-        String poResponseStr = RestCallUtils.callRest(RestCallUtils.RequestMethod.GET, url, iacToken, paramMap);
+    /**
+     * 获取其他出入库的批次
+     * @since 2020/11/6 3:55 下午
+     * @author xueyuting
+     */
+    private List<WipMtrSubInvVO> getInout(String organizationId, String itemId, Collection<String> lotNumbers) {
+        List<WipMtrSubInvVO> subInvVOList = new ArrayList<>();
+        String iacToken = getIacToken();
+        String inoutUrl = csbpApiInfoConfiguration.getBaseUrl() + "/inv/inoutstock/inoutStock";
 
-        CommonResponse<List<Map<String, Object>>> poResponse = JSON.parseObject(poResponseStr, new TypeReference<CommonResponse<List<Map<String, Object>>>>(){});
-        checkSuccess(poResponse);
-        return poResponse.getData();
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("organizationId", organizationId);
+        paramMap.put("itemId", itemId);
+        paramMap.put("status", "BOOKED"); // 已确认状态的单据
+        List<Map<String, Object>> inoutLotList = requestAndGetData(inoutUrl, iacToken, paramMap, lotNumbers);
+
+        for (Map<String, Object> data : inoutLotList) {
+            String lot = (String)data.get("lot");
+            BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("planQty")).orElse(0).toString());
+            WipMtrSubInvVO inoutVO = this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, lot, supplyQty);
+            inoutVO.setLocatorCode((String)data.get("locatorCodeL"));
+            subInvVOList.add(inoutVO);
+        }
+        return subInvVOList;
     }
 
+    /**
+     * 查询并返回接口数据
+     * @since 2020/11/6 3:54 下午
+     * @author xueyuting
+     */
+    private List<Map<String, Object>> requestAndGetData(String url, String iacToken, Map<String, Object> paramMap, Collection<String> lotNumbers) {
+        String poResponseStr = "";
+        if (CollectionUtils.isNotEmpty(lotNumbers)) {
+            for (String lotNumber : lotNumbers) {
+                paramMap.put("batchNumber", lotNumber);
+                poResponseStr = RestCallUtils.callRest(RestCallUtils.RequestMethod.GET, url, iacToken, paramMap);
+            }
+        } else {
+            fillTimeParam(paramMap);
+            poResponseStr = RestCallUtils.callRest(RestCallUtils.RequestMethod.GET, url, iacToken, paramMap);
+        }
+
+        CommonResponse<List<Map<String, Object>>> response = JSON.parseObject(poResponseStr, new TypeReference<CommonResponse<List<Map<String, Object>>>>(){});
+        checkSuccess(response);
+        List<Map<String, Object>> responseData = response.getData();
+        if (Objects.isNull(responseData)) {
+            return Collections.emptyList();
+        }
+        return responseData;
+    }
+
+    /**
+     * 为请求参数填充查询的起始和截止时间
+     * @since 2020/11/6 3:53 下午
+     * @author xueyuting
+     */
+    private void fillTimeParam(Map<String, Object> paramMap) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime oneMonthBefore = now.minusMonths(1);
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        paramMap.put("lastUpdateDateFr", df.format(oneMonthBefore));
+        paramMap.put("lastUpdateDateTo", df.format(now));
+    }
+
+    /**
+     * 生成在途实体
+     * @since 2020/11/6 3:53 下午
+     * @author xueyuting
+     */
     private WipMtrSubInvVO buildSubInvVO(String organizationId, String factoryId, String factoryNo, String itemId, String lotNumber, BigDecimal supplyQty) {
         WipMtrSubInvVO subInvVO = new WipMtrSubInvVO();
         subInvVO.setOrganizationId(organizationId)

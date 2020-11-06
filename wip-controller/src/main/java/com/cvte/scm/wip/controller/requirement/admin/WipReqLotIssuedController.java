@@ -4,7 +4,9 @@ import com.cvte.csb.core.interfaces.vo.RestResponse;
 import com.cvte.scm.wip.app.req.lot.ReqLotIssuedLockApplication;
 import com.cvte.scm.wip.app.req.lot.ReqLotIssuedSaveApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.WipLotIssuedPageService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -29,11 +31,13 @@ public class WipReqLotIssuedController {
     private ReqLotIssuedSaveApplication reqLotIssuedSaveApplication;
     private ReqLotIssuedLockApplication reqLotIssuedLockApplication;
     private WipReqLotIssuedService wipReqLotIssuedService;
+    private WipLotIssuedPageService wipLotIssuedPageService;
 
-    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication, WipReqLotIssuedService wipReqLotIssuedService) {
+    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication, WipReqLotIssuedService wipReqLotIssuedService, WipLotIssuedPageService wipLotIssuedPageService) {
         this.reqLotIssuedSaveApplication = reqLotIssuedSaveApplication;
         this.reqLotIssuedLockApplication = reqLotIssuedLockApplication;
         this.wipReqLotIssuedService = wipReqLotIssuedService;
+        this.wipLotIssuedPageService = wipLotIssuedPageService;
     }
 
     @PostMapping("/save_all")
@@ -52,6 +56,11 @@ public class WipReqLotIssuedController {
     public RestResponse delete(@RequestBody WipReqLotIssuedEntity reqLotIssued) {
         wipReqLotIssuedService.delete(reqLotIssued);
         return new RestResponse();
+    }
+
+    @PostMapping("/view")
+    public RestResponse view(@RequestBody WipMtrSubInvVO subInvVO) {
+        return new RestResponse().setData(wipLotIssuedPageService.getLot(subInvVO));
     }
 
 }

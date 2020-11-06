@@ -2,6 +2,7 @@ package com.cvte.scm.wip.domain.core.rtc.repository;
 
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,5 +22,13 @@ public interface WipMtrSubInvRepository {
      * @author xueyuting
      */
     List<WipMtrSubInvVO> selectInvLot(String organizationId, String factoryId, String itemId, String subinventoryCode, String moId);
+
+    /**
+     *
+     * @since 2020/11/6 4:39 下午
+     * @author xueyuting
+     * @param lotNumbers 投料批次, 可为空
+     */
+    List<WipMtrSubInvVO> selectByItem(String organizationId, String factoryId, String itemId, Collection<String> lotNumbers);
 
 }
