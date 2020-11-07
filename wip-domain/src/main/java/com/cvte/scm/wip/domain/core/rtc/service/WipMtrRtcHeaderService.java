@@ -3,7 +3,6 @@ package com.cvte.scm.wip.domain.core.rtc.service;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
-import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
@@ -15,18 +14,13 @@ import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
-import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLineStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
 
 /**
   * 
@@ -104,11 +98,21 @@ public class WipMtrRtcHeaderService {
         }
         // 调整单据行
         rtcHeader.adjustLines(wipMtrRtcHeaderBuildVO, reqItemVOList);
+        // 自动分配批次
+        List<WipMtrRtcLineEntity> rtcLineList = rtcHeader.getLineList();
+        WipMtrRtcLineEntity.get().batchGetAssign(rtcLineList);
+        List<WipMtrRtcAssignEntity> rtcAssignList = new ArrayList<>();
+        for (WipMtrRtcLineEntity rtcLine : rtcLineList) {
+            rtcAssignList.addAll(rtcLine.generateAssign(rtcHeader.getMoId(), rtcHeader.getFactoryId()));
+        }
 
         checkMtrRtcHeaderService.checkReqFinished(rtcHeader);
         // 保存单据
         rtcHeader.save(isCreate);
         rtcHeader.saveLines(isCreate);
+        if (ListUtil.notEmpty(rtcAssignList)) {
+            WipMtrRtcLineEntity.get().createAssigns(rtcAssignList);
+        }
 
         return rtcHeader.getHeaderId();
     }

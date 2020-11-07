@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.rtc.entity;
 import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
 import com.cvte.csb.toolkit.ArrayUtils;
 import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
 import com.cvte.scm.wip.common.audit.AuditEntity;
 import com.cvte.scm.wip.common.audit.AuditField;
@@ -13,6 +14,8 @@ import com.cvte.scm.wip.common.base.domain.Entity;
 import com.cvte.scm.wip.common.enums.StatusEnum;
 import com.cvte.scm.wip.common.utils.EntityUtils;
 import com.cvte.scm.wip.domain.common.base.BaseModel;
+import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
+import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLotIssuedRepository;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcAssignRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
@@ -53,13 +56,15 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private WipMtrRtcLineRepository wipMtrRtcLineRepository;
     private WipMtrRtcAssignRepository wipMtrRtcAssignRepository;
+    private WipReqLotIssuedRepository wipReqLotIssuedRepository;
 
     public WipMtrRtcLineEntity() {}
 
     @Autowired
-    public WipMtrRtcLineEntity(WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrRtcAssignRepository wipMtrRtcAssignRepository) {
+    public WipMtrRtcLineEntity(WipMtrRtcLineRepository wipMtrRtcLineRepository, WipMtrRtcAssignRepository wipMtrRtcAssignRepository, WipReqLotIssuedRepository wipReqLotIssuedRepository) {
         this.wipMtrRtcLineRepository = wipMtrRtcLineRepository;
         this.wipMtrRtcAssignRepository = wipMtrRtcAssignRepository;
+        this.wipReqLotIssuedRepository = wipReqLotIssuedRepository;
     }
 
     @Override
@@ -287,6 +292,31 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         if (valueChanged.test(rtcLineBuildVO.getRemark(), this.remark)) {
             this.setRemark(rtcLineBuildVO.getRemark());
         }
+    }
+
+    public List<WipMtrRtcAssignEntity> generateAssign(String moId, String factoryId) {
+        List<WipMtrRtcAssignEntity> rtcAssignList = new ArrayList<>();
+        if (ListUtil.empty(this.getAssignList()) && StringUtils.isNotBlank(this.invpNo)) {
+            List<WipReqLotIssuedEntity> reqLotIssuedList = wipReqLotIssuedRepository.selectByKey(this.organizationId, moId, this.itemNo, this.wkpNo);
+            if (ListUtil.notEmpty(reqLotIssuedList) && reqLotIssuedList.size() == 1) {
+                // 仅有一个批次时自动生成
+                WipReqLotIssuedEntity reqLotIssued = reqLotIssuedList.get(0);
+                WipMtrRtcAssignEntity rtcAssign = WipMtrRtcAssignEntity.get();
+                rtcAssign.setAssignId(UUIDUtils.get32UUID())
+                        .setLineId(this.lineId)
+                        .setHeaderId(this.headerId)
+                        .setOrganizationId(this.organizationId)
+                        .setFactoryId(factoryId)
+                        .setInvpNo(this.invpNo)
+                        .setMtrLotNo(reqLotIssued.getMtrLotNo())
+                        .setAssignQty(this.reqQty)
+                        .setIssuedQty(this.issuedQty)
+                        .setAssignStatus(StatusEnum.NORMAL.getCode());
+                rtcAssignList.add(rtcAssign);
+            }
+        }
+        this.setAssignList(rtcAssignList);
+        return rtcAssignList;
     }
 
     public void createAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {
