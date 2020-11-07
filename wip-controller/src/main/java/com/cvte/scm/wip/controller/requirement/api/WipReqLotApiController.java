@@ -1,8 +1,8 @@
 package com.cvte.scm.wip.controller.requirement.api;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
-import com.cvte.scm.wip.app.req.lot.ReqLotProcessApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotProcessEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotProcessService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
   * 
@@ -27,16 +29,25 @@ import java.util.List;
 @RequestMapping("/api/req/lot")
 public class WipReqLotApiController {
 
-    private ReqLotProcessApplication reqLotProcessApplication;
+    private WipReqLotProcessService wipReqLotProcessService;
 
-    public WipReqLotApiController(ReqLotProcessApplication reqLotProcessApplication) {
-        this.reqLotProcessApplication = reqLotProcessApplication;
+    public WipReqLotApiController(WipReqLotProcessService wipReqLotProcessService) {
+        this.wipReqLotProcessService = wipReqLotProcessService;
     }
 
     @PostMapping("/lock")
     public RestResponse changeLockStatus(@RequestBody List<WipReqLotProcessEntity> wipReqLotProcessList) {
-        reqLotProcessApplication.doAction(wipReqLotProcessList);
+        wipReqLotProcessService.createAndProcess(wipReqLotProcessList);
         return new RestResponse();
+    }
+
+    @PostMapping("/process")
+    public RestResponse process() {
+        String msg = wipReqLotProcessService.getAndProcess();
+        Map<String, String> rtnMap = new HashMap<>();
+        rtnMap.put("code", "520"); // 处理完毕
+        rtnMap.put("info", msg); // 处理完毕
+        return new RestResponse().setData(rtnMap);
     }
 
 }

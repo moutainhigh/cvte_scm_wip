@@ -43,6 +43,11 @@ public class WipReqLotProcessService {
         process(wipReqLotProcessList);
     }
 
+    public String getAndProcess() {
+        List<WipReqLotProcessEntity> wipReqLotProcessList = wipReqLotProcessRepository.selectNeedProcess();
+        return process(wipReqLotProcessList);
+    }
+
     public void create(List<WipReqLotProcessEntity> wipReqLotProcessList) {
         for (WipReqLotProcessEntity itemLotProcess : wipReqLotProcessList) {
             if (StringUtils.isBlank(itemLotProcess.getItemNo()) && StringUtils.isNotBlank(itemLotProcess.getItemId())) {
@@ -55,7 +60,8 @@ public class WipReqLotProcessService {
         wipReqLotProcessRepository.insertList(wipReqLotProcessList);
     }
 
-    public void process(List<WipReqLotProcessEntity> wipReqLotProcessList) {
+    public String process(List<WipReqLotProcessEntity> wipReqLotProcessList) {
+        StringBuilder msgBuilder = new StringBuilder();
         // 按物料+工序聚合
         Map<String, List<WipReqLotProcessEntity>> itemLotProcessMap = wipReqLotProcessList.stream().collect(Collectors.groupingBy(WipReqLotProcessEntity::getItemKey));
         for (Map.Entry<String, List<WipReqLotProcessEntity>> itemLotProcessEntry : itemLotProcessMap.entrySet()) {
@@ -85,6 +91,7 @@ public class WipReqLotProcessService {
                     // 记录异常信息
                     itemLotProcess.setProcessStatus(ProcessingStatusEnum.EXCEPTION.getCode())
                             .setProcessResult(re.getMessage());
+                    msgBuilder.append(re.getMessage()).append(";");
                 }
             }
         }
@@ -92,6 +99,8 @@ public class WipReqLotProcessService {
             EntityUtils.writeStdUpdInfoToEntity(updateEntity, Optional.ofNullable(updateEntity.getOptUser()).orElse(EntityUtils.getWipUserId()));
         }
         wipReqLotProcessRepository.updateList(wipReqLotProcessList);
+
+        return msgBuilder.toString();
     }
 
 }

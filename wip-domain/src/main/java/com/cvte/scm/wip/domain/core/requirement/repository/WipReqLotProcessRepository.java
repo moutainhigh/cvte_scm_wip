@@ -3,6 +3,8 @@ package com.cvte.scm.wip.domain.core.requirement.repository;
 import com.cvte.scm.wip.domain.common.repository.WipBaseRepository;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotProcessEntity;
 
+import java.util.List;
+
 /**
   * 
   * @author  : xueyuting
@@ -11,4 +13,7 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotProcessEntity;
   * email   : xueyuting@cvte.com
   */
 public interface WipReqLotProcessRepository extends WipBaseRepository<WipReqLotProcessEntity> {
+
+    List<WipReqLotProcessEntity> selectNeedProcess();
+
 }
