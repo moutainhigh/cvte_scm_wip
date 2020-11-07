@@ -145,9 +145,6 @@ public class CheckReqInsDomainService implements DomainService {
     }
 
     private void validateTargetLineIssued(List<WipReqLineEntity> reqLineInItemDim, int changeQty) {
-        if (changeQty <= 0) {
-            throw new ServerException(ReqInsErrEnum.INVALID_INS.getCode(), ReqInsErrEnum.INVALID_INS.getDesc() + ",更改数量为0");
-        }
         // 若有一个投料行已领料, 则视为已领料
         boolean issued = reqLineInItemDim.stream().map(WipReqLineEntity::getLineStatus).anyMatch(status -> BillStatusEnum.ISSUED.getCode().equals(status));
         if (issued) {
