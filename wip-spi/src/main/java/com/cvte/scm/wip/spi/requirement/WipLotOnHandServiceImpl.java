@@ -78,7 +78,12 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
         for (Map<String, Object> data : poAsnLotList) {
             String vendorLotNum = (String)data.get("vendorLotNum");
             BigDecimal supplyQty = new BigDecimal(Optional.ofNullable(data.get("quantityShipped")).orElse(0).toString());
-            subInvVOList.add(this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), mapObjectToString(data.get("projectNumber")), itemId, vendorLotNum, supplyQty));
+            String factoryNo = mapObjectToString(data.get("projectNumber"));
+            WipMtrSubInvVO inoutVO = this.buildSubInvVO(organizationId, mapObjectToString(data.get("projectId")), factoryNo, itemId, vendorLotNum, supplyQty);
+            // 获取默认子库
+            String subInvCode = getSubInv(factoryNo);
+            inoutVO.setSubinventoryCode(subInvCode);
+            subInvVOList.add(inoutVO);
         }
         return subInvVOList;
     }
@@ -168,6 +173,14 @@ public class WipLotOnHandServiceImpl implements WipLotOnHandService {
         if (!"0".equals(commonResponse.getStatus())) {
             throw new EbsInvokeException(commonResponse.getMessage());
         }
+    }
+
+    private String getSubInv(String factoryNo) {
+        if (StringUtils.isBlank(factoryNo)) {
+            return "";
+        }
+        String factoryNoPre = factoryNo.split("-")[0];
+        return factoryNoPre + "-01";
     }
 
     private String mapObjectToString(Object data) {

@@ -50,6 +50,12 @@ public class WipLotIssuedPageService {
             // 模糊匹配查询批次
             totalInvVOList.removeIf(vo -> !vo.getLotNumber().contains(subInvVO.getLotNumber()));
         }
+        // 货位为空时默认设为子库
+        for (WipMtrSubInvVO mtrSubInvVO : totalInvVOList) {
+            if (StringUtils.isBlank(mtrSubInvVO.getLocatorCode())) {
+                mtrSubInvVO.setLocatorCode(mtrSubInvVO.getSubinventoryCode());
+            }
+        }
         return totalInvVOList;
     }
 
