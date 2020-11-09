@@ -140,8 +140,7 @@ public class WipMtrRtcViewService {
                 if (BigDecimal.ZERO.compareTo(weakControlVO.getItemQty()) >= 0) {
                     // 弱管控且未配置投料批次时, 需求数量 = min(领料行实发数量, 库存现有量)
                     BigDecimal itemQty = rtcLineIssuedQty.min(Optional.ofNullable(weakControlVO.getSupplyQty()).orElse(BigDecimal.ZERO));
-                    weakControlVO.setItemQty(itemQty)
-                            .setItemIssuedQty(itemQty);
+                    weakControlVO.setItemQty(itemQty);
                 }
             }
         }
