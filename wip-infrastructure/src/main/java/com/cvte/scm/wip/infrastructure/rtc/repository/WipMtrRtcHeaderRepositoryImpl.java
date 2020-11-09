@@ -36,4 +36,9 @@ public class WipMtrRtcHeaderRepositoryImpl
         return batchBuildEntity(this.mapper.selectByExample(example));
     }
 
+    @Override
+    public int selectCanceledOrderCount(String moId) {
+        return mapper.selectCanceledOrderCount(moId);
+    }
+
 }

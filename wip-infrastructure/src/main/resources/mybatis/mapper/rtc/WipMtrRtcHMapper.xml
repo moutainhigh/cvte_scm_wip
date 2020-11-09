@@ -25,4 +25,11 @@
             <result column="upd_user" property="updUser" />
             <result column="upd_time" property="updTime" />
         </resultMap>
+
+    <select id="selectCanceledOrderCount" resultType="java.lang.Integer">
+        select count(1)
+        from xxwip_om_canceled_v
+        where wip_id = #{moId}
+    </select>
+
 </mapper>

@@ -15,4 +15,6 @@ public interface WipMtrRtcHeaderRepository extends WipBaseRepository<WipMtrRtcHe
 
     List<WipMtrRtcHeaderEntity> selectUnPost(WipMtrRtcHeaderEntity rtcHeader);
 
+    int selectCanceledOrderCount(String moId);
+
 }

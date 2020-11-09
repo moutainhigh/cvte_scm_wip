@@ -55,6 +55,8 @@ public class WipMtrRtcHeaderService {
         wipMtrRtcHeaderBuildVO.fillMoInfo(reqHeaderEntity);
         // 校验工单状态
         checkMtrRtcHeaderService.checkBillStatus(reqHeaderEntity.getBillStatus());
+        // 校验OCS订单取消
+        checkMtrRtcHeaderService.checkOcsCanceled(wipMtrRtcHeaderBuildVO.getMoId());
 
         // 获取工单工序投料信息
         WipMtrRtcQueryVO wipMtrRtcQueryVO = WipMtrRtcQueryVO.buildForMoUnPost(wipMtrRtcHeaderBuildVO.getOrganizationId(), wipMtrRtcHeaderBuildVO.getMoId(), wipMtrRtcHeaderBuildVO.getHeaderId(),

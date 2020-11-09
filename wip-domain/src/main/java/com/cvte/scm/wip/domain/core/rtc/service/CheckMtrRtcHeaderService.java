@@ -61,6 +61,13 @@ public class CheckMtrRtcHeaderService {
         }
     }
 
+    public void checkOcsCanceled(String moId) {
+        int count = wipMtrRtcHeaderRepository.selectCanceledOrderCount(moId);
+        if (count > 0) {
+            throw new ParamsIncorrectException("对应的OCS订单取消中，不允许领料，请联系CVTE生管沟通处理!");
+        }
+    }
+
     public void checkBillQtyLower(BigDecimal billQty) {
         if (Objects.isNull(billQty) || billQty.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ParamsIncorrectException("领料套数必须大于0");
