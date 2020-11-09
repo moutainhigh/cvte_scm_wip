@@ -48,7 +48,7 @@ public class WipLotIssuedPageService {
         totalInvVOList.removeIf(vo -> StringUtils.isBlank(vo.getLotNumber()));
         if (StringUtils.isNotBlank(subInvVO.getLotNumber())) {
             // 模糊匹配查询批次
-            totalInvVOList.removeIf(vo -> vo.getLotNumber().contains(subInvVO.getLotNumber()));
+            totalInvVOList.removeIf(vo -> !vo.getLotNumber().contains(subInvVO.getLotNumber()));
         }
         return totalInvVOList;
     }
