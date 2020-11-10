@@ -291,7 +291,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
             rtcLineEntity.setReqQty(rtcLineReqQty)
                     .setIssuedQty(rtcLineReqQty);
             if (rtcLineReqQty.compareTo(BigDecimal.ZERO) <= 0) {
-                rtcLineEntity.setLineStatus(WipMtrRtcLineStatusEnum.CANCELED.getCode());
+                iterator.remove();
             }
         }
     }
