@@ -70,7 +70,8 @@ public class WipMtrRtcHeaderService {
         checkMtrRtcHeaderService.checkBillQtyUpper(wipMtrRtcHeaderBuildVO.getBillQty(), BigDecimal.valueOf(reqHeaderEntity.getBillQty()));
 
         WipMtrRtcHeaderEntity rtcHeader;
-        boolean isCreate = true;
+        boolean headerCreate = true;
+        boolean lineCreate = false;
         if (StringUtils.isBlank(wipMtrRtcHeaderBuildVO.getHeaderId())) {
             // headerId为空, 生成新的单据
             rtcHeader = WipMtrRtcHeaderEntity.get();
@@ -78,8 +79,9 @@ public class WipMtrRtcHeaderService {
             wipMtrRtcHeaderBuildVO.setHeaderId(rtcHeader.getHeaderId());
             // 生成单据行
             rtcHeader.generateLines(reqItemVOList);
+            lineCreate = true;
         } else {
-            isCreate = false;
+            headerCreate = false;
             // 刷新单据
             // 校验领料套数
             checkMtrRtcHeaderService.checkBillQtyLower(wipMtrRtcHeaderBuildVO.getBillQty());
@@ -89,6 +91,7 @@ public class WipMtrRtcHeaderService {
                 // 若关键信息变更, 则需要重新生成单据行
                 rtcHeader.invalidLines();
                 rtcHeader.generateLines(reqItemVOList);
+                lineCreate = true;
             } else {
                 // 更新子库
                 if (StringUtils.isNotBlank(wipMtrRtcHeaderBuildVO.getInvpNo()) && !wipMtrRtcHeaderBuildVO.getInvpNo().equals(rtcHeader.getInvpNo())) {
@@ -110,8 +113,8 @@ public class WipMtrRtcHeaderService {
 
         checkMtrRtcHeaderService.checkReqFinished(rtcHeader);
         // 保存单据
-        rtcHeader.save(isCreate);
-        rtcHeader.saveLines(isCreate);
+        rtcHeader.save(headerCreate);
+        rtcHeader.saveLines(lineCreate);
         if (ListUtil.notEmpty(rtcAssignList)) {
             WipMtrRtcLineEntity.get().createAssigns(rtcAssignList);
         }
