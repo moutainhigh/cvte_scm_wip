@@ -14,6 +14,7 @@ import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLotControlTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -152,6 +153,10 @@ public class WipMtrRtcHeaderService {
             if (ListUtil.notEmpty(rtcLine.getAssignList())) {
                 for (WipMtrRtcAssignEntity rtcAssign : rtcLine.getAssignList()) {
                     WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getMtrLotNo(), rtcAssign.getIssuedQty());
+                    if (WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode().equals(rtcAssign.getLotControlType())) {
+                        // 如果是库存批次类型, 还需要设置分配数量
+                        lotIssued.setAssignQty(rtcAssign.getIssuedQty());
+                    }
                     lotIssuedList.add(lotIssued);
                 }
             } else if (StringUtils.isNotBlank(rtcLine.getMoLotNo())) {

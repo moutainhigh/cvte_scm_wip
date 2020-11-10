@@ -113,6 +113,7 @@ public class WipReqLotIssuedService {
 
     public void issue(List<WipReqLotIssuedEntity> reqLotIssuedList) {
         List<WipReqLotIssuedEntity> updateList = new ArrayList<>();
+        List<WipReqLotIssuedEntity> insertList = new ArrayList<>();
 
         Map<String, List<WipReqLotIssuedEntity>> reqLotIssuedMap = reqLotIssuedList.stream().collect(Collectors.groupingBy(WipReqLotIssuedEntity::getItemKey));
         for (Map.Entry<String, List<WipReqLotIssuedEntity>> reqLotIssuedEntry : reqLotIssuedMap.entrySet()) {
@@ -124,7 +125,21 @@ public class WipReqLotIssuedService {
             for (WipReqLotIssuedEntity itemLotIssued : itemLotIssuedList) {
                 WipReqLotIssuedEntity dbLotIssued = dbLotIssuedMap.get(itemLotIssued.getMtrLotNo());
                 if (Objects.isNull(dbLotIssued)) {
-                    throw new ParamsIncorrectException(String.format("投料批次%s不存在", itemLotIssued.getMtrLotNo()));
+                    // 查询的投料批次为空，生成新的记录
+                    itemLotIssued.setId(UUIDUtils.get32UUID())
+                            .setStatus(StatusEnum.NORMAL.getCode())
+                            .setLockStatus(YoNEnum.Y.getCode())
+                            .setLockType(LotIssuedLockTypeEnum.MANUAL.getCode())
+                            .setIssuedQty(itemLotIssued.getPostQty().longValue())
+                            .setUnissuedQty(BigDecimal.ZERO)
+                            .setAssignQty(itemLotIssued.getAssignQty());
+                    insertList.add(itemLotIssued);
+                    continue;
+                }
+                if (Objects.nonNull(itemLotIssued.getAssignQty())) {
+                    // 分配数量不为空时，增加数量
+                    dbLotIssued.setAssignQty(dbLotIssued.getAssignQty().add(itemLotIssued.getAssignQty()))
+                            .setUnissuedQty(dbLotIssued.getUnissuedQty().add(itemLotIssued.getAssignQty()));
                 }
                 // 更新未领料和领料数量
                 BigDecimal unissuedQty = this.calculateUnissuedQty(itemLotIssued, dbLotIssued);
@@ -138,6 +153,9 @@ public class WipReqLotIssuedService {
             EntityUtils.writeStdUpdInfoToEntity(updateEntity, EntityUtils.getWipUserId());
         }
         wipReqLotIssuedRepository.updateList(updateList);
+        if (ListUtil.notEmpty(insertList)) {
+            wipReqLotIssuedRepository.insertList(insertList);
+        }
     }
 
     public void delete(WipReqLotIssuedEntity reqLotIssued) {
