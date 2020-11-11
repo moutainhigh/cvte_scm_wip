@@ -55,6 +55,7 @@ public class WipLotIssuedPageService {
             if (StringUtils.isBlank(mtrSubInvVO.getLocatorCode())) {
                 mtrSubInvVO.setLocatorCode(mtrSubInvVO.getSubinventoryCode());
             }
+            mtrSubInvVO.setId(mtrSubInvVO.getKey());
         }
         return totalInvVOList;
     }

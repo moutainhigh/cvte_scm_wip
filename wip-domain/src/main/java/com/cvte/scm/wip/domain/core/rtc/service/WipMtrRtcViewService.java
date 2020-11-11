@@ -159,7 +159,8 @@ public class WipMtrRtcViewService {
             if (Objects.nonNull(lotUnPost)) {
                 availQty = availQty.subtract(Optional.ofNullable(lotUnPost.getUnPostQty()).orElse(BigDecimal.ZERO));
             }
-            mtrSubInvVO.setAvailQty(availQty);
+            mtrSubInvVO.setAvailQty(availQty)
+                    .setId(mtrSubInvVO.getKey());
         }
 
         return mtrSubInvVOList;

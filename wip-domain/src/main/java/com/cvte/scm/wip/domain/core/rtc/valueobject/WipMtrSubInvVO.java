@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 public class WipMtrSubInvVO {
 
+    private String id;
+
     private String organizationId;
 
     private String factoryId;
@@ -52,6 +54,10 @@ public class WipMtrSubInvVO {
 
     /* 货位 */
     private String locatorCode;
+
+    public String getKey() {
+        return BatchProcessUtils.getKey(this.organizationId, this.factoryNo, this.inventoryItemId, this.subinventoryCode, this.lotNumber);
+    }
 
     // 物料
     public static Map<String, BigDecimal> groupQtyByItem(List<WipMtrSubInvVO> subInvVOList) {
