@@ -296,25 +296,23 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     public List<WipMtrRtcAssignEntity> generateAssign(String moId, String factoryId) {
         List<WipMtrRtcAssignEntity> rtcAssignList = new ArrayList<>();
-        if (ListUtil.empty(this.getAssignList()) && StringUtils.isNotBlank(this.invpNo)) {
-            List<WipReqLotIssuedEntity> reqLotIssuedList = wipReqLotIssuedRepository.selectByKey(this.organizationId, moId, this.itemNo, this.wkpNo);
-            if (ListUtil.notEmpty(reqLotIssuedList) && reqLotIssuedList.size() == 1) {
-                // 仅有一个批次时自动生成
-                WipReqLotIssuedEntity reqLotIssued = reqLotIssuedList.get(0);
-                WipMtrRtcAssignEntity rtcAssign = WipMtrRtcAssignEntity.get();
-                rtcAssign.setAssignId(UUIDUtils.get32UUID())
-                        .setLineId(this.lineId)
-                        .setHeaderId(this.headerId)
-                        .setOrganizationId(this.organizationId)
-                        .setFactoryId(factoryId)
-                        .setInvpNo(this.invpNo)
-                        .setMtrLotNo(reqLotIssued.getMtrLotNo())
-                        .setAssignQty(this.reqQty)
-                        .setIssuedQty(this.issuedQty)
-                        .setAssignStatus(StatusEnum.NORMAL.getCode())
-                        .setLotControlType(reqLotIssued.getLotType());
-                rtcAssignList.add(rtcAssign);
-            }
+        List<WipReqLotIssuedEntity> reqLotIssuedList = wipReqLotIssuedRepository.selectByKey(this.organizationId, moId, this.itemNo, this.wkpNo);
+        if (ListUtil.notEmpty(reqLotIssuedList) && reqLotIssuedList.size() == 1) {
+            // 仅有一个批次时自动生成
+            WipReqLotIssuedEntity reqLotIssued = reqLotIssuedList.get(0);
+            WipMtrRtcAssignEntity rtcAssign = WipMtrRtcAssignEntity.get();
+            rtcAssign.setAssignId(UUIDUtils.get32UUID())
+                    .setLineId(this.lineId)
+                    .setHeaderId(this.headerId)
+                    .setOrganizationId(this.organizationId)
+                    .setFactoryId(factoryId)
+                    .setInvpNo(this.invpNo)
+                    .setMtrLotNo(reqLotIssued.getMtrLotNo())
+                    .setAssignQty(this.reqQty)
+                    .setIssuedQty(this.issuedQty)
+                    .setAssignStatus(StatusEnum.NORMAL.getCode())
+                    .setLotControlType(reqLotIssued.getLotType());
+            rtcAssignList.add(rtcAssign);
         }
         this.setAssignList(rtcAssignList);
         return rtcAssignList;

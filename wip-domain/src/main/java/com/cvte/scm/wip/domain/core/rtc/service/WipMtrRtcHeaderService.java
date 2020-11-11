@@ -107,17 +107,34 @@ public class WipMtrRtcHeaderService {
         // 自动分配批次
         List<WipMtrRtcLineEntity> rtcLineList = rtcHeader.getLineList();
         WipMtrRtcLineEntity.get().batchGetAssign(rtcLineList);
-        List<WipMtrRtcAssignEntity> rtcAssignList = new ArrayList<>();
+        List<WipMtrRtcAssignEntity> insertAssignList = new ArrayList<>();
+        List<WipMtrRtcAssignEntity> updateAssignList = new ArrayList<>();
         for (WipMtrRtcLineEntity rtcLine : rtcLineList) {
-            rtcAssignList.addAll(rtcLine.generateAssign(rtcHeader.getMoId(), rtcHeader.getFactoryId()));
+            if (StringUtils.isNotBlank(rtcLine.getInvpNo())) {
+                if (ListUtil.empty(rtcLine.getAssignList())) {
+                    // 自动分配批次
+                    insertAssignList.addAll(rtcLine.generateAssign(rtcHeader.getMoId(), rtcHeader.getFactoryId()));
+                } else {
+                    if (rtcLine.getAssignList().size() == 1) {
+                        // 仅单个分配批次时更新数量
+                        WipMtrRtcAssignEntity updateAssign = rtcLine.getAssignList().get(0);
+                        updateAssign.setAssignQty(rtcLine.getReqQty())
+                                .setIssuedQty(rtcLine.getIssuedQty());
+                        updateAssignList.add(updateAssign);
+                    }
+                }
+            }
         }
 
         checkMtrRtcHeaderService.checkReqFinished(rtcHeader);
         // 保存单据
         rtcHeader.save(headerCreate);
         rtcHeader.saveLines(lineCreate);
-        if (ListUtil.notEmpty(rtcAssignList)) {
-            WipMtrRtcLineEntity.get().createAssigns(rtcAssignList);
+        if (ListUtil.notEmpty(insertAssignList)) {
+            WipMtrRtcLineEntity.get().createAssigns(insertAssignList);
+        }
+        if (ListUtil.notEmpty(updateAssignList)) {
+            WipMtrRtcLineEntity.get().updateAssigns(updateAssignList);
         }
 
         return rtcHeader.getHeaderId();
