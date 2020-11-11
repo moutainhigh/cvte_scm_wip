@@ -229,8 +229,13 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
     }
 
     public void post() {
-        List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByHeaderId(this.headerId);;
-        List<WipMtrRtcLineEntity> unPostLineList = rtcLineList.stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        // 查询单据的所有领料行
+        List<WipMtrRtcLineEntity> dbRtcLineList = WipMtrRtcLineEntity.get().getByHeaderId(this.headerId);
+        // 过滤掉当前过账的行
+        Set<String> postListIdList = this.getLineList().stream().map(WipMtrRtcLineEntity::getLineId).collect(Collectors.toSet());
+        dbRtcLineList.removeIf(dbLine -> postListIdList.contains(dbLine.getLineId()));
+        // 筛选出未过账的行
+        List<WipMtrRtcLineEntity> unPostLineList = dbRtcLineList.stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
         EntityUtils.writeStdUpdInfoToEntity(this, EntityUtils.getWipUserId());
         if (ListUtil.empty(unPostLineList)) {
             // 所有行均过账, 更新状态为已完成
