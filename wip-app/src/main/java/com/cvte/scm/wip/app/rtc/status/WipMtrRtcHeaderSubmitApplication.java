@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.app.rtc.status;
 
 import com.cvte.csb.wfp.api.sdk.util.ListUtil;
+import com.cvte.scm.wip.common.enums.YoNEnum;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.service.CheckMtrRtcHeaderService;
@@ -26,11 +27,13 @@ public class WipMtrRtcHeaderSubmitApplication {
     private WipMtrRtcLineService wipMtrRtcLineService;
     private CheckMtrRtcHeaderService checkMtrRtcHeaderService;
     private CheckMtrRtcLineService checkMtrRtcLineService;
+    private WipMtrRtcHeaderReviewApplication wipMtrRtcHeaderReviewApplication;
 
-    public WipMtrRtcHeaderSubmitApplication(WipMtrRtcLineService wipMtrRtcLineService, CheckMtrRtcHeaderService checkMtrRtcHeaderService, CheckMtrRtcLineService checkMtrRtcLineService) {
+    public WipMtrRtcHeaderSubmitApplication(WipMtrRtcLineService wipMtrRtcLineService, CheckMtrRtcHeaderService checkMtrRtcHeaderService, CheckMtrRtcLineService checkMtrRtcLineService, WipMtrRtcHeaderReviewApplication wipMtrRtcHeaderReviewApplication) {
         this.wipMtrRtcLineService = wipMtrRtcLineService;
         this.checkMtrRtcHeaderService = checkMtrRtcHeaderService;
         this.checkMtrRtcLineService = checkMtrRtcLineService;
+        this.wipMtrRtcHeaderReviewApplication = wipMtrRtcHeaderReviewApplication;
     }
 
     public String doAction(String headerId) {
@@ -48,6 +51,15 @@ public class WipMtrRtcHeaderSubmitApplication {
         }
 
         rtcHeaderEntity.submit();
+        return msg;
+    }
+
+    public String submitAndReview(String headerId) {
+        String msg = this.doAction(headerId);
+        WipMtrRtcHeaderReviewDTO wipMtrRtcHeaderReviewDTO = new WipMtrRtcHeaderReviewDTO();
+        wipMtrRtcHeaderReviewDTO.setHeaderId(headerId)
+                .setApproved(YoNEnum.Y.getCode());
+        wipMtrRtcHeaderReviewApplication.doAction(wipMtrRtcHeaderReviewDTO);
         return msg;
     }
 

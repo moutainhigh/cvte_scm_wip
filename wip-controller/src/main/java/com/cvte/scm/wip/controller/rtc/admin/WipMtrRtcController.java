@@ -52,11 +52,7 @@ public class WipMtrRtcController {
     @PostMapping("/submit/{headerId}")
     public RestResponse submit(@PathVariable("headerId") String headerId) {
         RestResponse restResponse = new RestResponse();
-        String msg = wipMtrRtcHeaderSubmitApplication.doAction(headerId);
-        WipMtrRtcHeaderReviewDTO wipMtrRtcHeaderReviewDTO = new WipMtrRtcHeaderReviewDTO();
-        wipMtrRtcHeaderReviewDTO.setHeaderId(headerId)
-                .setApproved(YoNEnum.Y.getCode());
-        wipMtrRtcHeaderReviewApplication.doAction(wipMtrRtcHeaderReviewDTO);
+        String msg = wipMtrRtcHeaderSubmitApplication.submitAndReview(headerId);
         restResponse.setData(msg);
         return restResponse;
     }
