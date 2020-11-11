@@ -91,6 +91,8 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
 
     private Date updTime;
 
+    private Date firstStockinDate;
+
     public List<WipMtrRtcAssignEntity> getByIds(String[] assignIdArr) {
         if (ArrayUtils.isEmpty(assignIdArr)) {
             return new ArrayList<>();
@@ -118,26 +120,17 @@ public class WipMtrRtcAssignEntity extends BaseModel implements Entity<String> {
                 .setAssignQty(assignBuildVO.getAssignQty())
                 .setIssuedQty(assignBuildVO.getIssuedQty())
                 .setAssignStatus(StatusEnum.NORMAL.getCode())
-                .setLotControlType(assignBuildVO.getLotControlType());
+                .setLotControlType(assignBuildVO.getLotControlType())
+                .setFirstStockinDate(assignBuildVO.getFirstStockinDate());
     }
 
     public void update(WipMtrRtcAssignBuildVO assignBuildVO) {
-        BiPredicate<Object, Object> valueChanged = (v, p) -> Objects.nonNull(v) && !v.equals(p);
-        if (valueChanged.test(assignBuildVO.getInvpNo(), this.invpNo)) {
-            this.setInvpNo(assignBuildVO.getInvpNo());
-        }
-        if (valueChanged.test(assignBuildVO.getMtrLotNo(), this.mtrLotNo)) {
-            this.setMtrLotNo(assignBuildVO.getMtrLotNo());
-        }
-        if (valueChanged.test(assignBuildVO.getAssignQty(), this.assignQty)) {
-            this.setAssignQty(assignBuildVO.getAssignQty());
-        }
-        if (valueChanged.test(assignBuildVO.getIssuedQty(), this.issuedQty)) {
-            this.setIssuedQty(assignBuildVO.getIssuedQty());
-        }
-        if (valueChanged.test(assignBuildVO.getLotControlType(), this.lotControlType)) {
-            this.setLotControlType(assignBuildVO.getLotControlType());
-        }
+        this.setInvpNo(assignBuildVO.getInvpNo())
+                .setMtrLotNo(assignBuildVO.getMtrLotNo())
+                .setAssignQty(assignBuildVO.getAssignQty())
+                .setIssuedQty(assignBuildVO.getIssuedQty())
+                .setLotControlType(assignBuildVO.getLotControlType())
+                .setFirstStockinDate(assignBuildVO.getFirstStockinDate());
     }
 
     private void wiredAfterSelect(WipMtrRtcAssignEntity rtcAssignEntity) {

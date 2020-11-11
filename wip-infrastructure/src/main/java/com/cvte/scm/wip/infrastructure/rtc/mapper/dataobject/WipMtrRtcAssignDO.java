@@ -148,5 +148,11 @@ public class WipMtrRtcAssignDO extends BaseModel {
     @Column(name = "upd_time")
     @ApiModelProperty(value = "${field.comment}")
     private Date updTime;
+    /**
+     * 入库日期
+     */
+    @Column(name = "first_stockin_date")
+    @ApiModelProperty(value = "入库日期")
+    private Date firstStockinDate;
 
 }

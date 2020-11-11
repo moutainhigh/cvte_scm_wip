@@ -222,6 +222,7 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                 .setAutoDist(YoNEnum.N.getCode())
                 .setSubmitFlag(YoNEnum.N.getCode())
                 .setPostFlag(YoNEnum.N.getCode());
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:SS");
         List<XxwipTransactionHeadersDTO.XxwipTransactionLinesDTO> linesDTOList = new ArrayList<>();
         for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
             XxwipTransactionHeadersDTO.XxwipTransactionLinesDTO linesDTO = new XxwipTransactionHeadersDTO.XxwipTransactionLinesDTO();
@@ -251,7 +252,7 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                             .setComponentItem(rtcLine.getItemNo())
                             .setOperationSeqNum(rtcLine.getWkpNo())
                             .setLotNumber(rtcAssign.getMtrLotNo())
-                            .setTransactionDate("") // TODO 入库日期
+                            .setTransactionDate(Objects.nonNull(rtcAssign.getFirstStockinDate()) ? df.format(rtcAssign.getFirstStockinDate()) : "")
                             .setTransactionQuantity(rtcAssign.getIssuedQty().toString());
                     assignDTOList.add(assignDTO);
                 }
