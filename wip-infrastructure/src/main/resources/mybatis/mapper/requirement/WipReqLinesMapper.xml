@@ -212,7 +212,7 @@
                        and Wrl.item_id = #{queryVO.itemId}
                    </if>
                    and Wrl.header_id = #{queryVO.headerId}
-                   <if test="queryVO.wkpNo != null">
+                   <if test="queryVO.wkpNo != null and queryVO.wkpNo.length() > 0">
                        and Wrl.wkp_no = #{queryVO.wkpNo}
                    </if>
                    <if test="queryVO.itemKeyColl != null and queryVO.itemKeyColl.size() > 0">

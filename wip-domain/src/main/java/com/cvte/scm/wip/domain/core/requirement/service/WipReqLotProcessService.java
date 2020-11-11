@@ -55,6 +55,10 @@ public class WipReqLotProcessService {
             }
             itemLotProcess.setId(UUIDUtils.get32UUID())
                     .setProcessStatus(ProcessingStatusEnum.PENDING.getCode());
+            if (StringUtils.isBlank(itemLotProcess.getWkpNo())) {
+                // 默认工序10
+                itemLotProcess.setWkpNo("10");
+            }
             EntityUtils.writeStdCrtInfoToEntity(itemLotProcess, Optional.ofNullable(itemLotProcess.getOptUser()).orElse(EntityUtils.getWipUserId()));
         }
         wipReqLotProcessRepository.insertList(wipReqLotProcessList);
