@@ -361,6 +361,7 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
     private void wiredAfterSelect(WipMtrRtcLineEntity rtcLineEntity) {
         rtcLineEntity.setWipMtrRtcLineRepository(this.wipMtrRtcLineRepository);
         rtcLineEntity.setWipMtrRtcAssignRepository(this.wipMtrRtcAssignRepository);
+        rtcLineEntity.setWipReqLotIssuedRepository(this.wipReqLotIssuedRepository);
     }
 
     public static WipMtrRtcLineEntity get() {
