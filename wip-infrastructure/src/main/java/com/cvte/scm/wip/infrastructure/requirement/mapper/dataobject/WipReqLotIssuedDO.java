@@ -158,5 +158,11 @@ public class WipReqLotIssuedDO extends BaseModel {
     @Column(name = "assign_qty")
     @ApiModelProperty(value = "分配数量")
     private BigDecimal assignQty;
+    /**
+     * 批次类型
+     */
+    @Column(name = "lot_type")
+    @ApiModelProperty(value = "批次类型")
+    private String lotType;
 
 }

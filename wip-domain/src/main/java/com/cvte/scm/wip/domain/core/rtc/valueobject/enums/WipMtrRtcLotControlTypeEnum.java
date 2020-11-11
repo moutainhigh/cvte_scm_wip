@@ -13,9 +13,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum  WipMtrRtcLotControlTypeEnum {
-    REWORK_CONTROL("1", "返工管控"),
-    CONFIG_CONTROL("2", "配置强管控"),
-    WEAK_CONTROL("3", "弱管控"),
+    REWORK_CONTROL("cn_bill", "更改单批次管控"),
+    CONFIG_CONTROL("led", "LED管控"),
+    WEAK_CONTROL("inv", "库存批次管控"),
     ;
 
     private String code, desc;

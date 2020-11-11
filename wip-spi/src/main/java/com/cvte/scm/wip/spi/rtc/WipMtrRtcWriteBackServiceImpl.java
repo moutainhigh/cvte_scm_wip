@@ -70,7 +70,6 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
         this.syncLineInfo(rtcHeader);
 
         // 提交
-        String iacToken = this.getIacToken();
         XxwipTransactionActionDTO actionDTO = new XxwipTransactionActionDTO();
         actionDTO.setAction("SUBMIT")
                 .setOrganizationId(rtcHeader.getOrganizationId())

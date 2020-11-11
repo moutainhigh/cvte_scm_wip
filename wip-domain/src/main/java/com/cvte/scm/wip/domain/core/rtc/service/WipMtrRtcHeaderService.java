@@ -154,8 +154,9 @@ public class WipMtrRtcHeaderService {
                 for (WipMtrRtcAssignEntity rtcAssign : rtcLine.getAssignList()) {
                     WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getMtrLotNo(), rtcAssign.getIssuedQty());
                     if (WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode().equals(rtcAssign.getLotControlType())) {
-                        // 如果是库存批次类型, 还需要设置分配数量
-                        lotIssued.setAssignQty(rtcAssign.getIssuedQty());
+                        // 如果是库存批次类型, 还需要设置分配数量 和 批次类型
+                        lotIssued.setAssignQty(rtcAssign.getIssuedQty())
+                                .setLotType(rtcAssign.getLotControlType());
                     }
                     lotIssuedList.add(lotIssued);
                 }

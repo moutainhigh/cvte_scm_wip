@@ -311,7 +311,8 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
                         .setMtrLotNo(reqLotIssued.getMtrLotNo())
                         .setAssignQty(this.reqQty)
                         .setIssuedQty(this.issuedQty)
-                        .setAssignStatus(StatusEnum.NORMAL.getCode());
+                        .setAssignStatus(StatusEnum.NORMAL.getCode())
+                        .setLotControlType(reqLotIssued.getLotType());
                 rtcAssignList.add(rtcAssign);
             }
         }
