@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
   * 
@@ -57,6 +58,10 @@ public enum WipMtrRtcHeaderStatusEnum implements Codeable {
 
     public static boolean effective(String status) {
         return EFFECTIVE.getCode().equals(status) || POSTING.getCode().equals(status);
+    }
+
+    public static boolean cancelable(String status) {
+        return cancelableStatus.stream().map(WipMtrRtcHeaderStatusEnum::getCode).collect(Collectors.toSet()).contains(status);
     }
 
 }

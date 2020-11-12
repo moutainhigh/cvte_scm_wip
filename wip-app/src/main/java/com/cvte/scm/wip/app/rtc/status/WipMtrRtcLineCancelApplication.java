@@ -30,11 +30,12 @@ public class WipMtrRtcLineCancelApplication {
         List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByLineIds(lineIds);
         WipMtrRtcHeaderEntity rtcHeader = WipMtrRtcHeaderEntity.get().getById(rtcLineList.get(0).getHeaderId());
         rtcHeader.checkCancelable();
+        WipMtrRtcLineEntity.get().batchCancel(rtcLineList);
+        rtcHeader.refreshStatus();
         if (WipMtrRtcHeaderStatusEnum.effective(rtcHeader.getBillStatus())) {
             rtcHeader.setLineList(rtcLineList);
             wipMtrRtcWriteBackService.cancelLine(rtcHeader);
         }
-        WipMtrRtcLineEntity.get().batchCancel(rtcLineList);
     }
 
 }

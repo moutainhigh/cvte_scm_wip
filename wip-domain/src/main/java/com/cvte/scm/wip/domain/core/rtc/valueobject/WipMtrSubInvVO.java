@@ -34,7 +34,7 @@ public class WipMtrSubInvVO {
 
     private String lotNumber;
 
-    @JsonFormat(pattern="yyyy-MM-dd")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:SS")
     private Date firstStockinDate;
 
     private String subinventoryCode;

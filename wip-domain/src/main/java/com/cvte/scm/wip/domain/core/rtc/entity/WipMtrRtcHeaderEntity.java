@@ -336,6 +336,19 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         }
     }
 
+    public void refreshStatus() {
+        List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByHeaderId(this.headerId);
+        List<WipMtrRtcLineEntity> unPostRtcLineList = rtcLineList.stream().filter(line -> WipMtrRtcLineStatusEnum.getUnPostStatus().contains(line.getLineStatus())).collect(Collectors.toList());
+        if (unPostRtcLineList.isEmpty()) {
+            if (POSTING.getCode().equals(this.billStatus)) {
+                this.setBillStatus(COMPLETED.getCode());
+            } else if (cancelable(this.billStatus)) {
+                this.setBillStatus(CANCELED.getCode());
+            }
+            this.update();
+        }
+    }
+
     private void wiredAfterSelect(WipMtrRtcHeaderEntity selectEntity) {
         selectEntity.setWipMtrRtcHeaderRepository(this.wipMtrRtcHeaderRepository)
                 .setWipMtrRtcLineRepository(this.wipMtrRtcLineRepository)
