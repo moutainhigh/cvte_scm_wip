@@ -158,7 +158,7 @@ public class WipMtrRtcHeaderService {
      * @author xueyuting
      */
     private boolean needRefreshLines(WipMtrRtcHeaderBuildVO headerBuildVO, WipMtrRtcHeaderEntity headerEntity) {
-        BiPredicate<String, String> valueChanged = (p, v) -> StringUtils.isNotBlank(p) && !p.equals(v);
+        BiPredicate<String, String> valueChanged = (p, v) -> StringUtils.isNotBlank(p) && !p.equals(v) || StringUtils.isNotBlank(v) && !v.equals(p);
         // 工单或工序变更时需要重新生成
         return valueChanged.test(headerBuildVO.getMoId(), headerEntity.getMoId())
                 || valueChanged.test(headerBuildVO.getWkpNo(), headerEntity.getWkpNo());
