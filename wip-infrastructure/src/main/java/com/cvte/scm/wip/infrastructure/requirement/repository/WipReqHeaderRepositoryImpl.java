@@ -116,9 +116,10 @@ public class WipReqHeaderRepositoryImpl implements WipReqHeaderRepository {
             // 过滤掉未发放中未刷新过MRP的
             List<String> cachedHeaderIdList = wipReqHeaderMapper.filterCachedUndelivered(specificHeaderIdList);
             specificHeaderList.removeIf(specificHeader -> !cachedHeaderIdList.contains(specificHeader.getHeaderId()));
+            List<String> filteredSpecificHeaderIdList = specificHeaderList.stream().map(WipReqHeaderDO::getHeaderId).collect(Collectors.toList());
 
             // 去重, 例:视昱更改单生成的非标工单是已发放的状态
-            headerDOList.removeIf(deliveredHeader -> specificHeaderIdList.contains(deliveredHeader.getHeaderId()));
+            headerDOList.removeIf(deliveredHeader -> filteredSpecificHeaderIdList.contains(deliveredHeader.getHeaderId()));
 
             headerDOList.addAll(specificHeaderList);
         }
