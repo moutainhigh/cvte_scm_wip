@@ -189,5 +189,11 @@ public class WipMtrRtcLDO extends BaseModel {
     @Column(name = "source_line_id")
     @ApiModelProperty(value = "来源行ID")
     private String sourceLineId;
+    /**
+     * 供应商名称
+     */
+    @Column(name = "supplier_name")
+    @ApiModelProperty(value = "供应商名称")
+    private String supplierName;
 
 }

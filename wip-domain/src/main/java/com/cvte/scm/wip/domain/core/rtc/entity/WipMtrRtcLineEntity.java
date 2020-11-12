@@ -124,6 +124,8 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
 
     private String sourceLineId;
 
+    private String supplierName;
+
     private List<WipMtrRtcAssignEntity> assignList;
 
     public List<WipMtrRtcAssignEntity> getAssignList() {
@@ -278,7 +280,8 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
             this.setIssuedQty(rtcLineBuildVO.getIssuedQty());
         }
         if (valueChanged.test(rtcLineBuildVO.getSupplier(), this.supplier)) {
-            this.setSupplier(rtcLineBuildVO.getSupplier());
+            this.setSupplier(rtcLineBuildVO.getSupplier())
+                    .setSupplierName(rtcLineBuildVO.getSupplierName());
         }
         if (valueChanged.test(rtcLineBuildVO.getSerialNo(), this.serialNo)) {
             this.setSerialNo(rtcLineBuildVO.getSerialNo());

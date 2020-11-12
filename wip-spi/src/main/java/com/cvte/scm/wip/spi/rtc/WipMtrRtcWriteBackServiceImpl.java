@@ -236,7 +236,7 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                     .setSupplyLocator(this.getLocator(rtcLine.getInvpNo(), rtcHeader.getFactoryId()))
                     .setQuantityIssue(rtcLine.getIssuedQty().toString())
                     .setNotes(rtcLine.getRemark())
-                    .setVendorName(rtcLine.getSupplier())
+                    .setVendorName(rtcLine.getSupplierName())
                     .setBadReason(rtcLine.getBadMtrReason())
                     .setUserName(rtcLine.getCrtUser());
             linesDTOList.add(linesDTO);

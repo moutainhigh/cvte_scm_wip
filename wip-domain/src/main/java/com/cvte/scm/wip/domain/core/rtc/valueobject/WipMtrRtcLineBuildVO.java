@@ -36,4 +36,6 @@ public class WipMtrRtcLineBuildVO {
 
     private String remark;
 
+    private String supplierName;
+
 }
