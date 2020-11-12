@@ -274,7 +274,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
         this.lineList = mtrRtcLineEntityList;
     }
 
-    public void adjustLines(WipMtrRtcHeaderBuildVO rtcHeaderBuildVO, List<WipReqItemVO> reqItemVOList) {
+    public void adjustLines(WipMtrRtcHeaderBuildVO rtcHeaderBuildVO, List<WipReqItemVO> reqItemVOList, boolean lineCreate) {
         if (Objects.isNull(billQty)) {
             return;
         }
@@ -287,7 +287,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
             WipReqItemVO reqItemVO = reqItemVOMap.get(reqItemMapKey);
             if (Objects.isNull(reqItemVO)) {
                 log.warn("{}:领料行没有对应的投料需求", reqItemMapKey);
-                iterator.remove();
+                this.cancelLine(iterator, rtcLineEntity, lineCreate);
                 continue;
             }
 
@@ -296,7 +296,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
             rtcLineEntity.setReqQty(rtcLineReqQty)
                     .setIssuedQty(rtcLineReqQty);
             if (rtcLineReqQty.compareTo(BigDecimal.ZERO) <= 0) {
-                iterator.remove();
+                this.cancelLine(iterator, rtcLineEntity, lineCreate);
             }
         }
     }
@@ -346,6 +346,15 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
                 this.setBillStatus(CANCELED.getCode());
             }
             this.update();
+        }
+    }
+
+    private void cancelLine(Iterator<WipMtrRtcLineEntity> iterator, WipMtrRtcLineEntity rtcLineEntity, boolean lineCreate) {
+        if (lineCreate) {
+            iterator.remove();
+        } else {
+            rtcLineEntity.setLineStatus(WipMtrRtcLineStatusEnum.CANCELED.getCode());
+            rtcLineEntity.deleteAssign();
         }
     }
 

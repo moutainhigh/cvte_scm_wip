@@ -103,7 +103,7 @@ public class WipMtrRtcHeaderService {
             rtcHeader.update(wipMtrRtcHeaderBuildVO);
         }
         // 调整单据行
-        rtcHeader.adjustLines(wipMtrRtcHeaderBuildVO, reqItemVOList);
+        rtcHeader.adjustLines(wipMtrRtcHeaderBuildVO, reqItemVOList, lineCreate);
         // 自动分配批次
         List<WipMtrRtcLineEntity> rtcLineList = rtcHeader.getLineList();
         WipMtrRtcLineEntity.get().batchGetAssign(rtcLineList);

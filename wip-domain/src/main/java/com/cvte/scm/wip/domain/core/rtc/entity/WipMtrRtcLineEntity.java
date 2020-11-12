@@ -330,6 +330,14 @@ public class WipMtrRtcLineEntity extends BaseModel implements Entity<String> {
         }
     }
 
+    public void deleteAssign() {
+        List<WipMtrRtcAssignEntity> assignList = this.getAssignList();
+        if (ListUtil.notEmpty(assignList)) {
+            assignList.forEach(assign -> assign.setAssignStatus(StatusEnum.CLOSE.getCode()));
+            wipMtrRtcAssignRepository.updateList(assignList);
+        }
+    }
+
     public void deleteAssigns(List<WipMtrRtcAssignEntity> rtcAssignEntityList) {
         for (WipMtrRtcAssignEntity deleteAssignEntity : rtcAssignEntityList) {
             deleteAssignEntity.setAssignStatus(StatusEnum.CLOSE.getCode());
