@@ -100,6 +100,10 @@ public class XxwipTransactionHeadersDTO {
 
         private String userName;
 
+        private String seqNum;
+
+        private String badDesc;
+
         private List<XxwipTransactionAssignsDTO> importBatchJson;
 
     }

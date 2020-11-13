@@ -238,7 +238,9 @@ public class WipMtrRtcWriteBackServiceImpl implements WipMtrRtcWriteBackService 
                     .setNotes(rtcLine.getRemark())
                     .setVendorName(rtcLine.getSupplierName())
                     .setBadReason(rtcLine.getBadMtrReason())
-                    .setUserName(rtcLine.getCrtUser());
+                    .setUserName(rtcLine.getCrtUser())
+                    .setSeqNum(rtcLine.getSerialNo())
+                    .setBadDesc(rtcLine.getBadMtrDesc());
             linesDTOList.add(linesDTO);
 
             List<WipMtrRtcAssignEntity> rtcAssignList = rtcLine.getAssignList();
