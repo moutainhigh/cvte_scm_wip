@@ -8,6 +8,7 @@ import com.cvte.scm.wip.domain.core.rtc.service.CheckMtrRtcHeaderService;
 import com.cvte.scm.wip.domain.core.rtc.service.CheckMtrRtcLineService;
 import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLineService;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrInvQtyCheckVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

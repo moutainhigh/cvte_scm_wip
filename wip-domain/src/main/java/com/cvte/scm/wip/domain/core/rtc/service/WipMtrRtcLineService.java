@@ -13,6 +13,7 @@ import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrRtcLineRepository;
 import com.cvte.scm.wip.domain.core.rtc.repository.WipMtrSubInvRepository;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.*;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderStatusEnum;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -123,7 +124,8 @@ public class WipMtrRtcLineService {
 
     public List<WipMtrInvQtyCheckVO> validateItemInvQty(WipMtrRtcHeaderEntity rtcHeaderEntity) {
         List<WipMtrRtcLineEntity> rtcLineEntityList = rtcHeaderEntity.getLineList();
-        if (ListUtil.empty(rtcLineEntityList)) {
+        if (WipMtrRtcHeaderTypeEnum.RETURN.getCode().equals(rtcHeaderEntity.getBillType()) || ListUtil.empty(rtcLineEntityList)) {
+            // 类型为退料单 或 领料行为空时不校验现有量
             return Collections.emptyList();
         }
 
