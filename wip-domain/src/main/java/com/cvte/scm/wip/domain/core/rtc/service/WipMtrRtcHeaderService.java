@@ -14,6 +14,7 @@ import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcHeaderEntity;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcLineEntity;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcQueryVO;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcHeaderTypeEnum;
 import com.cvte.scm.wip.domain.core.rtc.valueobject.enums.WipMtrRtcLotControlTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -169,20 +170,26 @@ public class WipMtrRtcHeaderService {
         for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
             if (ListUtil.notEmpty(rtcLine.getAssignList())) {
                 for (WipMtrRtcAssignEntity rtcAssign : rtcLine.getAssignList()) {
-                    WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getMtrLotNo(), rtcAssign.getIssuedQty());
+                    // 计算过账数量
+                    BigDecimal postQty = this.calculatePostQty(rtcAssign.getIssuedQty(), rtcHeader.getBillType());
+                    WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcAssign.getMtrLotNo(), postQty);
                     if (WipMtrRtcLotControlTypeEnum.WEAK_CONTROL.getCode().equals(rtcAssign.getLotControlType())) {
                         // 如果是库存批次类型, 还需要设置分配数量 和 批次类型
-                        lotIssued.setAssignQty(rtcAssign.getIssuedQty())
+                        lotIssued.setAssignQty(postQty)
                                 .setLotType(rtcAssign.getLotControlType());
                     }
                     lotIssuedList.add(lotIssued);
                 }
-            } else if (StringUtils.isNotBlank(rtcLine.getMoLotNo())) {
-                WipReqLotIssuedEntity lotIssued = WipReqLotIssuedEntity.buildForPost(rtcHeader.getOrganizationId(), rtcHeader.getMoId(), rtcLine.getItemNo(), rtcLine.getWkpNo(), rtcLine.getMoLotNo(), rtcLine.getIssuedQty());
-                lotIssuedList.add(lotIssued);
             }
         }
         return lotIssuedList;
+    }
+
+    private BigDecimal calculatePostQty(BigDecimal qty, String billType) {
+        if (WipMtrRtcHeaderTypeEnum.RETURN.getCode().equals(billType)) {
+            return qty.negate();
+        }
+        return qty;
     }
 
 }
