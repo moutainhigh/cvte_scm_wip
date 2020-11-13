@@ -29,7 +29,6 @@ public class WipMtrRtcLineCancelApplication {
     public void doAction(String[] lineIds) {
         List<WipMtrRtcLineEntity> rtcLineList = WipMtrRtcLineEntity.get().getByLineIds(lineIds);
         WipMtrRtcHeaderEntity rtcHeader = WipMtrRtcHeaderEntity.get().getById(rtcLineList.get(0).getHeaderId());
-        rtcHeader.checkCancelable();
         WipMtrRtcLineEntity.get().batchCancel(rtcLineList);
         rtcHeader.refreshStatus();
         if (WipMtrRtcHeaderStatusEnum.effective(rtcHeader.getBillStatus())) {
