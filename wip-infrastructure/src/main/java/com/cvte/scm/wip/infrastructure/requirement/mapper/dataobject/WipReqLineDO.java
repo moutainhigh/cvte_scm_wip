@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject;
 
 
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -26,7 +27,7 @@ import java.util.Objects;
 @Accessors(chain = true)
 @ApiModel(description = "投料单")
 @Table(name = "wip.wip_req_lines")
-public class WipReqLineDO {
+public class WipReqLineDO extends BaseModel {
 
     @Id
     @GeneratedValue(generator = "JDBC")

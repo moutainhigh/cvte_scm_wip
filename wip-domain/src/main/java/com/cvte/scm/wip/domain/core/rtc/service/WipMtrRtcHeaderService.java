@@ -7,6 +7,7 @@ import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqItemService;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqLineIssuedService;
 import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.rtc.entity.WipMtrRtcAssignEntity;
@@ -39,12 +40,14 @@ public class WipMtrRtcHeaderService {
     private WipReqHeaderRepository wipReqHeaderRepository;
     private WipReqItemService wipReqItemService;
     private WipReqLotIssuedService wipReqLotIssuedService;
+    private WipReqLineIssuedService wipReqLineIssuedService;
 
-    public WipMtrRtcHeaderService(CheckMtrRtcHeaderService checkMtrRtcHeaderService, WipReqHeaderRepository wipReqHeaderRepository, WipReqItemService wipReqItemService, WipReqLotIssuedService wipReqLotIssuedService) {
+    public WipMtrRtcHeaderService(CheckMtrRtcHeaderService checkMtrRtcHeaderService, WipReqHeaderRepository wipReqHeaderRepository, WipReqItemService wipReqItemService, WipReqLotIssuedService wipReqLotIssuedService, WipReqLineIssuedService wipReqLineIssuedService) {
         this.checkMtrRtcHeaderService = checkMtrRtcHeaderService;
         this.wipReqHeaderRepository = wipReqHeaderRepository;
         this.wipReqItemService = wipReqItemService;
         this.wipReqLotIssuedService = wipReqLotIssuedService;
+        this.wipReqLineIssuedService = wipReqLineIssuedService;
     }
 
     /**
@@ -146,6 +149,9 @@ public class WipMtrRtcHeaderService {
         WipMtrRtcLineEntity.get().batchPost(rtcHeader.getLineList());
         // 更新头状态
         rtcHeader.post();
+        // 更新投料的领料状态
+        List<WipReqItemVO> issuedItemVOList = generateIssuedItem(rtcHeader);
+        wipReqLineIssuedService.issue(issuedItemVOList);
         // 更新批次领料数量
         List<WipReqLotIssuedEntity> lotIssuedList = generateIssuedLot(rtcHeader);
         if (ListUtil.notEmpty(lotIssuedList)) {
@@ -164,6 +170,23 @@ public class WipMtrRtcHeaderService {
         return valueChanged.test(headerBuildVO.getMoId(), headerEntity.getMoId())
                 || valueChanged.test(headerBuildVO.getWkpNo(), headerEntity.getWkpNo());
     }
+
+    private List<WipReqItemVO> generateIssuedItem(WipMtrRtcHeaderEntity rtcHeader) {
+        List<WipReqItemVO> reqItemVOList = new ArrayList<>();
+        for (WipMtrRtcLineEntity rtcLine : rtcHeader.getLineList()) {
+            WipReqItemVO reqItemVO = new WipReqItemVO();
+            BigDecimal postQty = this.calculatePostQty(rtcLine.getIssuedQty(), rtcHeader.getBillType());
+            reqItemVO.setOrganizationId(rtcLine.getOrganizationId())
+                    .setMoId(rtcHeader.getMoId())
+                    .setItemId(rtcLine.getItemId())
+                    .setItemNo(rtcLine.getItemNo())
+                    .setWkpNo(rtcLine.getWkpNo())
+                    .setIssuedQty(postQty);
+            reqItemVOList.add(reqItemVO);
+        }
+        return reqItemVOList;
+    }
+
 
     private List<WipReqLotIssuedEntity> generateIssuedLot(WipMtrRtcHeaderEntity rtcHeader) {
         List<WipReqLotIssuedEntity> lotIssuedList = new ArrayList<>();
