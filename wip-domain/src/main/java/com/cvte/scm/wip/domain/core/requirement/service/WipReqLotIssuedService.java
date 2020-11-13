@@ -97,7 +97,10 @@ public class WipReqLotIssuedService {
                 EntityUtils.writeStdCrtInfoToEntity(insertEntity, EntityUtils.getWipUserId());
             }
             // 逻辑删除
-            deleteList.forEach(deleteEntity -> deleteEntity.setStatus(StatusEnum.CLOSE.getCode()));
+            for (WipReqLotIssuedEntity deleteEntity : deleteList) {
+                this.checkDeletable(deleteEntity);
+                deleteEntity.setStatus(StatusEnum.CLOSE.getCode());
+            }
             updateList.addAll(deleteList);
             for (WipReqLotIssuedEntity updateEntity : updateList) {
                 // 更新信息
@@ -141,10 +144,11 @@ public class WipReqLotIssuedService {
                     dbLotIssued.setAssignQty(dbLotIssued.getAssignQty().add(itemLotIssued.getAssignQty()))
                             .setUnissuedQty(dbLotIssued.getUnissuedQty().add(itemLotIssued.getAssignQty()));
                 }
-                // 更新未领料和领料数量
-                BigDecimal unissuedQty = this.calculateUnissuedQty(itemLotIssued, dbLotIssued);
-                dbLotIssued.setUnissuedQty(unissuedQty)
-                        .setIssuedQty(dbLotIssued.getAssignQty().subtract(unissuedQty).longValue());
+                // 更新已领料和未领料数量
+                BigDecimal issuedQty = this.calculateIssuedQty(itemLotIssued, dbLotIssued);
+                dbLotIssued.setIssuedQty(issuedQty.longValue());
+                BigDecimal unissuedQty = this.calculateUnissuedQty(dbLotIssued, dbLotIssued);
+                dbLotIssued.setUnissuedQty(unissuedQty);
                 updateList.add(dbLotIssued);
             }
         }
@@ -164,6 +168,7 @@ public class WipReqLotIssuedService {
         List<WipReqLotIssuedEntity> deleteEntityList = wipReqLotIssuedRepository.selectList(reqLotIssued);
         if (ListUtil.notEmpty(deleteEntityList)) {
             for (WipReqLotIssuedEntity deleteEntity : deleteEntityList) {
+                this.checkDeletable(deleteEntity);
                 deleteEntity.setStatus(StatusEnum.CLOSE.getCode());
                 EntityUtils.writeStdUpdInfoToEntity(deleteEntity, EntityUtils.getWipUserId());
             }
@@ -200,6 +205,7 @@ public class WipReqLotIssuedService {
                 WipReqLotIssuedEntity itemLotIssued = tmpItemLotIssuedMap.get(updateLot);
                 WipReqLotIssuedEntity dbLotIssued = tmpDbLotIssuedMap.get(updateLot);
                 dbLotIssued.setAssignQty(itemLotIssued.getAssignQty())
+                        .setUnissuedQty(this.calculateUnissuedQty(itemLotIssued, dbLotIssued))
                         .setLockStatus(itemLotIssued.getLockStatus());
                 if (!LotIssuedLockTypeEnum.MANUAL.getCode().equals(dbLotIssued.getLockType()) && !itemLotIssued.getLockStatus().equals(dbLotIssued.getLockStatus())) {
                     // 批次锁定状态变更视为手动变更
@@ -211,11 +217,26 @@ public class WipReqLotIssuedService {
     }
 
     private BigDecimal calculateUnissuedQty(WipReqLotIssuedEntity itemLotIssued, WipReqLotIssuedEntity dbLotIssued) {
+        if (itemLotIssued.getAssignQty().longValue() < dbLotIssued.getIssuedQty()) {
+            throw new ParamsIncorrectException(String.format("批次%s的分配数量不能小于已领数量", itemLotIssued.getMtrLotNo()));
+        }
+        // 未领料数量 = 分配数量 - 已领料数量
+        return itemLotIssued.getAssignQty().subtract(BigDecimal.valueOf(dbLotIssued.getIssuedQty()));
+    }
+
+    private BigDecimal calculateIssuedQty(WipReqLotIssuedEntity itemLotIssued, WipReqLotIssuedEntity dbLotIssued) {
         if (Objects.isNull(itemLotIssued.getPostQty())) {
             throw new ParamsIncorrectException("过账数量不可为空");
         }
-        BigDecimal unIssuedQty = Optional.ofNullable(dbLotIssued.getUnissuedQty()).orElse(dbLotIssued.getAssignQty());
-        return unIssuedQty.subtract(itemLotIssued.getPostQty());
+        // 已领料数量 += 过账数量
+        Long issuedQty = Optional.ofNullable(dbLotIssued.getIssuedQty()).orElse(0L);
+        return BigDecimal.valueOf(issuedQty).add(itemLotIssued.getPostQty());
+    }
+
+    private void checkDeletable(WipReqLotIssuedEntity deleteEntity) {
+        if (deleteEntity.getIssuedQty() > 0) {
+            throw new ParamsIncorrectException(String.format("批次%s已领料，不可删除", deleteEntity.getMtrLotNo()));
+        }
     }
 
 }
