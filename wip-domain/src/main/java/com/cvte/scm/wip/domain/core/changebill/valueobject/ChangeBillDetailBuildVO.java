@@ -54,6 +54,8 @@ public class ChangeBillDetailBuildVO implements VO {
 
     private String issueFlag;
 
+    private String dtlLotNumber;
+
     public String getKey() {
         return this.getSourceLineId() + this.getItemIdNew() + this.getPosNo();
     }

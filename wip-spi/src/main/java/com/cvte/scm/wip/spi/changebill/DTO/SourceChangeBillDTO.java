@@ -109,6 +109,9 @@ public class SourceChangeBillDTO {
     @JSONField(name = "BILL_TYPE_CODE")
     private String typeCode;
 
+    @JSONField(name = "DTL_LOT_NUMBER")
+    private String dtlLotNumber;
+
     private Date detailEnableDate;
 
     private Date detailDisableDate;
@@ -155,7 +158,8 @@ public class SourceChangeBillDTO {
                 .setSourceLineId(changeBillDTO.getLineId())
                 .setItemUnitQty(changeBillDTO.getItemUnitQty())
                 .setItemQty(changeBillDTO.getItemQty())
-                .setIssueFlag(changeBillDTO.getDetailIssueFlag());
+                .setIssueFlag(changeBillDTO.getDetailIssueFlag())
+                .setDtlLotNumber(changeBillDTO.getDtlLotNumber());
         if (StringUtils.isBlank(detailBuildVO.getStatus())) {
             detailBuildVO.setStatus(StatusEnum.NORMAL.getCode());
         }
