@@ -128,8 +128,14 @@
             )
             or
             (
-                /* 视昱的单据 */
-                x.organization_id = '93'
+                /* 无同步限制的工厂 */
+                exists(
+                select 1
+                from wip_req_published_factory rpf
+                where x.organization_id = to_number(rpf.organization_id)
+                  and x.factory_id = to_number(rpf.factory_id)
+                  and rpf.unlimited_flag = 'Y'
+                )
             )
         )
         /* 这部分是限制条件 */
