@@ -495,6 +495,9 @@ public class WipMcTaskService extends WipBaseService<WipMcTaskEntity, WipMcTaskR
         return repository.listWipMcTaskView(query);
     }
 
+    public List<String> listAllTaskIdsOfOrder(List<String> sourceLineIds) {
+        return repository.listAllTaskIdsOfOrder(sourceLineIds);
+    }
 
     
     public List<String> listValidTaskIds(List<String> mcTaskIds) {
