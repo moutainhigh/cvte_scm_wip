@@ -32,4 +32,6 @@ public interface WipMcTaskMapper extends CommonMapper<WipMcTaskDO> {
 
     Boolean isSpecClient(@Param("mcTaskId") String mcTaskId);
 
+    List<String> listAllTaskIdsOfOrder(@Param("sourceLineIds") List<String> sourceLineIds);
+
 }

@@ -10,9 +10,7 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.csb.toolkit.UUIDUtils;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.domain.core.ckd.dto.WipMcTaskUnlockDTO;
-import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcTaskQuery;
 import com.cvte.scm.wip.domain.core.ckd.dto.query.WipMcWfQuery;
-import com.cvte.scm.wip.domain.core.ckd.dto.view.WipMcTaskView;
 import com.cvte.scm.wip.domain.core.ckd.entity.WipMcWfEntity;
 import com.cvte.scm.wip.domain.core.ckd.enums.McTaskStatusEnum;
 import com.cvte.scm.wip.domain.core.ckd.repository.WipMcWfRepository;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 服务实现类
@@ -130,10 +127,7 @@ public class WipMcWfService {
         operatingUser.setName(wipMcTaskUnlockDTO.getOptUser());
         CurrentContext.setCurrentOperatingUser(operatingUser);
 
-        List<WipMcTaskView> wipMcTaskViews = wipMcTaskService
-                .listWipMcTaskView(new WipMcTaskQuery().setSourceLineIds(wipMcTaskUnlockDTO.getSourceLineIds()));
-        List<String> mcTaskIds = wipMcTaskViews.stream().map(WipMcTaskView::getMcTaskId).collect(Collectors.toList());
-
+        List<String> mcTaskIds = wipMcTaskService.listAllTaskIdsOfOrder(wipMcTaskUnlockDTO.getSourceLineIds());
         batchRestorePreStatusIfCurStatusEqualsTo(mcTaskIds, McTaskStatusEnum.CHANGE);
     }
 

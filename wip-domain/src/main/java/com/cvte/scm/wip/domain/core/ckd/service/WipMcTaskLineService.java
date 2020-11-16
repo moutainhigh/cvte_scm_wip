@@ -198,9 +198,11 @@ public class WipMcTaskLineService extends WipBaseService<WipMcTaskLineEntity, Wi
         // 如果配料任务下所有行都被取消，则配料任务头状态更新为取消
         List<String> canceledTaskIds = updateStatusToCancelIfAllLineCanceled(mcTaskIds);
 
+
         // 否则，如果当前处于变更中/取消中状态下，恢复成上一个版本
-        mcTaskIds.removeAll(canceledTaskIds);
-        wipMcWfService.batchRestorePreStatusIfCurStatusEqualsTo(mcTaskIds, McTaskStatusEnum.CHANGE);
+        List<String> lockedTaskIds = wipMcTaskService.listAllTaskIdsOfOrder(updateSourceLineIds);
+        lockedTaskIds.removeAll(canceledTaskIds);
+        wipMcWfService.batchRestorePreStatusIfCurStatusEqualsTo(lockedTaskIds, McTaskStatusEnum.CHANGE);
     }
 
     /**

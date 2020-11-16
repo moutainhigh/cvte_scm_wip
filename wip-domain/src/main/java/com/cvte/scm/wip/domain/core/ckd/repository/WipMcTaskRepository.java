@@ -46,4 +46,6 @@ public interface WipMcTaskRepository extends WipBaseRepository<WipMcTaskEntity> 
     Boolean isSpecClient(String mcTaskId);
 
 
+    List<String> listAllTaskIdsOfOrder(List<String> sourceLineIds);
+
 }

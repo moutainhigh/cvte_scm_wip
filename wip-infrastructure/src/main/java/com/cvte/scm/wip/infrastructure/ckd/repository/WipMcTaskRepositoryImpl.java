@@ -116,4 +116,9 @@ public class WipMcTaskRepositoryImpl
     }
 
 
+    public List<String> listAllTaskIdsOfOrder(List<String> sourceLineIds) {
+        return mapper.listAllTaskIdsOfOrder(sourceLineIds);
+    }
+
+
 }
