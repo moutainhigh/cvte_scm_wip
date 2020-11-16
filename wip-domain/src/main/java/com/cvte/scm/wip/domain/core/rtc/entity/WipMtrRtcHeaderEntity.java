@@ -156,7 +156,7 @@ public class WipMtrRtcHeaderEntity extends BaseModel implements Entity<String> {
 
     public void update(WipMtrRtcHeaderBuildVO headerBuildVO) {
         this.setMoId(headerBuildVO.getMoId())
-                .setWkpNo(headerBuildVO.getWkpNo())
+                .setWkpNo(StringUtils.isBlank(headerBuildVO.getWkpNo()) ? "" : headerBuildVO.getWkpNo())
                 .setBillType(headerBuildVO.getBillType())
                 .setBillQty(headerBuildVO.getBillQty())
                 .setInvpNo(headerBuildVO.getInvpNo())

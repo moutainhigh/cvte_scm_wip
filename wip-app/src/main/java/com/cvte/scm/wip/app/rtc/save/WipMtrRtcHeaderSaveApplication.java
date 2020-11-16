@@ -31,6 +31,7 @@ public class WipMtrRtcHeaderSaveApplication {
         WipMtrRtcHeaderBuildVO specifiedHeaderBuildVO = new WipMtrRtcHeaderBuildVO();
         specifiedHeaderBuildVO.setRemark(headerBuildVO.getRemark());
         rtcHeader.update(specifiedHeaderBuildVO);
+        rtcHeader.save(false);
     }
 
 }
