@@ -5,12 +5,13 @@ import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.enums.error.ReqInsErrEnum;
 import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.ReqInsDetailEntity;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrRtcHeaderBuildVO;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -41,6 +42,8 @@ public class WipReqLineKeyQueryVO {
 
     private String posNo;
 
+    private Collection<String> itemKeyColl;
+
     public static WipReqLineKeyQueryVO build(ReqInsDetailEntity entity) {
         if (StringUtils.isBlank(entity.getMoLotNo()) && StringUtils.isBlank(entity.getWkpNo()) && StringUtils.isBlank(entity.getItemIdNew()) && StringUtils.isNotBlank(entity.getPosNo())) {
             throw new ServerException(ReqInsErrEnum.KEY_NULL.getCode(), ReqInsErrEnum.KEY_NULL.getDesc() + ",删除范围过大");
@@ -54,6 +57,19 @@ public class WipReqLineKeyQueryVO {
                 .setItemNo(entity.getItemNoOld())
                 .setPosNo(entity.getPosNo());
         return keyQueryVO;
+    }
+
+    public static WipReqLineKeyQueryVO buildForReqItem(String organizationId, String moId, String wkpNo) {
+        return buildForReqItem(organizationId, moId, wkpNo, null);
+    }
+
+    public static WipReqLineKeyQueryVO buildForReqItem(String organizationId, String moId, String wkpNo, Collection<String> itemList) {
+        WipReqLineKeyQueryVO queryVO = new WipReqLineKeyQueryVO();
+        queryVO.setOrganizationId(organizationId)
+                .setHeaderId(moId)
+                .setWkpNo(wkpNo)
+                .setItemKeyColl(itemList);
+        return queryVO;
     }
 
     @Override

@@ -1,19 +1,19 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject;
 
 
-import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.beans.BeanUtils;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -21,11 +21,11 @@ import java.util.Date;
  * @since 2020-01-17
  */
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @ApiModel(description = "投料单领料批次")
 @Table(name = "wip.wip_req_lot_issued")
-public class WipReqLotIssuedDO {
+public class WipReqLotIssuedDO extends BaseModel {
 
     private static final long serialVersionUID = 1L;
 
@@ -78,7 +78,7 @@ public class WipReqLotIssuedDO {
     @Column(name = "issued_qty")
     @ApiModelProperty(value = "领料数量")
     @Min(value = 0, message = "最小领料数量为0")
-    private Integer issuedQty;
+    private Long issuedQty;
     /**
      * 状态
      */
@@ -134,17 +134,35 @@ public class WipReqLotIssuedDO {
     @Column(name = "upd_date")
     @ApiModelProperty(value = "${field.comment}")
     private Date updDate;
-
-    public static WipReqLotIssuedEntity buildEntity(WipReqLotIssuedDO issuedDO) {
-        WipReqLotIssuedEntity issuedEntity = new WipReqLotIssuedEntity();
-        BeanUtils.copyProperties(issuedDO, issuedEntity);
-        return issuedEntity;
-    }
-
-    public static WipReqLotIssuedDO buildDO(WipReqLotIssuedEntity issuedEntity) {
-        WipReqLotIssuedDO issuedDO = new WipReqLotIssuedDO();
-        BeanUtils.copyProperties(issuedEntity, issuedDO);
-        return issuedDO;
-    }
+    /**
+     * 锁定状态
+     */
+    @Column(name = "lock_status")
+    @ApiModelProperty(value = "锁定状态")
+    private String lockStatus;
+    /**
+     * 未发料数量
+     */
+    @Column(name = "unissued_qty")
+    @ApiModelProperty(value = "未发料数量")
+    private BigDecimal unissuedQty;
+    /**
+     * 锁定类型
+     */
+    @Column(name = "lock_type")
+    @ApiModelProperty(value = "锁定类型")
+    private String lockType;
+    /**
+     * 分配数量
+     */
+    @Column(name = "assign_qty")
+    @ApiModelProperty(value = "分配数量")
+    private BigDecimal assignQty;
+    /**
+     * 批次类型
+     */
+    @Column(name = "lot_type")
+    @ApiModelProperty(value = "批次类型")
+    private String lotType;
 
 }

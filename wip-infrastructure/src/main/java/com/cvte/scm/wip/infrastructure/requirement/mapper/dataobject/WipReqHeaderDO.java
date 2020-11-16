@@ -12,6 +12,7 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -263,6 +264,14 @@ public class WipReqHeaderDO {
     @Column(name = "status_type")
     @ApiModelProperty(value = "工单状态")
     private String statusType;
+
+    @Column(name = "complete_qty")
+    @ApiModelProperty(value = "完工数量")
+    private BigDecimal completeQty;
+
+    @Column(name = "department_id")
+    @ApiModelProperty(value = "部门ID")
+    private String departmentId;
 
     @Override
     public boolean equals(Object obj) {

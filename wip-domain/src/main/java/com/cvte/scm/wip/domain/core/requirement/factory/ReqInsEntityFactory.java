@@ -69,7 +69,7 @@ public class ReqInsEntityFactory implements DomainFactory<ReqInsBuildVO, ReqInsE
         }
         String aimReqLotNo = reqHeader.getSourceLotNo();
 
-        Integer changeQty = reqLineList.get(0).getReqQty();
+        Long changeQty = reqLineList.get(0).getReqQty();
         if (null == changeQty || 0 == changeQty) {
             throw new ParamsIncorrectException("变更数量不能为0");
         }

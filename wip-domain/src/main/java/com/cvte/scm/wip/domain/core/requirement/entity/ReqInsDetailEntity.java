@@ -269,7 +269,7 @@ public class ReqInsDetailEntity implements Entity<String> {
                 .setItemId(this.getItemIdNew())
                 .setItemNo(this.getItemNoNew())
                 .setUnitQty(0.0)
-                .setReqQty(0)
+                .setReqQty(0L)
                 .setLotNumber(wipLotVO.getLotNumber())
                 .setChangeType(ChangedTypeEnum.ADD.getCode());
         return reqLine;

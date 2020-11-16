@@ -174,6 +174,12 @@ public class WipCnBillDetailDO extends BaseEntity {
     @Column(name = "issue_flag")
     @ApiModelProperty(value = "是否回收")
     private String issueFlag;
+    /**
+     * 物料批次
+     */
+    @Column(name = "dtl_lot_number")
+    @ApiModelProperty(value = "物料批次")
+    private String dtlLotNumber;
 
     public static ChangeBillDetailEntity buildEntity(WipCnBillDetailDO detailDO) {
         ChangeBillDetailEntity detailEntity = ChangeBillDetailEntity.get();

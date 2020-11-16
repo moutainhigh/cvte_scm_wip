@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import tk.mybatis.mapper.entity.Example;
@@ -65,5 +66,7 @@ public interface WipReqLineRepository {
     List<String> selectOutRangeItemList(String changeType, String organization, List<String> itemNoList, String dimensionId, List<String> outRangeItemNoList);
 
     List<WipReqLineEntity> selectByItemDim(String organizationId, String headerId, String wkpNo, String itemKey);
+
+    List<WipReqItemVO> selectReqItem(WipReqLineKeyQueryVO queryVO);
 
 }

@@ -64,12 +64,12 @@ public class WipReqLineVO {
      * 需求数量
      */
     @ApiModelProperty(value = "需求数量")
-    private Integer reqQty;
+    private Long reqQty;
     /**
      * 已发料数量
      */
     @ApiModelProperty(value = "已发料数量")
-    private Integer issuedQty;
+    private Long issuedQty;
     /**
      * 超发原因
      */

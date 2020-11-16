@@ -1,5 +1,6 @@
 package com.cvte.scm.wip.domain.core.requirement.repository;
 
+import com.cvte.scm.wip.domain.common.repository.WipBaseRepository;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
 
 import java.util.List;
@@ -11,18 +12,10 @@ import java.util.List;
   * @version : 1.0
   * email   : xueyuting@cvte.com
   */
-public interface WipReqLotIssuedRepository {
+public interface WipReqLotIssuedRepository extends WipBaseRepository<WipReqLotIssuedEntity> {
 
-    List<WipReqLotIssuedEntity> selectList(WipReqLotIssuedEntity lotIssuedEntity);
+    int selectCnBillTypeLot(String organizationId, String headerId, String itemKey);
 
-    WipReqLotIssuedEntity selectById(String id);
-
-    void insert(WipReqLotIssuedEntity lotIssuedEntity);
-
-    void update(WipReqLotIssuedEntity lotIssuedEntity);
-
-    void invalidById(String id);
-
-    void invalidById(List<String> idList);
+    List<WipReqLotIssuedEntity> selectByKey(String organizationId, String moId, String itemNo, String wkpNo);
 
 }

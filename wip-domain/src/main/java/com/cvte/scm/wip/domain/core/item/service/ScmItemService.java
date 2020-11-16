@@ -55,4 +55,11 @@ public class ScmItemService {
         return itemEntityList.stream().collect(Collectors.toMap(ScmItemEntity::getItemNo, ScmItemEntity::getItemId));
     }
 
+    public List<ScmItemEntity> getByItemIds(String organizationId, Iterable<String> itemIds) {
+        if (StringUtils.isEmpty(organizationId) || CollUtil.isEmpty(itemIds)) {
+            return Collections.emptyList();
+        }
+        return scmItemRepository.selectByItemIds(organizationId, itemIds);
+    }
+
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.rtc.mapper.WipMtrRtcAssignMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.rtc.mapper.dataobject.WipMtrRtcAssignDO">
+            <result column="assign_id" property="assignId" />
+            <result column="organization_id" property="organizationId" />
+            <result column="header_id" property="headerId" />
+            <result column="line_id" property="lineId" />
+            <result column="mtr_lot_no" property="mtrLotNo" />
+            <result column="factory_id" property="factoryId" />
+            <result column="assign_qty" property="assignQty" />
+            <result column="invp_no" property="invpNo" />
+            <result column="source_order_id" property="sourceOrderId" />
+            <result column="rmk01" property="rmk01" />
+            <result column="rmk02" property="rmk02" />
+            <result column="rmk03" property="rmk03" />
+            <result column="rmk04" property="rmk04" />
+            <result column="rmk05" property="rmk05" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_time" property="crtTime" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_time" property="updTime" />
+        </resultMap>
+</mapper>

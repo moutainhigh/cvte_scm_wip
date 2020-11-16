@@ -1,5 +1,7 @@
 package com.cvte.scm.wip.domain.core.requirement.service;
 
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
 import com.cvte.scm.wip.common.enums.ExecutionModeEnum;
 import com.cvte.scm.wip.common.utils.CurrentContextUtils;
 import com.cvte.scm.wip.common.utils.EntityUtils;
@@ -30,6 +32,9 @@ public class WipReqHeaderService {
     }
 
     public WipReqHeaderEntity getByHeaderId(String headerId) {
+        if (StringUtils.isBlank(headerId)) {
+            throw new ParamsIncorrectException("工单ID不可为空");
+        }
         return wipReqHeaderRepository.getByHeaderId(headerId);
     }
 

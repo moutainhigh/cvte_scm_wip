@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.common.BaseMapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +56,9 @@ public abstract class WipBaseRepositoryImpl<M extends CommonMapper<T>, T extends
     }
 
     protected E buildEntity(T dataObject) {
+        if (Objects.isNull(dataObject)) {
+            return null;
+        }
         return modelMapper.map(dataObject, getEntityClass());
     }
 
