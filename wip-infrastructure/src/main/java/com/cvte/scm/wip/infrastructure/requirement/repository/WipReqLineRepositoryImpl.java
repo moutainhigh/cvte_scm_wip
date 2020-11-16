@@ -9,6 +9,7 @@ import com.cvte.scm.wip.common.utils.ClassUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLinesMapper;
@@ -219,6 +220,11 @@ public class WipReqLineRepositoryImpl implements WipReqLineRepository {
     @Override
     public List<WipReqLineEntity> selectByItemDim(String organizationId, String headerId, String wkpNo, String itemKey) {
         return wipReqLinesMapper.selectByItemDim(organizationId, headerId, wkpNo, itemKey);
+    }
+
+    @Override
+    public List<WipReqItemVO> selectReqItem(WipReqLineKeyQueryVO queryVO) {
+        return wipReqLinesMapper.selectReqItem(queryVO);
     }
 
     /**

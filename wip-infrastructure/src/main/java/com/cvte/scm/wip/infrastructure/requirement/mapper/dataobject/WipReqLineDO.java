@@ -1,6 +1,7 @@
 package com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject;
 
 
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -26,7 +27,7 @@ import java.util.Objects;
 @Accessors(chain = true)
 @ApiModel(description = "投料单")
 @Table(name = "wip.wip_req_lines")
-public class WipReqLineDO {
+public class WipReqLineDO extends BaseModel {
 
     @Id
     @GeneratedValue(generator = "JDBC")
@@ -91,14 +92,14 @@ public class WipReqLineDO {
     @Column(name = "req_qty")
     @ApiModelProperty(value = "需求数量")
     @DecimalMin(value = "0", message = "需求数量必须大于等于零")
-    private Integer reqQty;
+    private Long reqQty;
     /**
      * 已发料数量
      */
     @Column(name = "issued_qty")
     @ApiModelProperty(value = "已发料数量")
     @DecimalMin(value = "0", message = "已发料数量必须大于等于零")
-    private Integer issuedQty;
+    private Long issuedQty;
     /**
      * 超发原因
      */

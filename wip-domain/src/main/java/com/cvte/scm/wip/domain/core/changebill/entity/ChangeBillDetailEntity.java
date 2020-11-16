@@ -80,6 +80,8 @@ public class ChangeBillDetailEntity implements Entity<String>{
 
     private String issueFlag;
 
+    private String dtlLotNumber;
+
     public List<ChangeBillDetailEntity> getByBillId(String billId) {
         return changeBillDetailRepository.selectByBillId(billId);
     }

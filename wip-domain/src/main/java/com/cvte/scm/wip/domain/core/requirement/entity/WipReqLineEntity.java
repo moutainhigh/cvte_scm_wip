@@ -3,6 +3,7 @@ package com.cvte.scm.wip.domain.core.requirement.entity;
 
 import com.cvte.csb.toolkit.ObjectUtils;
 import com.cvte.scm.wip.common.utils.CodeableEnumUtils;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import com.cvte.scm.wip.domain.core.requirement.valueobject.enums.BillStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
@@ -12,7 +13,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Transient;
-import javax.validation.constraints.DecimalMin;
 import java.util.*;
 
 /**
@@ -21,7 +21,7 @@ import java.util.*;
  */
 @Data
 @Accessors(chain = true)
-public class WipReqLineEntity {
+public class WipReqLineEntity extends BaseModel {
 
     private String lineId;
 
@@ -55,10 +55,10 @@ public class WipReqLineEntity {
     private Double unitQty;
 
     @ApiModelProperty(value = "需求数量")
-    private Integer reqQty;
+    private Long reqQty;
 
     @ApiModelProperty(value = "已发料数量")
-    private Integer issuedQty;
+    private Long issuedQty;
 
     @ApiModelProperty(value = "超发原因")
     private String exceedReason;

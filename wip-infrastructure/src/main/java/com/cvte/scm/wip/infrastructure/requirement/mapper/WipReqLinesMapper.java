@@ -2,6 +2,8 @@ package com.cvte.scm.wip.infrastructure.requirement.mapper;
 
 import com.cvte.csb.jdbc.mybatis.mapper.CommonMapper;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLineEntity;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO;
+import com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqLineKeyQueryVO;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLineDO;
 import org.apache.ibatis.annotations.Param;
 
@@ -24,5 +26,7 @@ public interface WipReqLinesMapper extends CommonMapper<WipReqLineDO> {
                                            @Param("headerId") String headerId,
                                            @Param("wkpNo") String wkpNo,
                                            @Param("itemKey") String itemKey);
+
+    List<WipReqItemVO> selectReqItem(@Param("queryVO") WipReqLineKeyQueryVO queryVO);
 
 }

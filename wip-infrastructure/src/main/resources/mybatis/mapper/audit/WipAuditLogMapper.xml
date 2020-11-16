@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.audit.mapper.WipAuditLogMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.audit.mapper.dataobject.WipAuditLogDO">
+            <result column="id" property="id" />
+            <result column="batch_id" property="batchId" />
+            <result column="model" property="model" />
+            <result column="entity" property="entity" />
+            <result column="object_id" property="objectId" />
+            <result column="object_parent_id" property="objectParentId" />
+            <result column="operation_type" property="operationType" />
+            <result column="field" property="field" />
+            <result column="field_name" property="fieldName" />
+            <result column="before" property="before" />
+            <result column="after" property="after" />
+            <result column="rmk01" property="rmk01" />
+            <result column="rmk02" property="rmk02" />
+            <result column="rmk03" property="rmk03" />
+            <result column="rmk04" property="rmk04" />
+            <result column="rmk05" property="rmk05" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_time" property="crtTime" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_time" property="updTime" />
+        </resultMap>
+</mapper>

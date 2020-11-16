@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.rtc.mapper.WipMtrSubInvMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
+        <result column="organization_id" property="organizationId" />
+        <result column="factory_id" property="factoryId" />
+        <result column="factory_no" property="factoryNo" />
+        <result column="inventory_item_id" property="inventoryItemId" />
+        <result column="lot_number" property="lotNumber" />
+        <result column="first_stockin_date" property="firstStockinDate" />
+        <result column="subinventory_code" property="subinventoryCode" />
+        <result column="supply_qty" property="supplyQty" />
+    </resultMap>
+
+    <select id="selectByVO" resultMap="BaseResultMap">
+        select siq.organization_id,
+               siq.factory_id,
+               siq.factory_no,
+               siq.inventory_item_id,
+               siq.subinventory_code,
+               siq.lot_number,
+               sum(siq.supply_qty) as supply_qty
+        from wip_mtr_sub_inv_qty_v siq
+        where siq.organization_id = #{subInvVOList[0].organizationId}
+          and (
+          <foreach collection="subInvVOList" item="subInv" open="(" separator="or" close=")">
+              (siq.inventory_item_id = #{subInv.inventoryItemId}
+              <if test="subInv.factoryId != null and subInv.factoryId.length() > 0">
+                  and siq.factory_id = #{subInv.factoryId}
+              </if>
+              <if test="subInv.subinventoryCode != null and subInv.subinventoryCode.length() > 0">
+                  and siq.subinventory_code = #{subInv.subinventoryCode}
+              </if>
+              <if test="subInv.lotNumber != null and subInv.lotNumber.length() > 0">
+                  and siq.lot_number like '%' || #{subInv.lotNumber} || '%'
+              </if>
+              )
+          </foreach>
+          )
+        group by siq.factory_no, siq.factory_id, siq.inventory_item_id, siq.organization_id,
+                 siq.subinventory_code, siq.lot_number
+    </select>
+
+    <select id="selectLotControl" resultType="com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO">
+        select wrh.organization_id
+             , wrh.factory_id
+             , siq.factory_no
+             , siq.subinventory_code
+             , siq.inventory_item_id
+             , siq.lot_number              as lot_number
+             , siq.first_stockin_date
+             , siq.supply_qty
+             , coalesce(rli.assign_qty, 0) as item_qty
+             , coalesce(rli.issued_qty, 0) as item_issued_qty
+             , case when(rli.id is null) then 'N' else 'Y' end as lot_assigned_flag /* 是否分配批次标识 */
+        from wip_mtr_sub_inv_qty_v siq
+        inner join scm.md_item mi
+            on siq.inventory_item_id = mi.inventory_item_id
+        inner join wip_req_header wrh
+            on siq.organization_id = wrh.organization_id
+                and siq.factory_id = wrh.factory_id
+        left join wip_req_lot_issued rli
+            on siq.lot_number = rli.mtr_lot_no
+                and wrh.header_id = rli.header_id
+                and rli.status = '110'
+        where siq.organization_id = #{organizationId}
+          and siq.factory_id = #{factoryId}
+          and siq.inventory_item_id = #{itemId}
+          <if test="subinventoryCode != null and subinventoryCode.length() > 0">
+          and siq.subinventory_code = #{subinventoryCode}
+          </if>
+          and wrh.header_id = #{moId}
+    </select>
+
+</mapper>

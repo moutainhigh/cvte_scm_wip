@@ -21,6 +21,9 @@ public class ScmItemDO {
     @Column(name = "item_code")
     private String itemNo;
 
+    @Column(name = "rd_min_class_code")
+    private String rdMinClassCode;
+
     public static ScmItemEntity buildEntity(ScmItemDO issuedDO, String organizationId) {
         ScmItemEntity itemEntity = new ScmItemEntity();
         BeanUtils.copyProperties(issuedDO, itemEntity);

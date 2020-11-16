@@ -185,4 +185,50 @@
         group by wrl.organization_id, wrl.header_id, wrl.wkp_no, wrl.item_id, wrl.item_no
     </select>
 
+    <select id="selectReqItem" resultType="com.cvte.scm.wip.domain.core.requirement.valueobject.WipReqItemVO">
+        select Aa.organization_id as organizationId,
+               Aa.header_id as moId,
+               Aa.item_id as itemId,
+               Aa.item_no as itemNo,
+               Aa.wkp_no as wkpNo,
+               max(Aa.unit_qty)                               as unitQty,
+               sum(Aa.req_qty)                                as reqQty,
+               sum(coalesce(Aa.issued_qty, 0))                as issuedQty,
+               sum(req_qty) - sum(coalesce(Aa.issued_qty, 0)) as unIssuedQty,
+               coalesce(1, 1) as componentYieldFactor /* TODO 同步BOM产出率 */
+        from (
+                 select Wrl.organization_id,
+                        Wrl.header_id,
+                        Wrl.item_id,
+                        Wrl.item_no,
+                        Wrl.wkp_no,
+                        sum(Wrl.unit_qty)                               as unit_qty,
+                        sum(Wrl.req_qty)                                as req_qty,
+                        sum(coalesce(Wrl.issued_qty, 0))                as issued_qty
+                 from wip_req_lines Wrl
+                 where Wrl.line_status not in ('40', '50')
+                   and Wrl.organization_id = #{queryVO.organizationId}
+                   <if test="queryVO.itemId != null">
+                       and Wrl.item_id = #{queryVO.itemId}
+                   </if>
+                   and Wrl.header_id = #{queryVO.headerId}
+                   <if test="queryVO.wkpNo != null and queryVO.wkpNo.length() > 0">
+                       and Wrl.wkp_no = #{queryVO.wkpNo}
+                   </if>
+                   <if test="queryVO.itemKeyColl != null and queryVO.itemKeyColl.size() > 0">
+                       and (Wrl.item_id in
+                       <foreach collection="queryVO.itemKeyColl" item="itemKey" open="(" separator="," close=")">
+                           #{itemKey}
+                       </foreach>
+                       or Wrl.item_no in
+                       <foreach collection="queryVO.itemKeyColl" item="itemKey" open="(" separator="," close=")">
+                           #{itemKey}
+                       </foreach>
+                       )
+                   </if>
+                 group by Wrl.organization_id, Wrl.header_id, Wrl.lot_number, Wrl.wkp_no, Wrl.item_id, Wrl.item_no
+             ) Aa
+        group by Aa.organization_id, Aa.header_id, Aa.wkp_no, Aa.item_id, Aa.item_no
+    </select>
+
 </mapper>

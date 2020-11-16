@@ -1,15 +1,18 @@
 package com.cvte.scm.wip.controller.requirement.admin;
 
 import com.cvte.csb.core.interfaces.vo.RestResponse;
-import com.cvte.scm.wip.app.req.issue.ReqLotIssuedDeleteApplication;
-import com.cvte.scm.wip.app.req.issue.ReqLotIssuedSaveApplication;
+import com.cvte.scm.wip.app.req.lot.ReqLotIssuedLockApplication;
+import com.cvte.scm.wip.app.req.lot.ReqLotIssuedSaveApplication;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqLotIssuedEntity;
+import com.cvte.scm.wip.domain.core.requirement.service.WipLotIssuedPageService;
+import com.cvte.scm.wip.domain.core.requirement.service.WipReqLotIssuedService;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.WipMtrSubInvVO;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import java.util.List;
 
 /**
   * 
@@ -26,22 +29,38 @@ import javax.validation.Valid;
 public class WipReqLotIssuedController {
 
     private ReqLotIssuedSaveApplication reqLotIssuedSaveApplication;
-    private ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication;
+    private ReqLotIssuedLockApplication reqLotIssuedLockApplication;
+    private WipReqLotIssuedService wipReqLotIssuedService;
+    private WipLotIssuedPageService wipLotIssuedPageService;
 
-    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedDeleteApplication reqLotIssuedDeleteApplication) {
+    public WipReqLotIssuedController(ReqLotIssuedSaveApplication reqLotIssuedSaveApplication, ReqLotIssuedLockApplication reqLotIssuedLockApplication, WipReqLotIssuedService wipReqLotIssuedService, WipLotIssuedPageService wipLotIssuedPageService) {
         this.reqLotIssuedSaveApplication = reqLotIssuedSaveApplication;
-        this.reqLotIssuedDeleteApplication = reqLotIssuedDeleteApplication;
+        this.reqLotIssuedLockApplication = reqLotIssuedLockApplication;
+        this.wipReqLotIssuedService = wipReqLotIssuedService;
+        this.wipLotIssuedPageService = wipLotIssuedPageService;
     }
 
-    @PostMapping("/save")
-    public RestResponse save(@Valid @RequestBody WipReqLotIssuedEntity wipReqLotIssued) {
-        reqLotIssuedSaveApplication.doAction(wipReqLotIssued);
+    @PostMapping("/save_all")
+    public RestResponse saveAll(@RequestBody List<WipReqLotIssuedEntity> itemLotIssuedList) {
+        reqLotIssuedSaveApplication.doAction(itemLotIssuedList);
         return new RestResponse();
     }
 
-    @DeleteMapping("/invalid/{idStr}")
-    public RestResponse invalid(@PathVariable("idStr") String idStr) {
-        reqLotIssuedDeleteApplication.doAction(idStr);
+    @PostMapping("/lock")
+    public RestResponse lock(@RequestBody String[] idArr) {
+        reqLotIssuedLockApplication.doAction(idArr);
         return new RestResponse();
     }
+
+    @PostMapping("/delete")
+    public RestResponse delete(@RequestBody WipReqLotIssuedEntity reqLotIssued) {
+        wipReqLotIssuedService.delete(reqLotIssued);
+        return new RestResponse();
+    }
+
+    @PostMapping("/view")
+    public RestResponse view(@RequestBody WipMtrSubInvVO subInvVO) {
+        return new RestResponse().setData(wipLotIssuedPageService.getLot(subInvVO));
+    }
+
 }

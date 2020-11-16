@@ -1,24 +1,33 @@
 package com.cvte.scm.wip.domain.core.requirement.entity;
 
-
+import com.cvte.csb.core.exception.client.params.ParamsIncorrectException;
+import com.cvte.csb.toolkit.StringUtils;
+import com.cvte.scm.wip.common.utils.BatchProcessUtils;
+import com.cvte.scm.wip.domain.common.base.BaseModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.validation.constraints.Min;
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author yt
  * @since 2020-01-17
  */
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
-public class WipReqLotIssuedEntity {
+public class WipReqLotIssuedEntity extends BaseModel {
 
     private String id;
-
 
     @ApiModelProperty(value = "投料单头ID")
     @NotBlank(message = "投料单头不可为空")
@@ -41,8 +50,7 @@ public class WipReqLotIssuedEntity {
     private String mtrLotNo;
 
     @ApiModelProperty(value = "领料数量")
-    @Min(value = 0, message = "最小领料数量为0")
-    private Integer issuedQty;
+    private Long issuedQty;
 
     @ApiModelProperty(value = "状态")
     private String status;
@@ -64,4 +72,49 @@ public class WipReqLotIssuedEntity {
     private String updUser;
 
     private Date updDate;
+
+    @ApiModelProperty(value = "锁定状态")
+    private String lockStatus;
+
+    @ApiModelProperty(value = "未发料数量")
+    private BigDecimal unissuedQty;
+
+    @ApiModelProperty(value = "锁定类型")
+    private String lockType;
+
+    @ApiModelProperty(value = "过账数量")
+    private BigDecimal postQty;
+
+    @ApiModelProperty(value = "分配数量")
+    @Min(value = 0, message = "最小领料数量为0")
+    private BigDecimal assignQty;
+
+    @ApiModelProperty(value = "批次类型")
+    private String lotType;
+
+    public String getItemKey() {
+        return BatchProcessUtils.getKey(this.organizationId, this.headerId, this.itemNo, this.wkpNo);
+    }
+
+    public void checkItemKey() {
+        if (StringUtils.isBlank(this.organizationId) || StringUtils.isBlank(this.headerId) || StringUtils.isBlank(this.itemNo) || StringUtils.isBlank(this.wkpNo)) {
+            throw new ParamsIncorrectException("主键不可为空");
+        }
+    }
+
+    public static WipReqLotIssuedEntity buildForPost(String organizationId, String headerId, String itemNo, String wkpNo, String mtrLotNo, BigDecimal postQty) {
+        WipReqLotIssuedEntity lotIssued = new WipReqLotIssuedEntity();
+        lotIssued.setOrganizationId(organizationId)
+                .setHeaderId(headerId)
+                .setItemNo(itemNo)
+                .setWkpNo(wkpNo)
+                .setMtrLotNo(mtrLotNo)
+                .setPostQty(postQty);
+        return lotIssued;
+    }
+
+    public static Map<String, WipReqLotIssuedEntity> toLotMap(List<WipReqLotIssuedEntity> reqLotIssuedList) {
+        return reqLotIssuedList.stream().collect(Collectors.toMap(WipReqLotIssuedEntity::getMtrLotNo, Function.identity()));
+    }
+
 }

@@ -24,6 +24,8 @@ public interface ScmItemRepository {
     /* 根据组织ID以及物料编码列表，获取数据库中存在的数据 */
     Set<String> getValidItemNos(String[] itemNos);
 
+    List<ScmItemEntity> selectByItemIds(String organizationId, Iterable<String> itemIds);
+
     List<ScmItemEntity> selectByItemNos(String organizationId, Iterable<String> itemNos);
 
     Map<String, String> selectNoById(Iterable<String> itemIds);

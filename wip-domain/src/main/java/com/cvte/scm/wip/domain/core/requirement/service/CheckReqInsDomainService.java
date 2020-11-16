@@ -149,8 +149,8 @@ public class CheckReqInsDomainService implements DomainService {
         boolean issued = reqLineInItemDim.stream().map(WipReqLineEntity::getLineStatus).anyMatch(status -> BillStatusEnum.ISSUED.getCode().equals(status));
         if (issued) {
             // 若状态为已领料, 则计算 可变更数量 = 需求数量 - 领料数量
-            int reqQty = reqLineInItemDim.stream().mapToInt(line -> Optional.ofNullable(line.getReqQty()).orElse(0)).sum();
-            int issuedQty = reqLineInItemDim.stream().mapToInt(line -> Optional.ofNullable(line.getIssuedQty()).orElse(0)).sum();
+            long reqQty = reqLineInItemDim.stream().mapToLong(line -> Optional.ofNullable(line.getReqQty()).orElse(0L)).sum();
+            long issuedQty = reqLineInItemDim.stream().mapToLong(line -> Optional.ofNullable(line.getIssuedQty()).orElse(0L)).sum();
             boolean enoughChangeQty = (reqQty - issuedQty) >= changeQty;
             if (!enoughChangeQty) {
                 // 未领料数量 < 变更数量 时无法变更数量

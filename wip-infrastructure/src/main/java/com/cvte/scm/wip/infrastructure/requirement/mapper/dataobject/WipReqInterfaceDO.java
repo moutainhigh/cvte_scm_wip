@@ -96,7 +96,7 @@ public class WipReqInterfaceDO {
      */
     @Column(name = "item_qty")
     @ApiModelProperty(value = "${field.comment}")
-    private Integer itemQty;
+    private Long itemQty;
     /**
      * 执行情况
      */
@@ -140,7 +140,7 @@ public class WipReqInterfaceDO {
 
     @Column(name = "issued_qty")
     @ApiModelProperty(value = "备料数量")
-    private Integer issuedQty;
+    private Long issuedQty;
     /**
      * ${field.comment}
      */

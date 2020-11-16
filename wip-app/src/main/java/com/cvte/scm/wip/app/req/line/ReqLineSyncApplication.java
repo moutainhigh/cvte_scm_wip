@@ -7,6 +7,8 @@ import com.cvte.scm.wip.common.enums.error.ReqLineErrEnum;
 import com.cvte.scm.wip.domain.core.requirement.entity.WipReqHeaderEntity;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqHeaderRepository;
 import com.cvte.scm.wip.domain.core.requirement.repository.WipReqLineRepository;
+import com.cvte.scm.wip.domain.core.rtc.service.WipMtrRtcLotControlService;
+import com.cvte.scm.wip.domain.core.rtc.valueobject.ScmLotControlVO;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
@@ -15,10 +17,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -39,16 +38,18 @@ public class ReqLineSyncApplication {
     private WipReqHeaderRepository headerRepository;
     private DataSourceTransactionManager pgTransactionManager;
     private TransactionTemplate transactionTemplate;
+    private WipMtrRtcLotControlService wipMtrRtcLotControlService;
 
     public ReqLineSyncApplication(RedissonClient redissonClient, WipReqLineRepository linesRepository
             , WipReqHeaderRepository headerRepository
             , @Qualifier("pgTransactionManager") DataSourceTransactionManager pgTransactionManager
-            , TransactionTemplate transactionTemplate) {
+            , TransactionTemplate transactionTemplate, WipMtrRtcLotControlService wipMtrRtcLotControlService) {
         this.redissonClient = redissonClient;
         this.linesRepository = linesRepository;
         this.headerRepository = headerRepository;
         this.pgTransactionManager = pgTransactionManager;
         this.transactionTemplate = transactionTemplate;
+        this.wipMtrRtcLotControlService = wipMtrRtcLotControlService;
     }
 
     public String doAction(Map<String, Object> map) {
@@ -75,7 +76,13 @@ public class ReqLineSyncApplication {
             if (null != lock) {
                 lock.lock();
             }
-            List<WipReqHeaderEntity> addedHeaderData = headerRepository.selectAddedData(organizationIdList, factoryId);
+            // 批次管控配置
+            List<ScmLotControlVO> scmLotControlVOList = wipMtrRtcLotControlService.getWipLotControlConfig();
+            // 去重
+            List<ScmLotControlVO> distinctLotControlList = scmLotControlVOList.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() ->
+                    new TreeSet<>(Comparator.comparing(o -> o.getEbsOrganizationId() + "_" + o.getProductClass()))), ArrayList::new));
+
+            List<WipReqHeaderEntity> addedHeaderData = headerRepository.selectAddedData(organizationIdList, factoryId, distinctLotControlList);
 
             if (ListUtil.notEmpty(addedHeaderData)) {
                 transactionTemplate.setTransactionManager(pgTransactionManager);

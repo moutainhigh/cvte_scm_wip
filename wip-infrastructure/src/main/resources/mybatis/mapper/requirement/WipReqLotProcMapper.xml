@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqLotProcMapper">
+    <resultMap id="BaseResultMap" type="com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqLotProcDO">
+            <result column="id" property="id" />
+            <result column="organization_id" property="organizationId" />
+            <result column="wip_entity_id" property="wipEntityId" />
+            <result column="item_id" property="itemId" />
+            <result column="item_no" property="itemNo" />
+            <result column="wkp_no" property="wkpNo" />
+            <result column="mtr_lot_no" property="mtrLotNo" />
+            <result column="issued_qty" property="issuedQty" />
+            <result column="lock_status" property="lockStatus" />
+            <result column="process_status" property="processStatus" />
+            <result column="process_result" property="processResult" />
+            <result column="source_code" property="sourceCode" />
+            <result column="crt_user" property="crtUser" />
+            <result column="crt_date" property="crtDate" />
+            <result column="upd_user" property="updUser" />
+            <result column="upd_date" property="updDate" />
+        </resultMap>
+</mapper>

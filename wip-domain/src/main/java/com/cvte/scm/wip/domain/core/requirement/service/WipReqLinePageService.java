@@ -82,8 +82,8 @@ public class WipReqLinePageService {
                 } else {
                     // posNo = child posNo1,child posNo2,... ; qty = sum(child qty)
                     String parentPosNo = currentLinesChildren.stream().filter(childLine -> isNotEmpty(childLine.getPosNo())).map(WipReqLineVO::getPosNo).collect(Collectors.joining(","));
-                    int parentQty = currentLinesChildren.stream().map(WipReqLineVO::getIssuedQty).filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
-                    int reqQty = currentLinesChildren.stream().map(WipReqLineVO::getReqQty).filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
+                    long parentQty = currentLinesChildren.stream().map(WipReqLineVO::getIssuedQty).filter(Objects::nonNull).mapToLong(Long::longValue).sum();
+                    long reqQty = currentLinesChildren.stream().map(WipReqLineVO::getReqQty).filter(Objects::nonNull).mapToLong(Long::longValue).sum();
                     double unitQty = currentLinesChildren.stream().map(WipReqLineVO::getUnitQty).filter(Objects::nonNull).mapToDouble(Double::doubleValue).sum();
                     String lineStatus = currentLinesChildren.stream().filter(line -> line != null && line.getLineStatus() != null).map(o -> Integer.valueOf(o.getLineStatus())).min(Integer::compareTo).orElse(0).toString();
                     // 取最新更新的行初始化父节点的一些信息，若更新时间为空则默认取第一个
@@ -120,15 +120,15 @@ public class WipReqLinePageService {
     /**
      * 未发料数量汇总
      */
-    public Integer sumUnissuedQty(String headerId) {
+    public Long sumUnissuedQty(String headerId) {
         if (StringUtils.isBlank(headerId)) {
             throw new ParamsIncorrectException("【未发料数量汇总】投料单头ID不可为空!");
         }
         WipReqLineEntity queryLine = new WipReqLineEntity().setHeaderId(headerId).setSourceCode(null);
         List<WipReqLineEntity> reqLines = wipReqLineRepository.selectList(queryLine);
         reqLines.removeIf(line -> BillStatusEnum.CLOSED.getCode().equals(line.getLineStatus()) || BillStatusEnum.CANCELLED.getCode().equals(line.getLineStatus()));
-        int sumReqQty = reqLines.stream().map(WipReqLineEntity::getReqQty).filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
-        int sumIssuedQty = reqLines.stream().map(WipReqLineEntity::getIssuedQty).filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
+        long sumReqQty = reqLines.stream().map(WipReqLineEntity::getReqQty).filter(Objects::nonNull).mapToLong(Long::longValue).sum();
+        long sumIssuedQty = reqLines.stream().map(WipReqLineEntity::getIssuedQty).filter(Objects::nonNull).mapToLong(Long::longValue).sum();
         return sumReqQty - sumIssuedQty;
     }
 
