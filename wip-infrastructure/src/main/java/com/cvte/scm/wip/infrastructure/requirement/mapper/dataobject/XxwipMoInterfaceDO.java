@@ -55,7 +55,7 @@ public class XxwipMoInterfaceDO {
 
     @Column(name = "ITEM_QTY")
     @ApiModelProperty(value = "物料数量")
-    private Integer itemQty;
+    private Long itemQty;
 
     @Column(name = "WKP_NO")
     @ApiModelProperty(value = "工序号")
