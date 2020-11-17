@@ -50,11 +50,11 @@ public class WipReqLogDO {
 
     @Column(name = "before_item_qty")
     @ApiModelProperty(value = "修改前物料数量")
-    private Integer beforeItemQty;
+    private Long beforeItemQty;
 
     @Column(name = "after_item_qty")
     @ApiModelProperty(value = "修改后物料数量")
-    private Integer afterItemQty;
+    private Long afterItemQty;
 
     @Column(name = "before_wkp_no")
     @ApiModelProperty(value = "修改前工序号")
