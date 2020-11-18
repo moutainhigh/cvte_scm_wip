@@ -45,6 +45,10 @@ public class WipReqMtrsDO {
     @ApiModelProperty(value = "${field.comment}")
     private String itemNo;
 
+    @Column(name = "sub_type")
+    @ApiModelProperty(value = "替代关系")
+    private String subType;
+
     public static WipReqMtrsEntity buildEntity(WipReqMtrsDO issuedDO) {
         WipReqMtrsEntity issuedEntity = new WipReqMtrsEntity();
         BeanUtils.copyProperties(issuedDO, issuedEntity);
