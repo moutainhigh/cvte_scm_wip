@@ -5,7 +5,9 @@ import com.cvte.scm.wip.domain.core.requirement.repository.WipReqMtrsRepository;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.WipReqMtrsMapper;
 import com.cvte.scm.wip.infrastructure.requirement.mapper.dataobject.WipReqMtrsDO;
 import org.springframework.stereotype.Repository;
+import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,8 +28,17 @@ public class WipReqMtrsRepositoryImpl implements WipReqMtrsRepository {
 
     @Override
     public Integer selectCount(WipReqMtrsEntity mtrsEntity) {
-        WipReqMtrsDO mtrsDO = WipReqMtrsDO.buildDO(mtrsEntity);
-        return wipReqMtrsMapper.selectCount(mtrsDO);
+        List<String> subTypeList = new ArrayList<>();
+        subTypeList.add("主");
+        subTypeList.add("替");
+        Example example = new Example(WipReqMtrsDO.class);
+        example.createCriteria()
+                .andEqualTo("organizationId", mtrsEntity.getOrganizationId())
+                .andEqualTo("headerId", mtrsEntity.getHeaderId())
+                .andEqualTo("itemNo", mtrsEntity.getItemNo())
+                .andEqualTo("wkpNo", mtrsEntity.getWkpNo())
+                .andIn("subType", subTypeList);
+        return wipReqMtrsMapper.selectCountByExample(example);
     }
 
     @Override
